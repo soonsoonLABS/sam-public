@@ -44,11 +44,47 @@ Desktop fallback:
 
 ### Windows PowerShell
 
+Install Node.js LTS and the Codex CLI before running the SAM installer. After
+installing Node.js, close PowerShell completely and open a new window so its
+PATH is refreshed.
+
+```powershell
+winget install -e --id OpenJS.NodeJS.LTS
+
+# Close this PowerShell window, open a new one, then run:
+node --version
+npm --version
+
+# Only if PowerShell says npm.ps1 scripts are blocked:
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+
+npm install -g @openai/codex@latest
+codex --version
+```
+
+Clone the repository once. If `sam-public` is already present from a previous
+attempt, enter that folder and update it instead of cloning again.
+
+First install:
+
 ```powershell
 git clone https://github.com/soonsoonLABS/sam-public.git
 cd sam-public\code-agent
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
 ```
+
+Existing checkout:
+
+```powershell
+cd "$HOME\sam-public"
+git pull --ff-only
+cd .\code-agent
+powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
+```
+
+If `sam-public` exists but is not a Git checkout, rename or remove that folder
+only after confirming it contains no files you need, then use the first-install
+commands above.
 
 After installation:
 
@@ -124,6 +160,37 @@ profile. It also stores `SAM_API_KEY` as a Windows user environment variable so
 the desktop app can read it when launched outside the terminal.
 
 ## Troubleshooting
+
+### `destination path 'sam-public' already exists`
+
+The repository was already cloned. Do not run `git clone` again. Update and use
+the existing checkout:
+
+```powershell
+cd "$HOME\sam-public"
+git pull --ff-only
+cd .\code-agent
+```
+
+If that folder is not a Git checkout, rename or remove it only after confirming
+it contains no files you need, then clone the repository again.
+
+### `Codex CLI was not found on PATH`
+
+The SAM installer requires a working Codex CLI before it can create the SAM
+profile. Run the Node.js LTS and Codex CLI commands in the Windows setup section
+above, then close PowerShell, open a new window, and verify:
+
+```powershell
+codex --version
+```
+
+If `npm` reports that `npm.ps1` scripts are blocked, run this once for your
+Windows user and retry the Codex installation:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
 
 ### `Missing environment variable`
 

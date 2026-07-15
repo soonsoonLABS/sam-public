@@ -6,7 +6,12 @@ $ErrorActionPreference = "Stop"
 
 if (-not (Get-Command codex -ErrorAction SilentlyContinue)) {
     Write-Host "Codex CLI was not found on PATH."
-    Write-Host "Install Codex first, then rerun this installer."
+    Write-Host "Install Node.js LTS and Codex first, then open a new PowerShell window and rerun this installer:"
+    Write-Host "  winget install -e --id OpenJS.NodeJS.LTS"
+    Write-Host "  npm install -g @openai/codex@latest"
+    Write-Host "  codex --version"
+    Write-Host "If PowerShell blocks npm.ps1, run:"
+    Write-Host "  Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned"
     exit 1
 }
 
