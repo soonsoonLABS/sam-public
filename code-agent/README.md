@@ -58,7 +58,9 @@ sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral "Reply with
 
 Use `sam-codex`, not `codex`, for SAM sessions on Windows. The wrapper loads
 `SAM_API_KEY` from `~\.sam-code-agent\env.ps1` into the current PowerShell
-process before launching Codex with `CODEX_HOME=~\.codex-sam`.
+process before launching Codex with `CODEX_HOME=~\.codex-sam`. It also passes
+the SAM provider settings as command-line overrides so the normal
+`~\.codex\config.toml` profile cannot silently take over.
 
 To open the interactive terminal UI with the SAM profile:
 
@@ -143,6 +145,20 @@ it can back up and restore the default `%USERPROFILE%\.codex` profile safely.
 ```powershell
 sam-codex
 ```
+
+### Windows still shows `gpt-5.5 minimal`
+
+Reinstall the wrapper so it can pass the SAM provider settings directly to
+Codex:
+
+```powershell
+cd sam-public\code-agent
+git pull
+powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
+sam-codex
+```
+
+The top of the Codex screen should show `sam-codex-agent`.
 
 ## Current Scope
 

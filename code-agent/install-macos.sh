@@ -60,7 +60,18 @@ fi
 . "$SAM_HOME/env"
 export CODEX_HOME="$CODEX_SAM_HOME"
 
-exec codex "$@"
+exec codex \
+  -c 'model="sam-codex-agent"' \
+  -c 'model_provider="sam"' \
+  -c 'model_reasoning_effort="medium"' \
+  -c 'model_providers.sam.name="SAM"' \
+  -c 'model_providers.sam.base_url="https://sam.soonsoon.ai/openai/v1"' \
+  -c 'model_providers.sam.env_key="SAM_API_KEY"' \
+  -c 'model_providers.sam.wire_api="responses"' \
+  -c 'model_providers.sam.request_max_retries=4' \
+  -c 'model_providers.sam.stream_max_retries=5' \
+  -c 'model_providers.sam.stream_idle_timeout_ms=300000' \
+  "$@"
 EOF
 chmod +x "$BIN_DIR/sam-codex"
 

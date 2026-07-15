@@ -65,7 +65,20 @@ if (-not (Test-Path $EnvFile)) {
 . $EnvFile
 $env:CODEX_HOME = $CodexSamHome
 
-& codex @args
+$SamCodexConfig = @(
+    "-c", "model=`"sam-codex-agent`"",
+    "-c", "model_provider=`"sam`"",
+    "-c", "model_reasoning_effort=`"medium`"",
+    "-c", "model_providers.sam.name=`"SAM`"",
+    "-c", "model_providers.sam.base_url=`"https://sam.soonsoon.ai/openai/v1`"",
+    "-c", "model_providers.sam.env_key=`"SAM_API_KEY`"",
+    "-c", "model_providers.sam.wire_api=`"responses`"",
+    "-c", "model_providers.sam.request_max_retries=4",
+    "-c", "model_providers.sam.stream_max_retries=5",
+    "-c", "model_providers.sam.stream_idle_timeout_ms=300000"
+)
+
+& codex @SamCodexConfig @args
 exit $LASTEXITCODE
 '@ | Set-Content -Path $Runner -Encoding UTF8
 
