@@ -1,20 +1,40 @@
 # SAM Code Agent
 
-`code-agent/` contains public installers and guides for using SAM-backed
-models with Codex. The installer creates a dedicated `sam-codex` command; it
-does not replace the normal `codex` command or require changing your everyday
-ChatGPT/Codex profile.
+**Language:** English | [한국어](README.ko.md)
 
-## Start here
+Run Codex through SAM with one dedicated command: `sam-codex`.
 
-1. Install the shared prerequisites: Git, Node.js LTS (includes npm), and the
-   Codex CLI.
-2. Follow exactly one operating-system guide:
-   - [macOS setup, key management, testing, and shortcut](docs/macos.md)
-   - [Windows setup, key management, testing, and shortcut](docs/windows.md)
-3. Run the guided `sam-codex exec` smoke test.
+This installer keeps SAM isolated from your usual ChatGPT/Codex profile. It
+does not replace the normal `codex` command. Use `sam-codex` whenever you want
+a SAM-backed coding session, and keep using plain `codex` for your usual setup.
 
-The intended daily command is:
+## What you get
+
+- A dedicated `sam-codex` terminal command using `sam-codex-agent`.
+- A local SAM key file that is loaded only for SAM sessions.
+- Separate SAM configuration, so normal Codex settings cannot take over.
+- A direct SAM API test and a separate Codex smoke test for faster diagnosis.
+- Optional desktop shortcuts for macOS and Windows.
+
+## Before you begin
+
+Install these shared prerequisites before cloning this repository:
+
+1. Git
+2. Node.js LTS (includes npm)
+3. Codex CLI
+
+The platform guides provide the exact commands and recovery steps when PATH or
+PowerShell policy blocks `codex`.
+
+## Choose your platform
+
+- [macOS: setup, key management, tests, and shortcut](docs/macos.md)
+- [Windows: setup, key management, tests, and shortcut](docs/windows.md)
+- [macOS 한국어 가이드](docs/ko/macos.md)
+- [Windows 한국어 가이드](docs/ko/windows.md)
+
+## Everyday use
 
 ```text
 sam-codex
@@ -24,7 +44,7 @@ It opens the Codex terminal UI with the SAM provider, `sam-codex-agent`, and
 the locally stored SAM API key. Use `sam-codex exec ...` for non-interactive
 commands. Do not use plain `codex` when you intend a SAM session.
 
-## What the installer changes
+## How it stays separate
 
 The installer keeps SAM separate from the normal Codex home:
 
@@ -37,7 +57,7 @@ The installer keeps SAM separate from the normal Codex home:
 The wrapper also passes the SAM provider settings directly to Codex, so a
 normal `~/.codex/config.toml` profile cannot silently take over the session.
 
-## Key safety
+## API key safety
 
 Create a SAM key whose owner has `agent:codex` or `agent:coding_agents`
 permission. The guides use the installer prompt to store it locally; never put

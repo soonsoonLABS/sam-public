@@ -1,5 +1,7 @@
 # SAM Codex on Windows
 
+**Language:** English | [한국어](ko/windows.md)
+
 This guide creates a dedicated `sam-codex` terminal command. It uses SAM only
 for that command and leaves your normal `codex` profile unchanged.
 

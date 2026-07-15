@@ -1,5 +1,7 @@
 # SAM Codex on macOS
 
+**Language:** English | [한국어](ko/macos.md)
+
 This guide creates a dedicated `sam-codex` terminal command. It uses SAM only
 for that command and leaves your normal `codex` profile unchanged.
 
