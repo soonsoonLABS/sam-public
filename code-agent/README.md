@@ -1,300 +1,62 @@
 # SAM Code Agent
 
-`code-agent/` contains public tools, installers, and documentation for using
-SAM-backed models with coding agents such as Codex and Claude Code.
+`code-agent/` contains public installers and guides for using SAM-backed
+models with Codex. The installer creates a dedicated `sam-codex` command; it
+does not replace the normal `codex` command or require changing your everyday
+ChatGPT/Codex profile.
 
-## Quick Install
+## Start here
 
-The first public installer configures Codex with a separate SAM profile. It
-does not overwrite your normal `~/.codex` account data.
+1. Install the shared prerequisites: Git, Node.js LTS (includes npm), and the
+   Codex CLI.
+2. Follow exactly one operating-system guide:
+   - [macOS setup, key management, testing, and shortcut](docs/macos.md)
+   - [Windows setup, key management, testing, and shortcut](docs/windows.md)
+3. Run the guided `sam-codex exec` smoke test.
 
-## Prerequisites
+The intended daily command is:
 
-Install these general development tools before cloning this repository or
-running a SAM installer:
-
-1. Git
-2. Node.js LTS (includes npm)
-3. Codex CLI
-
-The SAM installer deliberately does not install or remove those system-wide
-tools. It only creates an isolated SAM profile after `codex` is already
-available.
-
-### macOS
-
-Git is included with Xcode Command Line Tools. Install it only if `git` is not
-already available. Install Node.js LTS with Homebrew, then install Codex CLI:
-
-```bash
-# Only if `git --version` fails; follow the macOS prompt, then open a new terminal.
-xcode-select --install
-
-# Requires Homebrew. If you do not use Homebrew, install the Node.js LTS package from nodejs.org.
-brew install node
-npm install -g @openai/codex@latest
-
-git --version
-node --version
-npm --version
-codex --version
-```
-
-### Windows PowerShell
-
-```powershell
-winget install -e --id Git.Git
-winget install -e --id OpenJS.NodeJS.LTS
-
-# Close this PowerShell window, open a new one, then run:
-node --version
-npm --version
-
-# Only if PowerShell says npm.ps1 scripts are blocked:
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-
-npm install -g @openai/codex@latest
-
-git --version
-codex --version
-```
-
-### macOS
-
-```bash
-git clone https://github.com/soonsoonLABS/sam-public.git
-cd sam-public/code-agent
-bash install-macos.sh
-```
-
-After installation:
-
-```bash
-sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral \
-  "Reply with exactly: SAM-CODEX-OK"
-```
-
-To open Codex Desktop with the SAM profile:
-
-```bash
-sam-codex app
-```
-
-If `sam-codex` is not found, run it once with the full path:
-
-```bash
-~/.local/bin/sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral \
-  "Reply with exactly: SAM-CODEX-OK"
-```
-
-Desktop fallback:
-
-```bash
-~/.local/bin/sam-codex app
-```
-
-### Windows PowerShell
-
-Clone the repository once. If `sam-public` is already present from a previous
-attempt, enter that folder and update it instead of cloning again.
-
-First install:
-
-```powershell
-git clone https://github.com/soonsoonLABS/sam-public.git
-cd sam-public\code-agent
-powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
-```
-
-Existing checkout:
-
-```powershell
-cd "$HOME\sam-public"
-git pull --ff-only
-cd .\code-agent
-powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
-```
-
-If `sam-public` exists but is not a Git checkout, rename or remove that folder
-only after confirming it contains no files you need, then use the first-install
-commands above.
-
-After installation:
-
-```powershell
-sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral "Reply with exactly: SAM-CODEX-OK"
-```
-
-Use `sam-codex`, not `codex`, for SAM sessions on Windows. The wrapper loads
-`SAM_API_KEY` from `~\.sam-code-agent\env.ps1` into the current PowerShell
-process before launching Codex with `CODEX_HOME=~\.codex-sam`. It also passes
-the SAM provider settings as command-line overrides so the normal
-`~\.codex\config.toml` profile cannot silently take over.
-
-To open the interactive terminal UI with the SAM profile:
-
-```powershell
+```text
 sam-codex
 ```
 
-If the command is not visible in the current terminal, open a new PowerShell
-window or run:
+It opens the Codex terminal UI with the SAM provider, `sam-codex-agent`, and
+the locally stored SAM API key. Use `sam-codex exec ...` for non-interactive
+commands. Do not use plain `codex` when you intend a SAM session.
 
-```powershell
-& "$HOME\bin\sam-codex.ps1" exec --sandbox read-only --skip-git-repo-check --ephemeral "Reply with exactly: SAM-CODEX-OK"
-```
+## What the installer changes
 
-Interactive terminal fallback:
+The installer keeps SAM separate from the normal Codex home:
 
-```powershell
-& "$HOME\bin\sam-codex.ps1"
-```
+- `~/.codex-sam/config.toml`: SAM provider and model configuration.
+- `~/.sam-code-agent/env` (macOS) or `~/.sam-code-agent/env.ps1` (Windows):
+  local SAM API key file.
+- `sam-codex`: dedicated wrapper that loads the key and sets
+  `CODEX_HOME=~/.codex-sam` for that process only.
 
-## What It Installs
+The wrapper also passes the SAM provider settings directly to Codex, so a
+normal `~/.codex/config.toml` profile cannot silently take over the session.
 
-- `~/.codex-sam/config.toml`: Codex config that points to SAM.
-- `~/.sam-code-agent/env`: local SAM API key file for macOS/Linux shells.
-- `~/.sam-code-agent/env.ps1`: local SAM API key file for Windows PowerShell.
-- `sam-codex`: wrapper command that launches Codex with the SAM config.
+## Key safety
 
-The default model is `sam-codex-agent`.
+Create a SAM key whose owner has `agent:codex` or `agent:coding_agents`
+permission. The guides use the installer prompt to store it locally; never put
+a real key in Git, documentation, screenshots, a shell history command, or a
+project `.env` file.
 
-The SAM profile uses a separate `CODEX_HOME`, so existing ChatGPT/Codex account
-sessions are not merged into the SAM profile.
+The direct API test in each guide verifies the key, network route, and
+`/openai/v1/responses` independently of Codex. The separate CLI smoke test then
+verifies the `sam-codex` wrapper and Codex configuration.
 
-On Windows, the separate SAM profile is currently intended for Codex CLI and
-the interactive terminal UI. `sam-codex app` may start the ChatGPT desktop app
-installer if the Codex CLI cannot detect the installed desktop app, and the
-Windows desktop app normally uses `%USERPROFILE%\.codex` rather than the
-wrapper's temporary `CODEX_HOME`.
+## Desktop app note
 
-### Windows Desktop Switcher
+The dedicated and reliable SAM path is the terminal command `sam-codex`.
+`sam-codex app` can launch the ChatGPT desktop app on macOS, but the desktop
+app is not a separate per-launch SAM profile. On Windows, use the optional
+desktop switcher only after the CLI test succeeds; it temporarily replaces the
+normal user-level Codex profile and must be restored when no longer needed.
 
-After `sam-codex exec` works, you can temporarily switch the Windows desktop
-app's default Codex profile to SAM:
+## Current scope
 
-```powershell
-cd sam-public\code-agent
-powershell -ExecutionPolicy Bypass -File .\enable-windows-desktop-sam.ps1
-```
-
-Then fully quit and reopen the ChatGPT/Codex desktop app. The model selector
-should use `sam-codex-agent`.
-
-To restore the previous desktop profile:
-
-```powershell
-cd sam-public\code-agent
-powershell -ExecutionPolicy Bypass -File .\restore-windows-desktop-default.ps1
-```
-
-The switcher backs up `%USERPROFILE%\.codex\config.toml` before writing the SAM
-profile. It also stores `SAM_API_KEY` as a Windows user environment variable so
-the desktop app can read it when launched outside the terminal.
-
-## Troubleshooting
-
-### `destination path 'sam-public' already exists`
-
-The repository was already cloned. Do not run `git clone` again. Update and use
-the existing checkout:
-
-```powershell
-cd "$HOME\sam-public"
-git pull --ff-only
-cd .\code-agent
-```
-
-If that folder is not a Git checkout, rename or remove it only after confirming
-it contains no files you need, then clone the repository again.
-
-### `Codex CLI was not found on PATH`
-
-The SAM installer requires a working Codex CLI before it can create the SAM
-profile. Complete the prerequisites for your operating system, then open a new
-terminal and verify:
-
-```powershell
-codex --version
-```
-
-If `npm` reports that `npm.ps1` scripts are blocked, run this once for your
-Windows user and retry the Codex installation:
-
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-```
-
-### `Missing environment variable`
-
-If you run `codex exec` directly, Codex reads `env_key = "SAM_API_KEY"` from the
-config and looks for a real process environment variable named `SAM_API_KEY`.
-It does not automatically load `~/.codex/.env`.
-
-Use the wrapper instead:
-
-```bash
-sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral \
-  "Reply with exactly: SAM-CODEX-OK"
-```
-
-On Windows:
-
-```powershell
-sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral "Reply with exactly: SAM-CODEX-OK"
-```
-
-### `sam-codex` is not found
-
-Open a new terminal after installation. If it is still not found, run the
-wrapper by full path:
-
-```bash
-~/.local/bin/sam-codex app
-```
-
-On Windows:
-
-```powershell
-& "$HOME\bin\sam-codex.ps1"
-```
-
-### Windows `sam-codex app` downloads the installer
-
-Use `sam-codex` or `sam-codex exec` for the separate CLI profile. To use the
-Windows desktop app with SAM, run the desktop switcher above. The `sam-codex
-app` launch path is controlled by Codex and may fall back to the installer even
-when the app is already present.
-
-```powershell
-sam-codex
-```
-
-### Windows still shows `gpt-5.5 minimal`
-
-Reinstall the wrapper so it can pass the SAM provider settings directly to
-Codex:
-
-```powershell
-cd sam-public\code-agent
-git pull
-powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
-sam-codex
-```
-
-The top of the Codex screen should show `sam-codex-agent`.
-
-## Current Scope
-
-This first installer targets Codex. Claude Code and MCP tool setup will be
-added as separate, explicit steps after the Codex path is stable.
-
-This directory publishes:
-
-- cross-platform setup and diagnostics for supported coding agents
-- safe configuration examples for SAM API connections
-- MCP tool connection guides
-- release notes and troubleshooting documentation
-
-It intentionally does not contain SAM server code, production configuration,
-or credentials.
+This directory targets Codex. Claude Code and MCP setup will be published as
+separate guides after their installation paths are stable.

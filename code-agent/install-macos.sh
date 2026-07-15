@@ -8,7 +8,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if ! command -v codex >/dev/null 2>&1; then
   echo "Codex CLI was not found on PATH."
-  echo "Install Codex first, then rerun this installer."
+  echo "Install Node.js LTS and Codex first, then rerun this installer:"
+  echo "  npm install -g @openai/codex@latest"
+  echo "  codex --version"
+  echo "See code-agent/docs/macos.md for the full prerequisite setup."
   exit 1
 fi
 

@@ -26,11 +26,19 @@ if ([string]::IsNullOrWhiteSpace($env:SAM_API_KEY)) {
     exit 1
 }
 
+$ExistingUserSamApiKey = [Environment]::GetEnvironmentVariable("SAM_API_KEY", "User")
+if ($null -ne $ExistingUserSamApiKey -and $ExistingUserSamApiKey -ne $env:SAM_API_KEY) {
+    Write-Host "A different SAM_API_KEY user environment variable already exists."
+    Write-Host "The desktop switcher will not overwrite it. Use sam-codex for CLI sessions, or replace that key intentionally before retrying."
+    exit 1
+}
+
 New-Item -ItemType Directory -Force -Path $DefaultCodexHome, $BackupDir | Out-Null
 
 $HadConfig = Test-Path $DefaultConfig
 $BackupPath = $null
 $HasExistingManifest = $false
+$HadUserSamApiKey = $null
 
 if (Test-Path $ManifestFile) {
     try {
@@ -39,6 +47,9 @@ if (Test-Path $ManifestFile) {
         $HadConfig = [bool]$Existing.had_config
         if ($Existing.backup_path) {
             $BackupPath = [string]$Existing.backup_path
+        }
+        if ($Existing.PSObject.Properties.Name -contains "had_user_sam_api_key") {
+            $HadUserSamApiKey = [bool]$Existing.had_user_sam_api_key
         }
     }
     catch {
@@ -53,6 +64,8 @@ if (-not $HasExistingManifest -and [string]::IsNullOrWhiteSpace($BackupPath)) {
         $BackupPath = Join-Path $BackupDir "config.toml.$Stamp.bak"
         Copy-Item -Force -Path $DefaultConfig -Destination $BackupPath
     }
+
+    $HadUserSamApiKey = $null -ne [Environment]::GetEnvironmentVariable("SAM_API_KEY", "User")
 }
 
 Copy-Item -Force -Path $Template -Destination $DefaultConfig
@@ -65,6 +78,10 @@ $Manifest = [ordered]@{
     default_config = $DefaultConfig
     had_config = $HadConfig
     backup_path = $BackupPath
+}
+
+if ($null -ne $HadUserSamApiKey) {
+    $Manifest.had_user_sam_api_key = $HadUserSamApiKey
 }
 
 $Manifest | ConvertTo-Json | Set-Content -Path $ManifestFile -Encoding UTF8
