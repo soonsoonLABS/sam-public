@@ -99,6 +99,30 @@ installer if the Codex CLI cannot detect the installed desktop app, and the
 Windows desktop app normally uses `%USERPROFILE%\.codex` rather than the
 wrapper's temporary `CODEX_HOME`.
 
+### Windows Desktop Switcher
+
+After `sam-codex exec` works, you can temporarily switch the Windows desktop
+app's default Codex profile to SAM:
+
+```powershell
+cd sam-public\code-agent
+powershell -ExecutionPolicy Bypass -File .\enable-windows-desktop-sam.ps1
+```
+
+Then fully quit and reopen the ChatGPT/Codex desktop app. The model selector
+should use `sam-codex-agent`.
+
+To restore the previous desktop profile:
+
+```powershell
+cd sam-public\code-agent
+powershell -ExecutionPolicy Bypass -File .\restore-windows-desktop-default.ps1
+```
+
+The switcher backs up `%USERPROFILE%\.codex\config.toml` before writing the SAM
+profile. It also stores `SAM_API_KEY` as a Windows user environment variable so
+the desktop app can read it when launched outside the terminal.
+
 ## Troubleshooting
 
 ### `Missing environment variable`
@@ -137,10 +161,10 @@ On Windows:
 
 ### Windows `sam-codex app` downloads the installer
 
-Use `sam-codex` or `sam-codex exec` on Windows for now. The desktop app launch
-path is controlled by Codex and may fall back to the installer even when the
-app is already present. A Windows desktop switcher will be added separately so
-it can back up and restore the default `%USERPROFILE%\.codex` profile safely.
+Use `sam-codex` or `sam-codex exec` for the separate CLI profile. To use the
+Windows desktop app with SAM, run the desktop switcher above. The `sam-codex
+app` launch path is controlled by Codex and may fall back to the installer even
+when the app is already present.
 
 ```powershell
 sam-codex
