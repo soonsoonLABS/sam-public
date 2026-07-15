@@ -8,6 +8,57 @@ SAM-backed models with coding agents such as Codex and Claude Code.
 The first public installer configures Codex with a separate SAM profile. It
 does not overwrite your normal `~/.codex` account data.
 
+## Prerequisites
+
+Install these general development tools before cloning this repository or
+running a SAM installer:
+
+1. Git
+2. Node.js LTS (includes npm)
+3. Codex CLI
+
+The SAM installer deliberately does not install or remove those system-wide
+tools. It only creates an isolated SAM profile after `codex` is already
+available.
+
+### macOS
+
+Git is included with Xcode Command Line Tools. Install it only if `git` is not
+already available. Install Node.js LTS with Homebrew, then install Codex CLI:
+
+```bash
+# Only if `git --version` fails; follow the macOS prompt, then open a new terminal.
+xcode-select --install
+
+# Requires Homebrew. If you do not use Homebrew, install the Node.js LTS package from nodejs.org.
+brew install node
+npm install -g @openai/codex@latest
+
+git --version
+node --version
+npm --version
+codex --version
+```
+
+### Windows PowerShell
+
+```powershell
+winget install -e --id Git.Git
+winget install -e --id OpenJS.NodeJS.LTS
+
+# Close this PowerShell window, open a new one, then run:
+node --version
+npm --version
+
+# Only if PowerShell says npm.ps1 scripts are blocked:
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+
+npm install -g @openai/codex@latest
+
+git --version
+codex --version
+```
+
 ### macOS
 
 ```bash
@@ -43,24 +94,6 @@ Desktop fallback:
 ```
 
 ### Windows PowerShell
-
-Install Node.js LTS and the Codex CLI before running the SAM installer. After
-installing Node.js, close PowerShell completely and open a new window so its
-PATH is refreshed.
-
-```powershell
-winget install -e --id OpenJS.NodeJS.LTS
-
-# Close this PowerShell window, open a new one, then run:
-node --version
-npm --version
-
-# Only if PowerShell says npm.ps1 scripts are blocked:
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-
-npm install -g @openai/codex@latest
-codex --version
-```
 
 Clone the repository once. If `sam-public` is already present from a previous
 attempt, enter that folder and update it instead of cloning again.
@@ -178,8 +211,8 @@ it contains no files you need, then clone the repository again.
 ### `Codex CLI was not found on PATH`
 
 The SAM installer requires a working Codex CLI before it can create the SAM
-profile. Run the Node.js LTS and Codex CLI commands in the Windows setup section
-above, then close PowerShell, open a new window, and verify:
+profile. Complete the prerequisites for your operating system, then open a new
+terminal and verify:
 
 ```powershell
 codex --version
