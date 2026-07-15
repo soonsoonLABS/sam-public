@@ -29,6 +29,13 @@ if [ -z "$key" ]; then
   exit 1
 fi
 
+key="$(printf '%s' "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+
+if [ -z "$key" ]; then
+  echo "SAM API key is required."
+  exit 1
+fi
+
 cat > "$SAM_HOME/env" <<EOF
 export SAM_API_KEY='$key'
 EOF

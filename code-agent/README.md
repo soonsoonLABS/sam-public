@@ -56,6 +56,10 @@ After installation:
 sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral "Reply with exactly: SAM-CODEX-OK"
 ```
 
+Use `sam-codex`, not `codex`, for SAM sessions on Windows. The wrapper loads
+`SAM_API_KEY` from `~\.sam-code-agent\env.ps1` into the current PowerShell
+process before launching Codex with `CODEX_HOME=~\.codex-sam`.
+
 To open Codex Desktop with the SAM profile:
 
 ```powershell
@@ -86,6 +90,42 @@ The default model is `sam-codex-agent`.
 
 The SAM profile uses a separate `CODEX_HOME`, so existing ChatGPT/Codex account
 sessions are not merged into the SAM profile.
+
+## Troubleshooting
+
+### `Missing environment variable`
+
+If you run `codex exec` directly, Codex reads `env_key = "SAM_API_KEY"` from the
+config and looks for a real process environment variable named `SAM_API_KEY`.
+It does not automatically load `~/.codex/.env`.
+
+Use the wrapper instead:
+
+```bash
+sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral \
+  "Reply with exactly: SAM-CODEX-OK"
+```
+
+On Windows:
+
+```powershell
+sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral "Reply with exactly: SAM-CODEX-OK"
+```
+
+### `sam-codex` is not found
+
+Open a new terminal after installation. If it is still not found, run the
+wrapper by full path:
+
+```bash
+~/.local/bin/sam-codex app
+```
+
+On Windows:
+
+```powershell
+& "$HOME\bin\sam-codex.ps1" app
+```
 
 ## Current Scope
 

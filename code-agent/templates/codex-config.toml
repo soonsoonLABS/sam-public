@@ -3,9 +3,13 @@
 
 model = "sam-codex-agent"
 model_provider = "sam"
+model_reasoning_effort = "medium"
 
 [model_providers.sam]
 name = "SAM"
 base_url = "https://sam.soonsoon.ai/openai/v1"
 env_key = "SAM_API_KEY"
 wire_api = "responses"
+request_max_retries = 4
+stream_max_retries = 5
+stream_idle_timeout_ms = 300000

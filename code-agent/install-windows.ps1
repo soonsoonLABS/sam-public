@@ -33,6 +33,13 @@ if ([string]::IsNullOrWhiteSpace($SamApiKey)) {
     exit 1
 }
 
+$SamApiKey = $SamApiKey.Trim()
+
+if ([string]::IsNullOrWhiteSpace($SamApiKey)) {
+    Write-Host "SAM API key is required."
+    exit 1
+}
+
 $EnvFile = Join-Path $SamHome "env.ps1"
 Set-Content -Path $EnvFile -Encoding UTF8 -Value "`$env:SAM_API_KEY = '$SamApiKey'"
 if (Get-Command icacls -ErrorAction SilentlyContinue) {
