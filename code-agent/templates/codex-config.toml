@@ -1,0 +1,11 @@
+# SAM-managed Codex config.
+# This file is intended to live in ~/.codex-sam/config.toml.
+
+model = "sam-codex-agent"
+model_provider = "sam"
+
+[model_providers.sam]
+name = "SAM"
+base_url = "https://sam.soonsoon.ai/openai/v1"
+env_key = "SAM_API_KEY"
+wire_api = "responses"
