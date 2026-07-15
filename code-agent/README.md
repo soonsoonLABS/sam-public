@@ -73,8 +73,10 @@ verifies the `sam-codex` wrapper and Codex configuration.
 The dedicated and reliable SAM path is the terminal command `sam-codex`.
 `sam-codex app` can launch the ChatGPT desktop app on macOS, but the desktop
 app is not a separate per-launch SAM profile. On Windows, use the optional
-desktop switcher only after the CLI test succeeds; it temporarily replaces the
-normal user-level Codex profile and must be restored when no longer needed.
+desktop switcher only after the CLI test succeeds. It does **not** install a
+separate SAM-Codex app: it temporarily replaces the existing Windows Codex
+desktop app's user-level profile. The Windows guide includes the one-command
+restore path and recovery notes.
 
 ## Current scope
 

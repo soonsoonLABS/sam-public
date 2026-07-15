@@ -162,12 +162,20 @@ $Shortcut.Save()
 
 Double-click `SAM-Codex` on the desktop to start a SAM session.
 
-## Optional: switch the Windows desktop app to SAM
+## Optional: switch the existing Windows Codex desktop app to SAM
 
 The recommended dedicated path is `sam-codex` in a terminal. Use the desktop
 switcher only after the CLI smoke test succeeds: it temporarily changes the
 normal `%USERPROFILE%\.codex\config.toml` profile so the ChatGPT desktop app
-uses SAM.
+uses SAM. It does **not** install a separate SAM-Codex desktop application.
+
+Before switching, note the recovery path. The script saves the current Codex
+config before replacing it. To immediately return the existing desktop app to
+its previous profile, run this from `sam-public\code-agent`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\restore-windows-desktop-default.ps1
+```
 
 ```powershell
 Set-Location "$HOME\sam-public\code-agent"
@@ -181,7 +189,9 @@ profile later:
 powershell -ExecutionPolicy Bypass -File .\restore-windows-desktop-default.ps1
 ```
 
-The switcher backs up an existing config. For a newly created SAM user
+The restore script puts the backed-up configuration back. If the desktop app
+does not start or shows the wrong profile after switching, fully quit it, run
+the restore command above, and reopen it. For a newly created SAM user
 environment variable, the restore script also removes that variable; if you
 already had a different user-level `SAM_API_KEY`, the switcher stops rather
 than overwriting it.
