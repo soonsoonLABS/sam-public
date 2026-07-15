@@ -5,6 +5,11 @@
 이 가이드는 전용 `sam-codex` 터미널 명령을 만듭니다. 이 명령으로만 SAM을
 사용하므로 기존 `codex` 환경은 바뀌지 않습니다.
 
+| 방식 | 실행 명령 | 설정 홈 |
+| --- | --- | --- |
+| 기본 Codex | `codex` | `%USERPROFILE%\.codex` |
+| SAM Codex | `sam-codex` | `%USERPROFILE%\.codex-sam` |
+
 ## 1. 사전 도구 설치
 
 `sam-public`을 내려받거나 SAM 설치 프로그램을 실행하기 전에 Git,
@@ -161,12 +166,12 @@ $Shortcut.Save()
 
 데스크톱의 `SAM-Codex`를 더블클릭하면 SAM 세션이 시작됩니다.
 
-## 선택: 기존 Windows Codex 데스크톱 앱을 SAM으로 전환
+## 선택: 기본 Windows Codex 데스크톱 모드를 SAM으로 일시 전환
 
 전용·권장 경로는 터미널의 `sam-codex`입니다. CLI 스모크 테스트가 성공한
-뒤에만 데스크톱 전환기를 사용하세요. 이 전환기는 ChatGPT 데스크톱 앱이
-SAM을 사용하도록 일반 `%USERPROFILE%\.codex\config.toml`을 임시 변경합니다.
-별도 SAM-Codex 데스크톱 앱을 설치하는 기능은 아닙니다.
+뒤에만 데스크톱 전환기를 사용하세요. 이 전환기는 기본 Codex 설정 홈인
+`%USERPROFILE%\.codex\config.toml`을 SAM으로 임시 변경합니다. 즉 두 방식을
+동시에 제공하지 않으며, 별도 SAM-Codex 데스크톱 앱을 설치하는 기능도 아닙니다.
 
 전환 전 복원 경로를 확인하세요. 스크립트는 기존 Codex 설정을 백업한 뒤
 바꿉니다. 기존 데스크톱 앱을 바로 이전 프로필로 되돌리려면

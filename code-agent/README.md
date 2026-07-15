@@ -4,9 +4,15 @@
 
 Run Codex through SAM with one dedicated command: `sam-codex`.
 
-This installer keeps SAM isolated from your usual ChatGPT/Codex profile. It
-does not replace the normal `codex` command. Use `sam-codex` whenever you want
-a SAM-backed coding session, and keep using plain `codex` for your usual setup.
+## Two Codex modes
+
+| Mode | Command | Config home | Use |
+| --- | --- | --- | --- |
+| Default Codex | `codex` or `codex app` | `~/.codex` | Your normal ChatGPT/Codex account and OpenAI configuration |
+| SAM Codex | `sam-codex` | `~/.codex-sam` | A terminal session using a SAM API key and `sam-codex-agent` |
+
+The modes do not share a configuration file. `sam-codex` does not replace
+plain `codex`; use it only when you want a SAM-backed session.
 
 ## What you get
 
@@ -14,7 +20,7 @@ a SAM-backed coding session, and keep using plain `codex` for your usual setup.
 - A local SAM key file that is loaded only for SAM sessions.
 - Separate SAM configuration, so normal Codex settings cannot take over.
 - A direct SAM API test and a separate Codex smoke test for faster diagnosis.
-- Optional desktop shortcuts for macOS and Windows.
+- Optional macOS and Windows Terminal shortcuts.
 
 ## Before you begin
 
@@ -37,12 +43,14 @@ PowerShell policy blocks `codex`.
 ## Everyday use
 
 ```text
-sam-codex
+codex       # Default Codex: ~/.codex
+sam-codex   # SAM Codex: ~/.codex-sam
 ```
 
-It opens the Codex terminal UI with the SAM provider, `sam-codex-agent`, and
-the locally stored SAM API key. Use `sam-codex exec ...` for non-interactive
-commands. Do not use plain `codex` when you intend a SAM session.
+`sam-codex` opens the Codex terminal UI with the SAM provider,
+`sam-codex-agent`, and the locally stored SAM API key. Use `sam-codex exec
+...` for non-interactive commands. Do not use plain `codex` when you intend a
+SAM session.
 
 ## How it stays separate
 
@@ -70,13 +78,14 @@ verifies the `sam-codex` wrapper and Codex configuration.
 
 ## Desktop app note
 
-The dedicated and reliable SAM path is the terminal command `sam-codex`.
-`sam-codex app` can launch the ChatGPT desktop app on macOS, but the desktop
-app is not a separate per-launch SAM profile. On Windows, use the optional
-desktop switcher only after the CLI test succeeds. It does **not** install a
-separate SAM-Codex app: it temporarily replaces the existing Windows Codex
-desktop app's user-level profile. The Windows guide includes the one-command
-restore path and recovery notes.
+The standard ChatGPT/Codex desktop app is the `~/.codex` mode. `sam-codex app`
+does not create a separate SAM-Codex app or reliably switch the existing
+desktop app's provider. The dedicated and reliable SAM path is the
+`sam-codex` terminal command and its Terminal shortcut.
+
+On Windows, the optional desktop switcher temporarily changes the existing
+desktop app's `~/.codex` mode to SAM. It does **not** provide both modes at the
+same time; the Windows guide includes the restore command.
 
 ## Current scope
 

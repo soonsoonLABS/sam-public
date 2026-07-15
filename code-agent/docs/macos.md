@@ -5,6 +5,14 @@
 This guide creates a dedicated `sam-codex` terminal command. It uses SAM only
 for that command and leaves your normal `codex` profile unchanged.
 
+| Mode | Command | Config home |
+| --- | --- | --- |
+| Default Codex | `codex` or `codex app` | `~/.codex` |
+| SAM Codex | `sam-codex` | `~/.codex-sam` |
+
+The macOS ChatGPT/Codex desktop app is the default Codex mode. Use the
+`sam-codex` terminal command for a dedicated SAM session.
+
 ## 1. Install prerequisites
 
 Install these before cloning `sam-public`: Git, Node.js LTS (which includes
@@ -118,7 +126,7 @@ unset SAM_API_KEY
 If this succeeds but `sam-codex exec` fails, the key and SAM route are working;
 re-run the installer and use the dedicated command rather than plain `codex`.
 
-## 7. Create a desktop shortcut
+## 7. Create a Terminal shortcut
 
 After the installer succeeds, create a clickable Terminal launcher on the
 desktop:
@@ -136,6 +144,6 @@ ask for confirmation the first time because it is a local executable file.
 
 ## Desktop app
 
-`sam-codex app` can launch the ChatGPT desktop app on macOS. Prefer
-`sam-codex` for a dedicated SAM session: the desktop app does not provide a
-separate, reliable per-launch SAM profile.
+`sam-codex app` does not install a separate SAM-Codex app or safely switch the
+existing ChatGPT desktop app to SAM. Keep the existing desktop app in the
+default Codex mode, and use `sam-codex` or the Terminal shortcut above for SAM.

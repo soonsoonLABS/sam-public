@@ -95,5 +95,4 @@ echo
 echo "Test command:"
 echo "sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral 'Reply with exactly: SAM-CODEX-OK'"
 echo
-echo "Desktop command:"
-echo "sam-codex app"
+echo "Use plain codex for ~/.codex, and sam-codex for ~/.codex-sam."

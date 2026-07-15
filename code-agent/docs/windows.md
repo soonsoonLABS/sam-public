@@ -5,6 +5,11 @@
 This guide creates a dedicated `sam-codex` terminal command. It uses SAM only
 for that command and leaves your normal `codex` profile unchanged.
 
+| Mode | Command | Config home |
+| --- | --- | --- |
+| Default Codex | `codex` | `%USERPROFILE%\.codex` |
+| SAM Codex | `sam-codex` | `%USERPROFILE%\.codex-sam` |
+
 ## 1. Install prerequisites
 
 Install Git, Node.js LTS (which includes npm), and Codex CLI before cloning
@@ -162,12 +167,13 @@ $Shortcut.Save()
 
 Double-click `SAM-Codex` on the desktop to start a SAM session.
 
-## Optional: switch the existing Windows Codex desktop app to SAM
+## Optional: temporarily switch the default Windows Codex desktop mode to SAM
 
 The recommended dedicated path is `sam-codex` in a terminal. Use the desktop
 switcher only after the CLI smoke test succeeds: it temporarily changes the
-normal `%USERPROFILE%\.codex\config.toml` profile so the ChatGPT desktop app
-uses SAM. It does **not** install a separate SAM-Codex desktop application.
+default `%USERPROFILE%\.codex\config.toml` mode so the ChatGPT desktop app uses
+SAM. It does **not** provide both modes at once or install a separate
+SAM-Codex desktop application.
 
 Before switching, note the recovery path. The script saves the current Codex
 config before replacing it. To immediately return the existing desktop app to

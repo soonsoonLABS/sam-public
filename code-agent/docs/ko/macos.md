@@ -5,6 +5,14 @@
 이 가이드는 전용 `sam-codex` 터미널 명령을 만듭니다. 이 명령으로만 SAM을
 사용하므로 기존 `codex` 환경은 바뀌지 않습니다.
 
+| 방식 | 실행 명령 | 설정 홈 |
+| --- | --- | --- |
+| 기본 Codex | `codex` 또는 `codex app` | `~/.codex` |
+| SAM Codex | `sam-codex` | `~/.codex-sam` |
+
+macOS의 ChatGPT/Codex 데스크톱 앱은 기본 Codex 방식입니다. SAM 전용 세션은
+이 가이드의 `sam-codex` 터미널 명령으로 실행합니다.
+
 ## 1. 사전 도구 설치
 
 `sam-public`을 내려받기 전에 Git, Node.js LTS(npm 포함), Codex CLI를
@@ -120,7 +128,7 @@ unset SAM_API_KEY
 직접 호출은 성공하지만 `sam-codex exec`가 실패하면 키와 SAM 경로는 정상입니다.
 설치 프로그램을 다시 실행한 뒤 일반 `codex`가 아닌 전용 명령을 사용하세요.
 
-## 7. 데스크톱 바로가기 만들기
+## 7. 터미널 바로가기 만들기
 
 설치가 끝난 뒤 데스크톱에서 실행할 수 있는 터미널 launcher를 만듭니다.
 
@@ -137,6 +145,6 @@ macOS가 로컬 실행 파일 확인을 요청할 수 있습니다.
 
 ## 데스크톱 앱 참고
 
-`sam-codex app`은 macOS에서 ChatGPT 데스크톱 앱을 열 수 있습니다. 다만
-전용 SAM 세션에는 `sam-codex` 터미널 명령을 권장합니다. 데스크톱 앱은
-실행마다 분리된 SAM 프로필을 신뢰성 있게 보장하지 않습니다.
+`sam-codex app`은 별도 SAM-Codex 앱을 설치하거나 기존 ChatGPT 데스크톱
+앱을 SAM으로 안전하게 전환하지 않습니다. 기존 데스크톱 앱은 기본 Codex
+방식으로 두고, SAM은 `sam-codex` 터미널 명령 또는 위 바로가기로 사용하세요.
