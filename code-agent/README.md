@@ -60,10 +60,10 @@ Use `sam-codex`, not `codex`, for SAM sessions on Windows. The wrapper loads
 `SAM_API_KEY` from `~\.sam-code-agent\env.ps1` into the current PowerShell
 process before launching Codex with `CODEX_HOME=~\.codex-sam`.
 
-To open Codex Desktop with the SAM profile:
+To open the interactive terminal UI with the SAM profile:
 
 ```powershell
-sam-codex app
+sam-codex
 ```
 
 If the command is not visible in the current terminal, open a new PowerShell
@@ -73,10 +73,10 @@ window or run:
 & "$HOME\bin\sam-codex.ps1" exec --sandbox read-only --skip-git-repo-check --ephemeral "Reply with exactly: SAM-CODEX-OK"
 ```
 
-Desktop fallback:
+Interactive terminal fallback:
 
 ```powershell
-& "$HOME\bin\sam-codex.ps1" app
+& "$HOME\bin\sam-codex.ps1"
 ```
 
 ## What It Installs
@@ -90,6 +90,12 @@ The default model is `sam-codex-agent`.
 
 The SAM profile uses a separate `CODEX_HOME`, so existing ChatGPT/Codex account
 sessions are not merged into the SAM profile.
+
+On Windows, the separate SAM profile is currently intended for Codex CLI and
+the interactive terminal UI. `sam-codex app` may start the ChatGPT desktop app
+installer if the Codex CLI cannot detect the installed desktop app, and the
+Windows desktop app normally uses `%USERPROFILE%\.codex` rather than the
+wrapper's temporary `CODEX_HOME`.
 
 ## Troubleshooting
 
@@ -124,7 +130,18 @@ wrapper by full path:
 On Windows:
 
 ```powershell
-& "$HOME\bin\sam-codex.ps1" app
+& "$HOME\bin\sam-codex.ps1"
+```
+
+### Windows `sam-codex app` downloads the installer
+
+Use `sam-codex` or `sam-codex exec` on Windows for now. The desktop app launch
+path is controlled by Codex and may fall back to the installer even when the
+app is already present. A Windows desktop switcher will be added separately so
+it can back up and restore the default `%USERPROFILE%\.codex` profile safely.
+
+```powershell
+sam-codex
 ```
 
 ## Current Scope

@@ -43,7 +43,7 @@ if ([string]::IsNullOrWhiteSpace($SamApiKey)) {
 $EnvFile = Join-Path $SamHome "env.ps1"
 Set-Content -Path $EnvFile -Encoding UTF8 -Value "`$env:SAM_API_KEY = '$SamApiKey'"
 if (Get-Command icacls -ErrorAction SilentlyContinue) {
-    & icacls $EnvFile /inheritance:r /grant:r "$($env:USERNAME):R" | Out-Null
+    & icacls $EnvFile /inheritance:r /grant:r "$($env:USERNAME):F" | Out-Null
 }
 
 $Template = Join-Path $ScriptDir "templates\codex-config.toml"
@@ -92,5 +92,7 @@ Write-Host "Open a new PowerShell window if sam-codex is not found in this termi
 Write-Host "Test command:"
 Write-Host "sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral `"Reply with exactly: SAM-CODEX-OK`""
 Write-Host ""
-Write-Host "Desktop command:"
-Write-Host "sam-codex app"
+Write-Host "Interactive terminal command:"
+Write-Host "sam-codex"
+Write-Host ""
+Write-Host "Note: on Windows, use sam-codex for the CLI/TUI. sam-codex app may open the desktop installer."
