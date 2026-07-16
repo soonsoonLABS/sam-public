@@ -23,7 +23,7 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 New-Item -ItemType Directory -Force -Path $SamHome, $CodexSamHome, $BinDir | Out-Null
 
 if ([string]::IsNullOrWhiteSpace($SamApiKey)) {
-    $secure = Read-Host "Enter your SAM API key" -AsSecureString
+    $secure = Read-Host "Enter your dedicated Code Agent SAM API key" -AsSecureString
     $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
     try {
         $SamApiKey = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)

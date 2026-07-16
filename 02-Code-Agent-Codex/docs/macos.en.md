@@ -5,6 +5,10 @@
 This guide creates a dedicated `sam-codex` terminal command. It uses SAM only
 for that command and leaves your normal `codex` profile unchanged.
 
+Start with the [manual setup guide](../MANUAL_SETUP.en.md) to understand the
+key, switching, and restore steps. This document is the installer automation
+path for the same setup.
+
 | Mode | Command | Config home |
 | --- | --- | --- |
 | Default Codex | `codex` or `codex app` | `~/.codex` |
@@ -12,6 +16,13 @@ for that command and leaves your normal `codex` profile unchanged.
 
 The macOS ChatGPT/Codex desktop app is the default Codex mode. Use the
 `sam-codex` terminal command for a dedicated SAM session.
+
+## Quick setup
+
+In SAM web, create a dedicated key in **API Keys**, named something like `Code
+Agent - Mac`. You paste it once into the installer's hidden prompt below. Do
+not create `~/.codex/.env` or `config.toml` manually. After installation, use
+`sam-codex` whenever you want SAM Codex.
 
 ## 1. Install prerequisites
 
@@ -50,13 +61,14 @@ else
   git clone https://github.com/soonsoonLABS/sam-public.git "$HOME/sam-public"
 fi
 
-cd "$HOME/sam-public/code-agent"
+cd "$HOME/sam-public/02-Code-Agent-Codex"
 ```
 
 ## 3. Install the dedicated SAM command
 
-Run the installer and paste the SAM API key only into its hidden prompt. The
-key owner needs `agent:codex` or `agent:coding_agents` permission.
+Run the installer and paste the dedicated Code Agent SAM API key only into its
+hidden prompt. The key owner needs `agent:codex` or
+`agent:coding_agents` permission.
 
 ```bash
 unset SAM_API_KEY
@@ -95,11 +107,12 @@ yet on PATH, use the full path:
 
 ## 5. Change the SAM API key
 
-Re-run the installer. `unset` is important: it makes the installer show its
-hidden prompt instead of reusing a key inherited by the shell.
+Re-run the installer and enter the new dedicated Code Agent key. `unset` is
+important: it makes the installer show its hidden prompt instead of reusing a
+key inherited by the shell.
 
 ```bash
-cd "$HOME/sam-public/code-agent"
+cd "$HOME/sam-public/02-Code-Agent-Codex"
 unset SAM_API_KEY
 bash install-macos.sh
 ```
@@ -150,7 +163,7 @@ configuration. It is a provider swap, not simultaneous OpenAI-account and SAM
 modes. Run it only after the `sam-codex exec` smoke test succeeds.
 
 ```bash
-cd "$HOME/sam-public/code-agent"
+cd "$HOME/sam-public/02-Code-Agent-Codex"
 bash enable-macos-desktop-sam.sh
 ```
 
@@ -166,7 +179,7 @@ logout or reboot, so run the switch command again before opening the app.
 Restore the normal OpenAI-account profile with:
 
 ```bash
-cd "$HOME/sam-public/code-agent"
+cd "$HOME/sam-public/02-Code-Agent-Codex"
 bash restore-macos-desktop-default.sh
 ```
 

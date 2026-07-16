@@ -16,7 +16,7 @@ key, confirm only the key prefix, and run a tiny `Hello SAM` test call.
   guide for macOS and Windows
 - [`01-sam-skills/`](01-sam-skills/README.en.md): essential SAM API skill
   documents for AI agents to read from global configuration
-- [`code-agent/`](code-agent/README.en.md): coding-agent connection tools and
+- [`02-Code-Agent-Codex/`](02-Code-Agent-Codex/README.en.md): coding-agent connection tools and
   guides for Codex and Claude Code
 
 ## Security

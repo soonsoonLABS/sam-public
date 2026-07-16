@@ -11,7 +11,7 @@ if ! command -v codex >/dev/null 2>&1; then
   echo "Install Node.js LTS and Codex first, then rerun this installer:"
   echo "  npm install -g @openai/codex@latest"
   echo "  codex --version"
-  echo "See code-agent/docs/macos.en.md for the full prerequisite setup."
+  echo "See docs/macos.en.md for the full prerequisite setup."
   exit 1
 fi
 
@@ -20,7 +20,7 @@ mkdir -p "$SAM_HOME" "$CODEX_SAM_HOME" "$BIN_DIR"
 if [ -n "${SAM_API_KEY:-}" ]; then
   key="$SAM_API_KEY"
 else
-  printf "Enter your SAM API key: "
+  printf "Enter your dedicated Code Agent SAM API key: "
   stty -echo
   IFS= read -r key
   stty echo

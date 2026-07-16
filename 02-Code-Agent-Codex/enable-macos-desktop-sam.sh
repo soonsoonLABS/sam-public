@@ -15,7 +15,7 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   exit 1
 fi
 if [[ ! -f "${TEMPLATE}" ]]; then
-  echo "Missing ${TEMPLATE}. Run this script from sam-public/code-agent." >&2
+  echo "Missing ${TEMPLATE}. Run this script from sam-public/02-Code-Agent-Codex." >&2
   exit 1
 fi
 

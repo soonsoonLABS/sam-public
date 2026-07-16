@@ -1,0 +1,129 @@
+# Manual SAM Codex setup (macOS)
+
+**Language:** [한국어](MANUAL_SETUP.md) | English
+
+This is the baseline manual setup without an installer. It keeps the API key
+out of shell history and separates normal Codex from SAM Codex CLI state.
+
+## 1. Prepare an existing SAM key or dedicated Code Agent key
+
+An existing SAM key works, but a per-device key such as `Code Agent - Mac` is
+recommended. Create it in SAM web under **API Keys**, then paste it only into
+this hidden prompt.
+
+```bash
+mkdir -p "$HOME/.sam-code-agent"
+printf 'Paste SAM Code Agent key: '
+stty -echo
+IFS= read -r SAM_API_KEY
+stty echo
+printf '\n'
+printf 'export SAM_API_KEY=%q\n' "$SAM_API_KEY" > "$HOME/.sam-code-agent/env"
+chmod 600 "$HOME/.sam-code-agent/env"
+unset SAM_API_KEY
+```
+
+## 2. Test the key
+
+Verify the SAM route before involving Codex. A successful response includes
+`SAM-CODEX-OK`.
+
+```bash
+source "$HOME/.sam-code-agent/env"
+curl --silent --show-error --fail-with-body --max-time 120 -X POST \
+  'https://sam.soonsoon.ai/openai/v1/responses' \
+  -H "Authorization: Bearer $SAM_API_KEY" \
+  -H 'Content-Type: application/json' \
+  --data '{"model":"sam-codex-agent","input":"Reply with exactly: SAM-CODEX-OK","stream":false}'
+unset SAM_API_KEY
+```
+
+## 3. Install Codex CLI
+
+Install Node.js LTS first if needed, then run:
+
+```bash
+npm install -g @openai/codex@latest
+codex --version
+```
+
+## 4. Create an isolated SAM Codex CLI environment
+
+Keep SAM configuration in `~/.codex-sam`, not the normal `~/.codex` home.
+
+```bash
+mkdir -p "$HOME/.codex-sam"
+cat > "$HOME/.codex-sam/config.toml" <<'EOF'
+model = "sam-codex-agent"
+model_provider = "sam"
+model_reasoning_effort = "medium"
+
+[model_providers.sam]
+name = "SAM"
+base_url = "https://sam.soonsoon.ai/openai/v1"
+env_key = "SAM_API_KEY"
+wire_api = "responses"
+request_max_retries = 4
+stream_max_retries = 5
+stream_idle_timeout_ms = 300000
+EOF
+chmod 600 "$HOME/.codex-sam/config.toml"
+```
+
+Launch SAM Codex with this command. The key and `CODEX_HOME` apply only inside
+the subshell, so normal `codex` configuration is unchanged.
+
+```bash
+(
+  source "$HOME/.sam-code-agent/env"
+  CODEX_HOME="$HOME/.codex-sam" codex
+)
+```
+
+Use plain `codex` for the normal OpenAI/ChatGPT Codex CLI.
+
+## 5. Switch and restore the default Codex CLI or desktop app
+
+The default profile uses `~/.codex/config.toml`. Back it up, replace it with
+the SAM configuration, and set the GUI-session key:
+
+```bash
+mkdir -p "$HOME/.sam-code-agent/backups"
+if [ -f "$HOME/.codex/config.toml" ]; then
+  cp -p "$HOME/.codex/config.toml" "$HOME/.sam-code-agent/backups/default-codex-config.toml.bak"
+else
+  : > "$HOME/.sam-code-agent/backups/default-codex-config-was-absent"
+fi
+mkdir -p "$HOME/.codex"
+cp "$HOME/.codex-sam/config.toml" "$HOME/.codex/config.toml"
+
+source "$HOME/.sam-code-agent/env"
+launchctl setenv SAM_API_KEY "$SAM_API_KEY"
+unset SAM_API_KEY
+```
+
+Fully quit the desktop app with `Cmd-Q` before reopening it. The GUI-session key
+is cleared after logout or reboot, so rerun the switch command before opening
+the app again.
+
+Restore the normal OpenAI/ChatGPT configuration with:
+
+```bash
+if [ -f "$HOME/.sam-code-agent/backups/default-codex-config.toml.bak" ]; then
+  cp "$HOME/.sam-code-agent/backups/default-codex-config.toml.bak" "$HOME/.codex/config.toml"
+else
+  rm -f "$HOME/.codex/config.toml"
+fi
+launchctl unsetenv SAM_API_KEY
+```
+
+Fully quit and reopen the app after restoring. This does not delete ChatGPT
+login information or conversation history, but SAM API sessions and ChatGPT
+account history use separate authentication and session state.
+
+## Desktop separation status
+
+Use `CODEX_HOME` for isolated Codex CLI state. Running a cloned ChatGPT/Codex
+desktop app with an independent profile is not a stable, officially documented
+configuration path, so this guide supports the backup-and-switch desktop method
+instead.
