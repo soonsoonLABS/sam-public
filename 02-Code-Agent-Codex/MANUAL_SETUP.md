@@ -87,20 +87,106 @@ EOF
 chmod 600 "$HOME/.codex-sam/config.toml"
 ```
 
-SAM CLI는 매번 다음 명령으로 실행합니다. 키와 `CODEX_HOME`은 이 명령의
-서브셸에서만 적용되므로 일반 `codex` 설정을 바꾸지 않습니다.
+SAM CLI는 일반 `codex`가 아니라 아래처럼 중립 작업 폴더에서 실행합니다.
+홈 디렉터리에서 실행하면 기존 `~/.codex/config.toml`이 프로젝트 설정처럼
+감지되어 provider 설정이 무시될 수 있습니다.
 
 ```bash
-(
-  source "$HOME/.sam-code-agent/env"
-  CODEX_HOME="$HOME/.codex-sam" codex
-)
+mkdir -p /private/tmp/sam-codex-cli
+cd /private/tmp/sam-codex-cli
+source "$HOME/.sam-code-agent/env"
+
+CODEX_HOME="$HOME/.codex-sam" codex
 ```
 
-이것이 수동 설정의 SAM 전용 CLI입니다. 일반 OpenAI/ChatGPT Codex CLI는
-그대로 `codex`로 실행합니다.
+스모크 테스트는 다음 명령으로 확인합니다.
 
-## 8. 기존 Codex CLI 또는 데스크톱 앱을 SAM으로 전환·복원
+```bash
+mkdir -p /private/tmp/sam-codex-cli
+cd /private/tmp/sam-codex-cli
+source "$HOME/.sam-code-agent/env"
+
+CODEX_HOME="$HOME/.codex-sam" codex exec \
+  --sandbox read-only \
+  --skip-git-repo-check \
+  --ephemeral \
+  "Reply with exactly: SAM-CODEX-OK"
+```
+
+정상이라면 헤더에 `model: sam-codex-agent`, `provider: sam`이 표시됩니다.
+일반 OpenAI/ChatGPT Codex CLI는 그대로 `codex`로 실행합니다.
+
+## 8. 기존 Codex와 SAM-Codex Desktop을 별도 창으로 열기
+
+기존 Codex Desktop을 유지한 채 SAM-Codex를 별도 창으로 띄우려면
+`CODEX_HOME`뿐 아니라 Electron `user-data-dir`도 분리해야 합니다. 이 방식이
+우리가 확인한 macOS 동시 실행 방식입니다.
+
+먼저 런처를 만듭니다.
+
+```bash
+mkdir -p "$HOME/.local/bin"
+cat > "$HOME/.local/bin/sam-codex-desktop" <<'EOF'
+#!/bin/zsh
+set -euo pipefail
+
+ENV_FILE="$HOME/.sam-code-agent/env"
+CODEX_HOME_DIR="$HOME/.codex-sam"
+USER_DATA_DIR="$HOME/Library/Application Support/SAM Codex Desktop"
+WORKSPACE="${1:-/private/tmp/sam-codex-desktop}"
+
+fail() {
+  /usr/bin/osascript -e "display alert \"SAM Codex\" message \"$1\" as critical" >/dev/null 2>&1 || true
+  echo "$1" >&2
+  exit 1
+}
+
+[[ -r "$ENV_FILE" ]] || fail "Key file not found: $ENV_FILE"
+
+set -a
+source "$ENV_FILE"
+set +a
+
+[[ -n "${SAM_CODE_API_KEY:-}" ]] || fail "SAM_CODE_API_KEY is not set."
+[[ -d /Applications/Codex.app ]] || fail "/Applications/Codex.app was not found."
+
+mkdir -p "$USER_DATA_DIR" "$CODEX_HOME_DIR" "$WORKSPACE"
+umask 077
+printf 'SAM_CODE_API_KEY=%s\n' "$SAM_CODE_API_KEY" > "$CODEX_HOME_DIR/.env"
+chmod 600 "$CODEX_HOME_DIR/.env"
+
+launchctl setenv SAM_CODE_API_KEY "$SAM_CODE_API_KEY"
+launchctl setenv CODEX_HOME "$CODEX_HOME_DIR"
+open -n -a Codex --args --user-data-dir="$USER_DATA_DIR" "$WORKSPACE"
+EOF
+chmod +x "$HOME/.local/bin/sam-codex-desktop"
+```
+
+실행은 다음 명령으로 합니다.
+
+```bash
+~/.local/bin/sam-codex-desktop
+```
+
+바탕화면 바로가기가 필요하면 다음을 추가합니다.
+
+```bash
+cat > "$HOME/Desktop/SAM-Codex.command" <<'EOF'
+#!/bin/zsh
+exec "$HOME/.local/bin/sam-codex-desktop" "$@"
+EOF
+chmod +x "$HOME/Desktop/SAM-Codex.command"
+```
+
+이 방식은 Codex Desktop 내부 실행 인자에 의존하는 launcher입니다. 문제가
+생기면 먼저 7번의 CLI 스모크 테스트가 정상인지 확인하세요. 가장 안정적인
+기준 경로는 `sam-codex` CLI입니다.
+
+## 선택: 기본 Codex CLI 또는 데스크톱 앱을 SAM으로 일시 전환
+
+아래 방식은 별도 창이 아니라 기본 `~/.codex/config.toml`을 SAM 설정으로
+바꿨다가 복원하는 방식입니다. 일반 Codex 계정 모드와 동시에 쓰는 용도가
+아니므로, 동시에 쓰려면 8번의 `sam-codex-desktop`을 사용하세요.
 
 기본 Codex는 `~/.codex/config.toml`을 사용합니다. SAM으로 바꾸기 전에 원본을
 백업하고, GUI 앱이 읽을 현재 로그인 세션 키를 설정합니다.
@@ -121,9 +207,7 @@ unset SAM_CODE_API_KEY
 ```
 
 이후 일반 `codex`와 ChatGPT/Codex 데스크톱 앱은 SAM provider 설정을 사용합니다.
-데스크톱 앱은 창만 닫지 말고 `Cmd-Q`로 완전히 종료한 뒤 다시 여세요. 이 GUI
-세션 키는 로그아웃·재부팅 후 사라지므로, 그때는 위 전환 명령을 다시 실행해야
-합니다.
+데스크톱 앱은 창만 닫지 말고 `Cmd-Q`로 완전히 종료한 뒤 다시 여세요.
 
 원래 OpenAI/ChatGPT Codex 설정으로 복원하려면:
 
@@ -136,25 +220,4 @@ fi
 launchctl unsetenv SAM_CODE_API_KEY
 ```
 
-다시 `Cmd-Q`로 완전히 종료하고 앱을 여세요. 이 과정은 ChatGPT 로그인 정보나
-대화 기록을 삭제하지 않습니다. 다만 SAM API 모드와 ChatGPT 계정 기반 대화
-목록은 서로 다른 인증·세션이므로 하나의 대화 목록으로 합쳐지지 않습니다.
-
-## 선택: 기존 Codex와 SAM-Codex Desktop 동시 실행
-
-기존 Codex Desktop을 유지한 채 SAM-Codex를 별도 창으로 띄우려면
-`CODEX_HOME`뿐 아니라 Electron `user-data-dir`도 분리해야 합니다. 설치
-스크립트는 이 작업을 `sam-codex-desktop`으로 제공합니다. 수동으로는 아래처럼
-실행할 수 있습니다.
-
-```bash
-mkdir -p /private/tmp/sam-codex-desktop
-source "$HOME/.sam-code-agent/env"
-launchctl setenv SAM_CODE_API_KEY "$SAM_CODE_API_KEY"
-launchctl setenv CODEX_HOME "$HOME/.codex-sam"
-open -n -a Codex --args --user-data-dir="$HOME/Library/Application Support/SAM Codex Desktop" /private/tmp/sam-codex-desktop
-```
-
-이 방식은 Codex Desktop 내부 실행 인자에 의존하는 launcher입니다. 문제가
-생기면 CLI 스모크 테스트를 기준으로 먼저 진단하세요. 안정성이 가장 높은
-경로는 `sam-codex` CLI입니다.
+다시 `Cmd-Q`로 완전히 종료하고 앱을 여세요.
