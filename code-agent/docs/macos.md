@@ -1,28 +1,28 @@
-# SAM Codex on macOS
+# macOS에서 SAM Codex 사용하기
 
-**Language:** English | [한국어](ko/macos.md)
+**언어:** 한국어 | [English](macos.en.md)
 
-This guide creates a dedicated `sam-codex` terminal command. It uses SAM only
-for that command and leaves your normal `codex` profile unchanged.
+이 가이드는 전용 `sam-codex` 터미널 명령을 만듭니다. 이 명령으로만 SAM을
+사용하므로 기존 `codex` 환경은 바뀌지 않습니다.
 
-| Mode | Command | Config home |
+| 방식 | 실행 명령 | 설정 홈 |
 | --- | --- | --- |
-| Default Codex | `codex` or `codex app` | `~/.codex` |
+| 기본 Codex | `codex` 또는 `codex app` | `~/.codex` |
 | SAM Codex | `sam-codex` | `~/.codex-sam` |
 
-The macOS ChatGPT/Codex desktop app is the default Codex mode. Use the
-`sam-codex` terminal command for a dedicated SAM session.
+macOS의 ChatGPT/Codex 데스크톱 앱은 기본 Codex 방식입니다. SAM 전용 세션은
+이 가이드의 `sam-codex` 터미널 명령으로 실행합니다.
 
-## 1. Install prerequisites
+## 1. 사전 도구 설치
 
-Install these before cloning `sam-public`: Git, Node.js LTS (which includes
-npm), and Codex CLI.
+`sam-public`을 내려받기 전에 Git, Node.js LTS(npm 포함), Codex CLI를
+설치합니다.
 
 ```bash
-# Run only if `git --version` fails. Complete the macOS dialog, then open a new terminal.
+# `git --version`이 실패할 때만 실행합니다. macOS 대화상자를 완료한 뒤 새 터미널을 엽니다.
 xcode-select --install
 
-# Requires Homebrew. Otherwise, install the Node.js LTS package from https://nodejs.org.
+# Homebrew 사용 시. Homebrew가 없으면 https://nodejs.org 에서 Node.js LTS 설치 프로그램을 사용합니다.
 brew install node
 npm install -g @openai/codex@latest
 
@@ -32,19 +32,20 @@ npm --version
 codex --version
 ```
 
-If `brew` is not installed, use the Node.js LTS installer from nodejs.org;
-npm is included with Node.js. Do not continue until `codex --version` succeeds.
+Homebrew가 없으면 nodejs.org의 Node.js LTS 설치 프로그램을 사용하세요.
+npm은 Node.js에 포함됩니다. `codex --version`이 성공하기 전에는 다음
+단계로 진행하지 마세요.
 
-## 2. Clone or update the installer
+## 2. 설치 저장소 내려받기 또는 업데이트
 
-Clone the repository once. On later runs, update the existing checkout instead
-of cloning it again.
+처음 한 번만 저장소를 내려받습니다. 이후에는 `git clone`을 다시 하지
+말고 기존 저장소를 업데이트합니다.
 
 ```bash
 if [ -d "$HOME/sam-public/.git" ]; then
   git -C "$HOME/sam-public" pull --ff-only
 elif [ -e "$HOME/sam-public" ]; then
-  echo "~/sam-public exists but is not a Git checkout; rename or remove it only after checking its contents."
+  echo "~/sam-public은 존재하지만 Git 저장소가 아닙니다. 내용을 확인한 뒤에만 이름 변경 또는 삭제하세요."
   exit 1
 else
   git clone https://github.com/soonsoonLABS/sam-public.git "$HOME/sam-public"
@@ -53,18 +54,19 @@ fi
 cd "$HOME/sam-public/code-agent"
 ```
 
-## 3. Install the dedicated SAM command
+## 3. 전용 SAM 명령 설치
 
-Run the installer and paste the SAM API key only into its hidden prompt. The
-key owner needs `agent:codex` or `agent:coding_agents` permission.
+설치 프로그램을 실행하고 숨김 입력창에만 SAM API 키를 붙여 넣습니다.
+키 소유자에게 `agent:codex` 또는 `agent:coding_agents` 권한이 있어야
+합니다.
 
 ```bash
 unset SAM_API_KEY
 bash install-macos.sh
 ```
 
-The installer creates `~/.local/bin/sam-codex`. If the command is not found,
-add that directory to your zsh PATH once, then open a new terminal:
+설치 프로그램은 `~/.local/bin/sam-codex`를 만듭니다. 명령이 보이지
+않으면 다음을 한 번 실행하고 새 터미널을 여세요.
 
 ```bash
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
@@ -72,31 +74,31 @@ source ~/.zshrc
 sam-codex --version
 ```
 
-## 4. Use SAM Codex
+## 4. SAM Codex 실행
 
-Use `sam-codex`, not plain `codex`, for every SAM session:
+SAM 세션에서는 일반 `codex`가 아니라 항상 `sam-codex`를 사용합니다.
 
 ```bash
-# Interactive Codex terminal UI with SAM
+# SAM을 사용하는 대화형 Codex 터미널 UI
 sam-codex
 
-# Non-interactive smoke test
+# 비대화형 스모크 테스트
 sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral \
   'Reply with exactly: SAM-CODEX-OK'
 ```
 
-The expected smoke-test reply is exactly `SAM-CODEX-OK`. If the command is not
-yet on PATH, use the full path:
+스모크 테스트의 정상 응답은 정확히 `SAM-CODEX-OK`입니다. PATH에 아직
+명령이 없다면 전체 경로를 사용합니다.
 
 ```bash
 ~/.local/bin/sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral \
   'Reply with exactly: SAM-CODEX-OK'
 ```
 
-## 5. Change the SAM API key
+## 5. SAM API 키 변경
 
-Re-run the installer. `unset` is important: it makes the installer show its
-hidden prompt instead of reusing a key inherited by the shell.
+설치 프로그램을 다시 실행합니다. `unset`은 현재 셸에 상속된 기존 키를
+재사용하지 않고 숨김 입력창을 표시하게 하므로 중요합니다.
 
 ```bash
 cd "$HOME/sam-public/code-agent"
@@ -104,14 +106,14 @@ unset SAM_API_KEY
 bash install-macos.sh
 ```
 
-This overwrites only `~/.sam-code-agent/env`, not your normal Codex settings.
-Revoke the old key in SAM when it is no longer needed.
+이 작업은 일반 Codex 설정이 아니라 `~/.sam-code-agent/env`만 덮어씁니다.
+더 이상 사용하지 않는 이전 키는 SAM에서 폐기하세요.
 
-## 6. Test the key directly
+## 6. 키 직접 호출 테스트
 
-This checks the SAM key and `/openai/v1/responses` before involving Codex. It
-does not print the key. A successful response contains
-`"output_text":"SAM-CODEX-OK"`.
+Codex를 거치기 전에 SAM 키와 `/openai/v1/responses` 경로를 확인합니다.
+키 자체는 출력하지 않으며, 성공한 응답에는
+`"output_text":"SAM-CODEX-OK"`가 포함됩니다.
 
 ```bash
 source "$HOME/.sam-code-agent/env"
@@ -123,13 +125,12 @@ curl --silent --show-error --fail-with-body --max-time 120 -X POST \
 unset SAM_API_KEY
 ```
 
-If this succeeds but `sam-codex exec` fails, the key and SAM route are working;
-re-run the installer and use the dedicated command rather than plain `codex`.
+직접 호출은 성공하지만 `sam-codex exec`가 실패하면 키와 SAM 경로는 정상입니다.
+설치 프로그램을 다시 실행한 뒤 일반 `codex`가 아닌 전용 명령을 사용하세요.
 
-## 7. Create a Terminal shortcut
+## 7. 터미널 바로가기 만들기
 
-After the installer succeeds, create a clickable Terminal launcher on the
-desktop:
+설치가 끝난 뒤 데스크톱에서 실행할 수 있는 터미널 launcher를 만듭니다.
 
 ```bash
 cat > "$HOME/Desktop/SAM-Codex.command" <<'EOF'
@@ -139,39 +140,39 @@ EOF
 chmod +x "$HOME/Desktop/SAM-Codex.command"
 ```
 
-Double-click `SAM-Codex.command` to open the SAM Codex terminal UI. macOS may
-ask for confirmation the first time because it is a local executable file.
+`SAM-Codex.command`를 더블클릭하면 SAM Codex 터미널 UI가 열립니다. 처음에는
+macOS가 로컬 실행 파일 확인을 요청할 수 있습니다.
 
-## Optional: temporarily switch the default macOS Codex desktop mode to SAM
+## 선택: 기본 Codex 데스크톱 앱을 SAM으로 일시 전환
 
-To use SAM in the standard ChatGPT/Codex app, this switcher backs up the
-existing `~/.codex/config.toml` and replaces it with the SAM provider
-configuration. It is a provider swap, not simultaneous OpenAI-account and SAM
-modes. Run it only after the `sam-codex exec` smoke test succeeds.
+기본 ChatGPT/Codex 앱에서도 SAM을 쓰고 싶다면, 이 전환기는 기존
+`~/.codex/config.toml`을 안전하게 백업한 뒤 SAM 설정으로 바꿉니다. 기본
+OpenAI 계정 모드와 SAM 모드를 동시에 쓰는 방식은 아닙니다. 전환 전에
+`sam-codex exec` 스모크 테스트가 성공해야 합니다.
 
 ```bash
 cd "$HOME/sam-public/code-agent"
 bash enable-macos-desktop-sam.sh
 ```
 
-Fully quit the ChatGPT/Codex app with `Cmd-Q`, then reopen the normal app. It
-will use `sam-codex-agent` and the SAM API key.
+명령이 끝나면 ChatGPT/Codex 앱의 모든 창을 닫는 것만으로는 부족합니다.
+`Cmd-Q`로 완전히 종료한 뒤 기본 앱을 다시 여세요. 이때 기본 앱은
+`sam-codex-agent`와 SAM API 키를 사용합니다.
 
-The script saves the original `~/.codex/config.toml` once under
-`~/.sam-code-agent/backups/`. It does not write the API key to the backup or
-manifest. To make the key available to a GUI app, it uses a `launchctl`
-environment value for the current login session. That value disappears after
-logout or reboot, so run the switch command again before opening the app.
+전환기는 원래 `~/.codex/config.toml`을 `~/.sam-code-agent/backups/`에 한 번
+백업합니다. API 키는 백업이나 manifest에 기록하지 않습니다. 다만 macOS GUI
+앱에 키를 전달하기 위해 현재 로그인 세션의 `launchctl` 환경변수를 사용하므로,
+로그아웃 또는 재부팅 후에는 다음 명령을 다시 실행한 뒤 앱을 열어야 합니다.
 
-Restore the normal OpenAI-account profile with:
+원래 기본 Codex/OpenAI 계정 방식으로 되돌리려면:
 
 ```bash
 cd "$HOME/sam-public/code-agent"
 bash restore-macos-desktop-default.sh
 ```
 
-Fully quit and reopen the app after restoring. The dedicated `sam-codex` CLI
-and its `~/.codex-sam` configuration are unchanged by either command.
+복원 뒤에도 `Cmd-Q`로 완전히 종료한 뒤 앱을 다시 여세요. `sam-codex` 전용
+터미널 명령과 `~/.codex-sam` 설정은 이 전환·복원 과정에서 바뀌지 않습니다.
 
-`sam-codex app` does not install a separate SAM-Codex app or safely switch the
-existing ChatGPT desktop app to SAM.
+`sam-codex app`은 별도 SAM-Codex 앱을 설치하거나 기존 ChatGPT 데스크톱 앱을
+안전하게 전환하는 명령이 아닙니다.
