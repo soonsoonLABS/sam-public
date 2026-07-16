@@ -20,7 +20,7 @@ mkdir -p "$SAM_HOME" "$CODEX_SAM_HOME" "$BIN_DIR"
 if [ -n "${SAM_API_KEY:-}" ]; then
   key="$SAM_API_KEY"
 else
-  printf "Enter your SAM API key: "
+  printf "Enter your dedicated Code Agent SAM API key: "
   stty -echo
   IFS= read -r key
   stty echo

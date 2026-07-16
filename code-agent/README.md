@@ -4,6 +4,23 @@
 
 Run Codex through SAM with one dedicated command: `sam-codex`.
 
+## Simplest setup
+
+1. In SAM web, open **API Keys** and create a dedicated key named something
+   like `Code Agent - my device`. Do not reuse a general service key.
+2. Run the installer for your platform once and paste only that dedicated key
+   into its hidden prompt. You do not need to create `.env` or `config.toml` by
+   hand.
+3. Use `sam-codex` from then on.
+
+```text
+sam-codex
+```
+
+The installer stores the key only under `~/.sam-code-agent/` on that device and
+keeps Codex settings under `~/.codex-sam/`. To rotate a key, rerun the installer
+and enter the new dedicated Code Agent key.
+
 ## Two Codex modes
 
 | Mode | Command | Config home | Use |
@@ -67,10 +84,10 @@ normal `~/.codex/config.toml` profile cannot silently take over the session.
 
 ## API key safety
 
-Create a SAM key whose owner has `agent:codex` or `agent:coding_agents`
-permission. The guides use the installer prompt to store it locally; never put
-a real key in Git, documentation, screenshots, a shell history command, or a
-project `.env` file.
+Create a dedicated Code Agent SAM key whose owner has `agent:codex` or
+`agent:coding_agents` permission. The guides use the installer prompt to store
+it locally; never put a real key in Git, documentation, screenshots, a shell
+history command, or a project `.env` file.
 
 The direct API test in each guide verifies the key, network route, and
 `/openai/v1/responses` independently of Codex. The separate CLI smoke test then

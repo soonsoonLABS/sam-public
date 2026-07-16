@@ -13,6 +13,13 @@ for that command and leaves your normal `codex` profile unchanged.
 The macOS ChatGPT/Codex desktop app is the default Codex mode. Use the
 `sam-codex` terminal command for a dedicated SAM session.
 
+## Quick setup
+
+In SAM web, create a dedicated key in **API Keys**, named something like `Code
+Agent - Mac`. You paste it once into the installer's hidden prompt below. Do
+not create `~/.codex/.env` or `config.toml` manually. After installation, use
+`sam-codex` whenever you want SAM Codex.
+
 ## 1. Install prerequisites
 
 Install these before cloning `sam-public`: Git, Node.js LTS (which includes
@@ -55,7 +62,7 @@ cd "$HOME/sam-public/code-agent"
 
 ## 3. Install the dedicated SAM command
 
-Run the installer and paste the SAM API key only into its hidden prompt. The
+Run the installer and paste the dedicated Code Agent SAM API key only into its hidden prompt. The
 key owner needs `agent:codex` or `agent:coding_agents` permission.
 
 ```bash
@@ -95,8 +102,9 @@ yet on PATH, use the full path:
 
 ## 5. Change the SAM API key
 
-Re-run the installer. `unset` is important: it makes the installer show its
-hidden prompt instead of reusing a key inherited by the shell.
+Re-run the installer and enter the new dedicated Code Agent key. `unset` is
+important: it makes the installer show its hidden prompt instead of reusing a
+key inherited by the shell.
 
 ```bash
 cd "$HOME/sam-public/code-agent"

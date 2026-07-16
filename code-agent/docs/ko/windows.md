@@ -10,6 +10,13 @@
 | 기본 Codex | `codex` | `%USERPROFILE%\.codex` |
 | SAM Codex | `sam-codex` | `%USERPROFILE%\.codex-sam` |
 
+## 빠른 설정 요약
+
+SAM 웹의 **API Keys**에서 `Code Agent - Windows`처럼 구분되는 전용 키를 하나
+만드세요. 아래 설치 단계에서 그 키를 한 번만 숨김 입력창에 붙여 넣으면 됩니다.
+직접 `.env`나 `config.toml`을 만들 필요가 없습니다. 설치가 끝난 뒤 SAM Codex는
+항상 `sam-codex`로 실행합니다.
+
 ## 1. 사전 도구 설치
 
 `sam-public`을 내려받거나 SAM 설치 프로그램을 실행하기 전에 Git,
@@ -75,7 +82,8 @@ Set-Location "$Repo\code-agent"
 
 ## 3. 전용 SAM 명령 설치
 
-설치 프로그램을 실행하고 숨김 입력창에만 SAM API 키를 붙여 넣습니다.
+설치 프로그램을 실행하고 숨김 입력창에만 Code Agent 전용 SAM API 키를 붙여
+넣습니다.
 키 소유자에게 `agent:codex` 또는 `agent:coding_agents` 권한이 있어야
 합니다.
 
@@ -109,8 +117,9 @@ sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral "Reply with
 
 ## 5. SAM API 키 변경
 
-설치 프로그램을 다시 실행합니다. 현재 프로세스에서 `SAM_API_KEY`를 지우는
-것은 상속된 기존 키 대신 숨김 입력창을 표시하게 하므로 중요합니다.
+설치 프로그램을 다시 실행하고 새 Code Agent 전용 키를 입력합니다. 현재
+프로세스에서 `SAM_API_KEY`를 지우는 것은 상속된 기존 키 대신 숨김 입력창을
+표시하게 하므로 중요합니다.
 
 ```powershell
 Set-Location "$HOME\sam-public\code-agent"

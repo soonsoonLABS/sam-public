@@ -10,6 +10,13 @@ for that command and leaves your normal `codex` profile unchanged.
 | Default Codex | `codex` | `%USERPROFILE%\.codex` |
 | SAM Codex | `sam-codex` | `%USERPROFILE%\.codex-sam` |
 
+## Quick setup
+
+In SAM web, create a dedicated key in **API Keys**, named something like `Code
+Agent - Windows`. You paste it once into the installer's hidden prompt below.
+Do not create `.env` or `config.toml` manually. After installation, use
+`sam-codex` whenever you want SAM Codex.
+
 ## 1. Install prerequisites
 
 Install Git, Node.js LTS (which includes npm), and Codex CLI before cloning
@@ -75,7 +82,7 @@ Set-Location "$Repo\code-agent"
 
 ## 3. Install the dedicated SAM command
 
-Run the installer and paste the SAM API key only into its hidden prompt. The
+Run the installer and paste the dedicated Code Agent SAM API key only into its hidden prompt. The
 key owner needs `agent:codex` or `agent:coding_agents` permission.
 
 ```powershell
@@ -109,9 +116,9 @@ yet on PATH, use the full path:
 
 ## 5. Change the SAM API key
 
-Re-run the installer. Removing `SAM_API_KEY` from the current process is
-important: it makes the installer show its hidden prompt instead of reusing an
-inherited key.
+Re-run the installer and enter the new dedicated Code Agent key. Removing
+`SAM_API_KEY` from the current process is important: it makes the installer show
+its hidden prompt instead of reusing an inherited key.
 
 ```powershell
 Set-Location "$HOME\sam-public\code-agent"
