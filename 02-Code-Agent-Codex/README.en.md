@@ -11,6 +11,8 @@ and default-app switch/restore one step at a time through the manual guide.
 
 - [Manual setup for macOS](MANUAL_SETUP.en.md)
 - [macOS 수동 설정](MANUAL_SETUP.md)
+- [Manual setup for Windows](MANUAL_SETUP_WINDOWS.en.md)
+- [Windows 수동 설정](MANUAL_SETUP_WINDOWS.md)
 
 ## Installer automation
 
@@ -72,6 +74,10 @@ PowerShell policy blocks `codex`.
 - [Windows: setup, key management, tests, and shortcut](docs/windows.en.md)
 - [macOS 한국어 가이드](docs/macos.md)
 - [Windows 한국어 가이드](docs/windows.md)
+
+If you need to set up without cloning the installer repository, use the macOS
+[manual setup](MANUAL_SETUP.en.md) or Windows
+[manual setup](MANUAL_SETUP_WINDOWS.en.md).
 
 ## Everyday use
 

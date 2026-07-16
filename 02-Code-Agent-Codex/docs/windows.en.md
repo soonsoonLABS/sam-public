@@ -5,9 +5,11 @@
 This guide creates a dedicated `sam-codex` terminal command. It uses SAM only
 for that command and leaves your normal `codex` profile unchanged.
 
-Start with the [manual setup guide](../MANUAL_SETUP.en.md) to understand the
-key, switching, and restore approach. A Windows-specific manual guide will
-follow; this document is the current installer path.
+If you need to set up without cloning the installer repository, or want to
+understand the manual flow first, use the
+[Windows manual setup guide](../MANUAL_SETUP_WINDOWS.en.md). The macOS manual
+guide is [separate](../MANUAL_SETUP.en.md). This document is the automated
+installer path.
 
 | Mode | Command | Config home |
 | --- | --- | --- |
@@ -20,6 +22,10 @@ In SAM web, create a dedicated key in **API Keys**, named something like `Code
 Agent - Windows`. You paste it once into the installer's hidden prompt below.
 Do not create `.env` or `config.toml` manually. After installation, use
 `sam-codex` whenever you want SAM Codex.
+
+If cloning the repository is not practical, use the
+[Windows manual setup](../MANUAL_SETUP_WINDOWS.en.md) to create the
+`sam-codex` wrapper directly.
 
 ## 1. Install prerequisites
 

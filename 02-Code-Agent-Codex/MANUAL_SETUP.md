@@ -116,6 +116,70 @@ CODEX_HOME="$HOME/.codex-sam" codex exec \
 정상이라면 헤더에 `model: sam-codex-agent`, `provider: sam`이 표시됩니다.
 일반 OpenAI/ChatGPT Codex CLI는 그대로 `codex`로 실행합니다.
 
+### 선택: 저장소 없이 `sam-codex` 명령 직접 만들기
+
+Git 저장소를 내려받지 않아도 `sam-codex` wrapper만 직접 만들 수 있습니다.
+필요한 것은 `~/.sam-code-agent/env`, `~/.codex-sam/config.toml`,
+`~/.local/bin/sam-codex` 세 파일입니다.
+
+```bash
+mkdir -p "$HOME/.local/bin"
+
+cat > "$HOME/.local/bin/sam-codex" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+SAM_HOME="${SAM_HOME:-$HOME/.sam-code-agent}"
+CODEX_SAM_HOME="${CODEX_SAM_HOME:-$HOME/.codex-sam}"
+WORKDIR="${SAM_CODEX_WORKDIR:-/private/tmp/sam-codex-cli}"
+
+if [ ! -f "$SAM_HOME/env" ]; then
+  echo "Missing $SAM_HOME/env. Create your SAM Code Agent key file first."
+  exit 1
+fi
+
+. "$SAM_HOME/env"
+export CODEX_HOME="$CODEX_SAM_HOME"
+
+mkdir -p "$WORKDIR"
+cd "$WORKDIR"
+
+exec codex \
+  -c 'model="sam-codex-agent"' \
+  -c 'model_provider="sam"' \
+  -c 'model_reasoning_effort="medium"' \
+  -c 'model_providers.sam.name="SAM"' \
+  -c 'model_providers.sam.base_url="https://sam.soonsoon.ai/openai/v1"' \
+  -c 'model_providers.sam.env_key="SAM_CODE_API_KEY"' \
+  -c 'model_providers.sam.wire_api="responses"' \
+  -c 'model_providers.sam.request_max_retries=4' \
+  -c 'model_providers.sam.stream_max_retries=5' \
+  -c 'model_providers.sam.stream_idle_timeout_ms=300000' \
+  "$@"
+EOF
+
+chmod +x "$HOME/.local/bin/sam-codex"
+```
+
+PATH에 `~/.local/bin`이 없다면 추가합니다.
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+hash -r
+```
+
+확인:
+
+```bash
+command -v sam-codex
+sam-codex exec \
+  --sandbox read-only \
+  --skip-git-repo-check \
+  --ephemeral \
+  "Reply with exactly: SAM-CODEX-OK"
+```
+
 ## 8. 기존 Codex와 SAM-Codex Desktop을 별도 창으로 열기
 
 기존 Codex Desktop을 유지한 채 SAM-Codex를 별도 창으로 띄우려면

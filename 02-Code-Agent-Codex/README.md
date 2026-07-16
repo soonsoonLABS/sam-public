@@ -14,6 +14,8 @@
 
 - [macOS 수동 설정](MANUAL_SETUP.md)
 - [macOS manual setup (English)](MANUAL_SETUP.en.md)
+- [Windows 수동 설정](MANUAL_SETUP_WINDOWS.md)
+- [Windows manual setup (English)](MANUAL_SETUP_WINDOWS.en.md)
 
 ## 자동화 설치 안내
 
@@ -76,6 +78,10 @@ Codex/ChatGPT Desktop과 동시에 띄우는 고급 런처입니다. 독립 `Cod
 - [Windows: 설치·키 관리·테스트·바로가기](docs/windows.md)
 - [macOS English guide](docs/macos.en.md)
 - [Windows English guide](docs/windows.en.md)
+
+설치 저장소 없이 직접 구성해야 하는 환경에서는 macOS
+[수동 설정](MANUAL_SETUP.md) 또는 Windows
+[수동 설정](MANUAL_SETUP_WINDOWS.md)을 사용하세요.
 
 ## 일상 사용
 

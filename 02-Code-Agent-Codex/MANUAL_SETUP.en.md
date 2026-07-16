@@ -115,6 +115,70 @@ CODEX_HOME="$HOME/.codex-sam" codex exec \
 The header should show `model: sam-codex-agent` and `provider: sam`. Use plain
 `codex` for the normal OpenAI/ChatGPT Codex CLI.
 
+### Optional: create `sam-codex` without cloning the repository
+
+You do not need the Git repository if you only want the wrapper command. The
+required files are `~/.sam-code-agent/env`, `~/.codex-sam/config.toml`, and
+`~/.local/bin/sam-codex`.
+
+```bash
+mkdir -p "$HOME/.local/bin"
+
+cat > "$HOME/.local/bin/sam-codex" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+SAM_HOME="${SAM_HOME:-$HOME/.sam-code-agent}"
+CODEX_SAM_HOME="${CODEX_SAM_HOME:-$HOME/.codex-sam}"
+WORKDIR="${SAM_CODEX_WORKDIR:-/private/tmp/sam-codex-cli}"
+
+if [ ! -f "$SAM_HOME/env" ]; then
+  echo "Missing $SAM_HOME/env. Create your SAM Code Agent key file first."
+  exit 1
+fi
+
+. "$SAM_HOME/env"
+export CODEX_HOME="$CODEX_SAM_HOME"
+
+mkdir -p "$WORKDIR"
+cd "$WORKDIR"
+
+exec codex \
+  -c 'model="sam-codex-agent"' \
+  -c 'model_provider="sam"' \
+  -c 'model_reasoning_effort="medium"' \
+  -c 'model_providers.sam.name="SAM"' \
+  -c 'model_providers.sam.base_url="https://sam.soonsoon.ai/openai/v1"' \
+  -c 'model_providers.sam.env_key="SAM_CODE_API_KEY"' \
+  -c 'model_providers.sam.wire_api="responses"' \
+  -c 'model_providers.sam.request_max_retries=4' \
+  -c 'model_providers.sam.stream_max_retries=5' \
+  -c 'model_providers.sam.stream_idle_timeout_ms=300000' \
+  "$@"
+EOF
+
+chmod +x "$HOME/.local/bin/sam-codex"
+```
+
+Add `~/.local/bin` to PATH if needed:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+hash -r
+```
+
+Verify:
+
+```bash
+command -v sam-codex
+sam-codex exec \
+  --sandbox read-only \
+  --skip-git-repo-check \
+  --ephemeral \
+  "Reply with exactly: SAM-CODEX-OK"
+```
+
 ## 8. Run default Codex and SAM-Codex Desktop side by side
 
 To keep the default Codex Desktop open and launch SAM-Codex in a separate
