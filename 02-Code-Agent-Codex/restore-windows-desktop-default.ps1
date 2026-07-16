@@ -36,16 +36,16 @@ Remove-Item -Force -Path $ManifestFile
 
 if ($Manifest.PSObject.Properties.Name -contains "had_user_sam_api_key") {
     if (-not [bool]$Manifest.had_user_sam_api_key) {
-        [Environment]::SetEnvironmentVariable("SAM_API_KEY", $null, "User")
-        Remove-Item Env:SAM_API_KEY -ErrorAction SilentlyContinue
-        Write-Host "Removed the SAM_API_KEY user environment variable created for the desktop switch."
+        [Environment]::SetEnvironmentVariable("SAM_CODE_API_KEY", $null, "User")
+        Remove-Item Env:SAM_CODE_API_KEY -ErrorAction SilentlyContinue
+        Write-Host "Removed the SAM_CODE_API_KEY user environment variable created for the desktop switch."
     }
     else {
-        Write-Host "An existing SAM_API_KEY user environment variable was present before the switch, so it was left unchanged."
+        Write-Host "An existing SAM_CODE_API_KEY user environment variable was present before the switch, so it was left unchanged."
     }
 }
 else {
-    Write-Host "Legacy desktop-switch manifest detected; SAM_API_KEY user environment variable was left unchanged."
+    Write-Host "Legacy desktop-switch manifest detected; SAM_CODE_API_KEY user environment variable was left unchanged."
 }
 
 Write-Host ""

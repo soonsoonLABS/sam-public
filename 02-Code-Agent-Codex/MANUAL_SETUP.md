@@ -15,12 +15,12 @@
 mkdir -p "$HOME/.sam-code-agent"
 printf 'SAM Code Agent 키 붙여넣기: '
 stty -echo
-IFS= read -r SAM_API_KEY
+IFS= read -r SAM_CODE_API_KEY
 stty echo
 printf '\n'
-printf 'export SAM_API_KEY=%q\n' "$SAM_API_KEY" > "$HOME/.sam-code-agent/env"
+printf 'export SAM_CODE_API_KEY=%q\n' "$SAM_CODE_API_KEY" > "$HOME/.sam-code-agent/env"
 chmod 600 "$HOME/.sam-code-agent/env"
-unset SAM_API_KEY
+unset SAM_CODE_API_KEY
 ```
 
 ## 2. 키 유효성 확인
@@ -32,10 +32,10 @@ Codex보다 먼저 SAM API 연결을 확인합니다. 성공하면 응답에 `SA
 source "$HOME/.sam-code-agent/env"
 curl --silent --show-error --fail-with-body --max-time 120 -X POST \
   'https://sam.soonsoon.ai/openai/v1/responses' \
-  -H "Authorization: Bearer $SAM_API_KEY" \
+  -H "Authorization: Bearer $SAM_CODE_API_KEY" \
   -H 'Content-Type: application/json' \
   --data '{"model":"sam-codex-agent","input":"Reply with exactly: SAM-CODEX-OK","stream":false}'
-unset SAM_API_KEY
+unset SAM_CODE_API_KEY
 ```
 
 ## 3. Codex CLI 설치
@@ -61,7 +61,7 @@ model_reasoning_effort = "medium"
 [model_providers.sam]
 name = "SAM"
 base_url = "https://sam.soonsoon.ai/openai/v1"
-env_key = "SAM_API_KEY"
+env_key = "SAM_CODE_API_KEY"
 wire_api = "responses"
 request_max_retries = 4
 stream_max_retries = 5
@@ -99,8 +99,8 @@ mkdir -p "$HOME/.codex"
 cp "$HOME/.codex-sam/config.toml" "$HOME/.codex/config.toml"
 
 source "$HOME/.sam-code-agent/env"
-launchctl setenv SAM_API_KEY "$SAM_API_KEY"
-unset SAM_API_KEY
+launchctl setenv SAM_CODE_API_KEY "$SAM_CODE_API_KEY"
+unset SAM_CODE_API_KEY
 ```
 
 이후 일반 `codex`와 ChatGPT/Codex 데스크톱 앱은 SAM provider 설정을 사용합니다.
@@ -116,7 +116,7 @@ if [ -f "$HOME/.sam-code-agent/backups/default-codex-config.toml.bak" ]; then
 else
   rm -f "$HOME/.codex/config.toml"
 fi
-launchctl unsetenv SAM_API_KEY
+launchctl unsetenv SAM_CODE_API_KEY
 ```
 
 다시 `Cmd-Q`로 완전히 종료하고 앱을 여세요. 이 과정은 ChatGPT 로그인 정보나

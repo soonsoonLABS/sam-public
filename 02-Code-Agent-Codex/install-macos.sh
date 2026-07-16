@@ -17,8 +17,8 @@ fi
 
 mkdir -p "$SAM_HOME" "$CODEX_SAM_HOME" "$BIN_DIR"
 
-if [ -n "${SAM_API_KEY:-}" ]; then
-  key="$SAM_API_KEY"
+if [ -n "${SAM_CODE_API_KEY:-}" ]; then
+  key="$SAM_CODE_API_KEY"
 else
   printf "Enter your dedicated Code Agent SAM API key: "
   stty -echo
@@ -40,7 +40,7 @@ if [ -z "$key" ]; then
 fi
 
 cat > "$SAM_HOME/env" <<EOF
-export SAM_API_KEY='$key'
+export SAM_CODE_API_KEY='$key'
 EOF
 chmod 600 "$SAM_HOME/env"
 
@@ -69,7 +69,7 @@ exec codex \
   -c 'model_reasoning_effort="medium"' \
   -c 'model_providers.sam.name="SAM"' \
   -c 'model_providers.sam.base_url="https://sam.soonsoon.ai/openai/v1"' \
-  -c 'model_providers.sam.env_key="SAM_API_KEY"' \
+  -c 'model_providers.sam.env_key="SAM_CODE_API_KEY"' \
   -c 'model_providers.sam.wire_api="responses"' \
   -c 'model_providers.sam.request_max_retries=4' \
   -c 'model_providers.sam.stream_max_retries=5' \

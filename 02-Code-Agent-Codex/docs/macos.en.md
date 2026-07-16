@@ -71,7 +71,7 @@ hidden prompt. The key owner needs `agent:codex` or
 `agent:coding_agents` permission.
 
 ```bash
-unset SAM_API_KEY
+unset SAM_CODE_API_KEY
 bash install-macos.sh
 ```
 
@@ -113,7 +113,7 @@ key inherited by the shell.
 
 ```bash
 cd "$HOME/sam-public/02-Code-Agent-Codex"
-unset SAM_API_KEY
+unset SAM_CODE_API_KEY
 bash install-macos.sh
 ```
 
@@ -130,10 +130,10 @@ does not print the key. A successful response contains
 source "$HOME/.sam-code-agent/env"
 curl --silent --show-error --fail-with-body --max-time 120 -X POST \
   'https://sam.soonsoon.ai/openai/v1/responses' \
-  -H "Authorization: Bearer $SAM_API_KEY" \
+  -H "Authorization: Bearer $SAM_CODE_API_KEY" \
   -H 'Content-Type: application/json' \
   --data '{"model":"sam-codex-agent","input":"Reply with exactly: SAM-CODEX-OK","stream":false}'
-unset SAM_API_KEY
+unset SAM_CODE_API_KEY
 ```
 
 If this succeeds but `sam-codex exec` fails, the key and SAM route are working;

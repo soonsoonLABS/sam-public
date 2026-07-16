@@ -15,12 +15,12 @@ this hidden prompt.
 mkdir -p "$HOME/.sam-code-agent"
 printf 'Paste SAM Code Agent key: '
 stty -echo
-IFS= read -r SAM_API_KEY
+IFS= read -r SAM_CODE_API_KEY
 stty echo
 printf '\n'
-printf 'export SAM_API_KEY=%q\n' "$SAM_API_KEY" > "$HOME/.sam-code-agent/env"
+printf 'export SAM_CODE_API_KEY=%q\n' "$SAM_CODE_API_KEY" > "$HOME/.sam-code-agent/env"
 chmod 600 "$HOME/.sam-code-agent/env"
-unset SAM_API_KEY
+unset SAM_CODE_API_KEY
 ```
 
 ## 2. Test the key
@@ -32,10 +32,10 @@ Verify the SAM route before involving Codex. A successful response includes
 source "$HOME/.sam-code-agent/env"
 curl --silent --show-error --fail-with-body --max-time 120 -X POST \
   'https://sam.soonsoon.ai/openai/v1/responses' \
-  -H "Authorization: Bearer $SAM_API_KEY" \
+  -H "Authorization: Bearer $SAM_CODE_API_KEY" \
   -H 'Content-Type: application/json' \
   --data '{"model":"sam-codex-agent","input":"Reply with exactly: SAM-CODEX-OK","stream":false}'
-unset SAM_API_KEY
+unset SAM_CODE_API_KEY
 ```
 
 ## 3. Install Codex CLI
@@ -61,7 +61,7 @@ model_reasoning_effort = "medium"
 [model_providers.sam]
 name = "SAM"
 base_url = "https://sam.soonsoon.ai/openai/v1"
-env_key = "SAM_API_KEY"
+env_key = "SAM_CODE_API_KEY"
 wire_api = "responses"
 request_max_retries = 4
 stream_max_retries = 5
@@ -98,8 +98,8 @@ mkdir -p "$HOME/.codex"
 cp "$HOME/.codex-sam/config.toml" "$HOME/.codex/config.toml"
 
 source "$HOME/.sam-code-agent/env"
-launchctl setenv SAM_API_KEY "$SAM_API_KEY"
-unset SAM_API_KEY
+launchctl setenv SAM_CODE_API_KEY "$SAM_CODE_API_KEY"
+unset SAM_CODE_API_KEY
 ```
 
 Fully quit the desktop app with `Cmd-Q` before reopening it. The GUI-session key
@@ -114,7 +114,7 @@ if [ -f "$HOME/.sam-code-agent/backups/default-codex-config.toml.bak" ]; then
 else
   rm -f "$HOME/.codex/config.toml"
 fi
-launchctl unsetenv SAM_API_KEY
+launchctl unsetenv SAM_CODE_API_KEY
 ```
 
 Fully quit and reopen the app after restoring. This does not delete ChatGPT

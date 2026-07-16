@@ -21,17 +21,17 @@ fi
 
 # The installer writes a shell-escaped export. Do not enable xtrace here.
 source "${ENV_FILE}"
-if [[ -z "${SAM_API_KEY:-}" ]]; then
-  echo "SAM_API_KEY is empty. Run install-macos.sh again and enter a valid SAM key." >&2
+if [[ -z "${SAM_CODE_API_KEY:-}" ]]; then
+  echo "SAM_CODE_API_KEY is empty. Run install-macos.sh again and enter a valid SAM key." >&2
   exit 1
 fi
 
 existing_session_key=""
 had_session_key=0
-if existing_session_key="$(launchctl getenv SAM_API_KEY 2>/dev/null)"; then
+if existing_session_key="$(launchctl getenv SAM_CODE_API_KEY 2>/dev/null)"; then
   had_session_key=1
-  if [[ -n "${existing_session_key}" && "${existing_session_key}" != "${SAM_API_KEY}" ]]; then
-    echo "A different SAM_API_KEY is already set for this macOS login session." >&2
+  if [[ -n "${existing_session_key}" && "${existing_session_key}" != "${SAM_CODE_API_KEY}" ]]; then
+    echo "A different SAM_CODE_API_KEY is already set for this macOS login session." >&2
     echo "The desktop switcher will not overwrite it. Use sam-codex or replace it intentionally before retrying." >&2
     exit 1
   fi
@@ -69,7 +69,7 @@ chmod 600 "${temporary_config}"
 mv -f "${temporary_config}" "${DEFAULT_CONFIG}"
 
 # This reaches GUI apps launched after this command. It is cleared at logout.
-launchctl setenv SAM_API_KEY "${SAM_API_KEY}"
+launchctl setenv SAM_CODE_API_KEY "${SAM_CODE_API_KEY}"
 
 temporary_manifest="$(mktemp "${SAM_HOME}/.desktop-switch.env.XXXXXX")"
 printf 'version=1\nenabled_at=%s\nhad_config=%s\nbackup_path=%s\nhad_session_key=%s\n' \

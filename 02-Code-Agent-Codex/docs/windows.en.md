@@ -91,7 +91,7 @@ hidden prompt. The key owner needs `agent:codex` or
 `agent:coding_agents` permission.
 
 ```powershell
-Remove-Item Env:SAM_API_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:SAM_CODE_API_KEY -ErrorAction SilentlyContinue
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
 ```
 
@@ -122,12 +122,12 @@ yet on PATH, use the full path:
 ## 5. Change the SAM API key
 
 Re-run the installer and enter the new dedicated Code Agent key. Removing
-`SAM_API_KEY` from the current process is important: it makes the installer show
+`SAM_CODE_API_KEY` from the current process is important: it makes the installer show
 its hidden prompt instead of reusing an inherited key.
 
 ```powershell
 Set-Location "$HOME\sam-public\02-Code-Agent-Codex"
-Remove-Item Env:SAM_API_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:SAM_CODE_API_KEY -ErrorAction SilentlyContinue
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
 ```
 
@@ -151,12 +151,12 @@ $body = @{
 $response = Invoke-RestMethod `
   -Method Post `
   -Uri "https://sam.soonsoon.ai/openai/v1/responses" `
-  -Headers @{ Authorization = "Bearer $env:SAM_API_KEY" } `
+  -Headers @{ Authorization = "Bearer $env:SAM_CODE_API_KEY" } `
   -ContentType "application/json" `
   -Body $body
 
 $response.output_text
-Remove-Item Env:SAM_API_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:SAM_CODE_API_KEY -ErrorAction SilentlyContinue
 ```
 
 If this succeeds but `sam-codex exec` fails, the key and SAM route are working;
@@ -211,5 +211,5 @@ The restore script puts the backed-up configuration back. If the desktop app
 does not start or shows the wrong profile after switching, fully quit it, run
 the restore command above, and reopen it. For a newly created SAM user
 environment variable, the restore script also removes that variable; if you
-already had a different user-level `SAM_API_KEY`, the switcher stops rather
+already had a different user-level `SAM_CODE_API_KEY`, the switcher stops rather
 than overwriting it.

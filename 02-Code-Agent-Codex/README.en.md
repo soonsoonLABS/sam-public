@@ -29,6 +29,10 @@ The installer stores the key only under `~/.sam-code-agent/` on that device and
 keeps Codex settings under `~/.codex-sam/`. To rotate a key, rerun the installer
 and enter the new dedicated Code Agent key.
 
+Code Agent uses only `SAM_CODE_API_KEY`. If you previously configured
+`SAM_API_KEY`, rerun manual setup step 1 or the installer once to update the
+local key file.
+
 ## Two Codex modes
 
 | Mode | Command | Config home | Use |

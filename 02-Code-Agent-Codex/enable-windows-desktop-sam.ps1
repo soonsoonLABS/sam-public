@@ -21,14 +21,14 @@ if (-not (Test-Path $Template)) {
 
 . $EnvFile
 
-if ([string]::IsNullOrWhiteSpace($env:SAM_API_KEY)) {
-    Write-Host "SAM_API_KEY is empty. Re-run install-windows.ps1 and paste a valid SAM key."
+if ([string]::IsNullOrWhiteSpace($env:SAM_CODE_API_KEY)) {
+    Write-Host "SAM_CODE_API_KEY is empty. Re-run install-windows.ps1 and paste a valid SAM key."
     exit 1
 }
 
-$ExistingUserSamApiKey = [Environment]::GetEnvironmentVariable("SAM_API_KEY", "User")
-if ($null -ne $ExistingUserSamApiKey -and $ExistingUserSamApiKey -ne $env:SAM_API_KEY) {
-    Write-Host "A different SAM_API_KEY user environment variable already exists."
+$ExistingUserSamApiKey = [Environment]::GetEnvironmentVariable("SAM_CODE_API_KEY", "User")
+if ($null -ne $ExistingUserSamApiKey -and $ExistingUserSamApiKey -ne $env:SAM_CODE_API_KEY) {
+    Write-Host "A different SAM_CODE_API_KEY user environment variable already exists."
     Write-Host "The desktop switcher will not overwrite it. Use sam-codex for CLI sessions, or replace that key intentionally before retrying."
     exit 1
 }
@@ -65,13 +65,13 @@ if (-not $HasExistingManifest -and [string]::IsNullOrWhiteSpace($BackupPath)) {
         Copy-Item -Force -Path $DefaultConfig -Destination $BackupPath
     }
 
-    $HadUserSamApiKey = $null -ne [Environment]::GetEnvironmentVariable("SAM_API_KEY", "User")
+    $HadUserSamApiKey = $null -ne [Environment]::GetEnvironmentVariable("SAM_CODE_API_KEY", "User")
 }
 
 Copy-Item -Force -Path $Template -Destination $DefaultConfig
 
-[Environment]::SetEnvironmentVariable("SAM_API_KEY", $env:SAM_API_KEY, "User")
-$env:SAM_API_KEY = $env:SAM_API_KEY
+[Environment]::SetEnvironmentVariable("SAM_CODE_API_KEY", $env:SAM_CODE_API_KEY, "User")
+$env:SAM_CODE_API_KEY = $env:SAM_CODE_API_KEY
 
 $Manifest = [ordered]@{
     enabled_at = (Get-Date).ToString("o")

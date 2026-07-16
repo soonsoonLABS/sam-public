@@ -36,12 +36,12 @@ else
 fi
 
 if [[ "${had_session_key}" == "0" ]]; then
-  launchctl unsetenv SAM_API_KEY
-  echo "Cleared the SAM_API_KEY GUI-session value created for the desktop switch."
+  launchctl unsetenv SAM_CODE_API_KEY
+  echo "Cleared the SAM_CODE_API_KEY GUI-session value created for the desktop switch."
 elif [[ "${had_session_key}" == "1" ]]; then
-  echo "An existing SAM_API_KEY GUI-session value predated the switch, so it was left unchanged."
+  echo "An existing SAM_CODE_API_KEY GUI-session value predated the switch, so it was left unchanged."
 else
-  echo "Legacy desktop-switch manifest: SAM_API_KEY GUI-session value was left unchanged."
+  echo "Legacy desktop-switch manifest: SAM_CODE_API_KEY GUI-session value was left unchanged."
 fi
 
 rm -f "${MANIFEST_FILE}"

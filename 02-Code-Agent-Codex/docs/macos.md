@@ -73,7 +73,7 @@ cd "$HOME/sam-public/02-Code-Agent-Codex"
 합니다.
 
 ```bash
-unset SAM_API_KEY
+unset SAM_CODE_API_KEY
 bash install-macos.sh
 ```
 
@@ -115,7 +115,7 @@ sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral \
 
 ```bash
 cd "$HOME/sam-public/02-Code-Agent-Codex"
-unset SAM_API_KEY
+unset SAM_CODE_API_KEY
 bash install-macos.sh
 ```
 
@@ -132,10 +132,10 @@ Codex를 거치기 전에 SAM 키와 `/openai/v1/responses` 경로를 확인합�
 source "$HOME/.sam-code-agent/env"
 curl --silent --show-error --fail-with-body --max-time 120 -X POST \
   'https://sam.soonsoon.ai/openai/v1/responses' \
-  -H "Authorization: Bearer $SAM_API_KEY" \
+  -H "Authorization: Bearer $SAM_CODE_API_KEY" \
   -H 'Content-Type: application/json' \
   --data '{"model":"sam-codex-agent","input":"Reply with exactly: SAM-CODEX-OK","stream":false}'
-unset SAM_API_KEY
+unset SAM_CODE_API_KEY
 ```
 
 직접 호출은 성공하지만 `sam-codex exec`가 실패하면 키와 SAM 경로는 정상입니다.

@@ -92,7 +92,7 @@ Set-Location "$Repo\02-Code-Agent-Codex"
 합니다.
 
 ```powershell
-Remove-Item Env:SAM_API_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:SAM_CODE_API_KEY -ErrorAction SilentlyContinue
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
 ```
 
@@ -122,12 +122,12 @@ sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral "Reply with
 ## 5. SAM API 키 변경
 
 설치 프로그램을 다시 실행하고 새 Code Agent 전용 키를 입력합니다. 현재
-프로세스에서 `SAM_API_KEY`를 지우는 것은 상속된 기존 키 대신 숨김 입력창을
+프로세스에서 `SAM_CODE_API_KEY`를 지우는 것은 상속된 기존 키 대신 숨김 입력창을
 표시하게 하므로 중요합니다.
 
 ```powershell
 Set-Location "$HOME\sam-public\02-Code-Agent-Codex"
-Remove-Item Env:SAM_API_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:SAM_CODE_API_KEY -ErrorAction SilentlyContinue
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
 ```
 
@@ -151,12 +151,12 @@ $body = @{
 $response = Invoke-RestMethod `
   -Method Post `
   -Uri "https://sam.soonsoon.ai/openai/v1/responses" `
-  -Headers @{ Authorization = "Bearer $env:SAM_API_KEY" } `
+  -Headers @{ Authorization = "Bearer $env:SAM_CODE_API_KEY" } `
   -ContentType "application/json" `
   -Body $body
 
 $response.output_text
-Remove-Item Env:SAM_API_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:SAM_CODE_API_KEY -ErrorAction SilentlyContinue
 ```
 
 직접 호출은 성공하지만 `sam-codex exec`가 실패하면 키와 SAM 경로는 정상입니다.
@@ -209,5 +209,5 @@ powershell -ExecutionPolicy Bypass -File .\restore-windows-desktop-default.ps1
 복원 스크립트는 백업한 설정을 되돌립니다. 전환 후 데스크톱 앱이 실행되지
 않거나 잘못된 프로필이 보이면 앱을 완전히 종료하고 위 복원 명령을 실행한
 뒤 다시 여세요. 새로 만든 SAM 사용자 환경변수는 복원 스크립트가 제거합니다.
-기존에 다른 사용자 수준 `SAM_API_KEY`가 있다면 전환기는 그 키를 덮어쓰지
+기존에 다른 사용자 수준 `SAM_CODE_API_KEY`가 있다면 전환기는 그 키를 덮어쓰지
 않고 중단합니다.

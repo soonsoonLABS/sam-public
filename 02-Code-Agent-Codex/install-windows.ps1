@@ -1,5 +1,5 @@
 param(
-    [string]$SamApiKey = $env:SAM_API_KEY
+    [string]$SamApiKey = $env:SAM_CODE_API_KEY
 )
 
 $ErrorActionPreference = "Stop"
@@ -46,7 +46,7 @@ if ([string]::IsNullOrWhiteSpace($SamApiKey)) {
 }
 
 $EnvFile = Join-Path $SamHome "env.ps1"
-Set-Content -Path $EnvFile -Encoding UTF8 -Value "`$env:SAM_API_KEY = '$SamApiKey'"
+Set-Content -Path $EnvFile -Encoding UTF8 -Value "`$env:SAM_CODE_API_KEY = '$SamApiKey'"
 if (Get-Command icacls -ErrorAction SilentlyContinue) {
     & icacls $EnvFile /inheritance:r /grant:r "$($env:USERNAME):F" | Out-Null
 }
@@ -76,7 +76,7 @@ $SamCodexConfig = @(
     "-c", "model_reasoning_effort=`"medium`"",
     "-c", "model_providers.sam.name=`"SAM`"",
     "-c", "model_providers.sam.base_url=`"https://sam.soonsoon.ai/openai/v1`"",
-    "-c", "model_providers.sam.env_key=`"SAM_API_KEY`"",
+    "-c", "model_providers.sam.env_key=`"SAM_CODE_API_KEY`"",
     "-c", "model_providers.sam.wire_api=`"responses`"",
     "-c", "model_providers.sam.request_max_retries=4",
     "-c", "model_providers.sam.stream_max_retries=5",
