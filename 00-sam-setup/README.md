@@ -65,14 +65,12 @@ PowerShell에서는 macOS용 `curl`, `-H`, `-d`, `\` 줄바꿈 문법을 쓰지
 마세요. 아래 PowerShell 블록 전체를 그대로 사용합니다.
 
 ```powershell
-$response = Invoke-RestMethod `
+(Invoke-RestMethod `
   -Method Post `
   -Uri "https://sam.soonsoon.ai/v1/hello" `
   -Headers @{ Authorization = "Bearer $env:SAM_API_KEY" } `
   -ContentType "application/json" `
-  -Body (@{ greeting = "안녕 SAM" } | ConvertTo-Json)
-
-$response.joke
+  -Body (@{ greeting = "안녕 SAM" } | ConvertTo-Json)).joke
 ```
 
 ## 성공 기준

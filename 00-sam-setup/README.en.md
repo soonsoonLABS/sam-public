@@ -65,14 +65,12 @@ In PowerShell, do not use the macOS `curl`, `-H`, `-d`, or `\` line-continuation
 syntax. Copy and run the full PowerShell block below.
 
 ```powershell
-$response = Invoke-RestMethod `
+(Invoke-RestMethod `
   -Method Post `
   -Uri "https://sam.soonsoon.ai/v1/hello" `
   -Headers @{ Authorization = "Bearer $env:SAM_API_KEY" } `
   -ContentType "application/json" `
-  -Body (@{ greeting = "Hello SAM" } | ConvertTo-Json)
-
-$response.joke
+  -Body (@{ greeting = "Hello SAM" } | ConvertTo-Json)).joke
 ```
 
 ## Success Criteria
