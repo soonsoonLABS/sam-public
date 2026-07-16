@@ -14,6 +14,8 @@ SAM(SoonSoon AI Management)을 지원 클라이언트에서 사용할 수 있도
 
 - [`00-sam-setup/`](00-sam-setup/): macOS와 Windows에서 처음 SAM 환경을
   설정하는 가장 짧은 가이드
+- [`01-sam-skills/`](01-sam-skills/): AI 에이전트가 전역 설정에서 읽을
+  SAM API 기본 사용 스킬 문서
 - [`code-agent/`](code-agent/): Codex와 Claude Code를 위한 코딩 에이전트
   연결 도구와 가이드
 
