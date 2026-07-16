@@ -1,97 +1,93 @@
 # SAM Code Agent
 
-**Language:** English | [한국어](README.ko.md)
+**언어:** 한국어 | [English](README.en.md)
 
-Run Codex through SAM with one dedicated command: `sam-codex`.
+`sam-codex` 하나의 전용 명령으로 Codex를 SAM 경유로 실행합니다.
 
-## Two Codex modes
+## Codex 사용 방식 2가지
 
-| Mode | Command | Config home | Use |
+| 방식 | 실행 명령 | 설정 홈 | 용도 |
 | --- | --- | --- | --- |
-| Default Codex | `codex` or `codex app` | `~/.codex` | Your normal ChatGPT/Codex account and OpenAI configuration |
-| SAM Codex | `sam-codex` | `~/.codex-sam` | A terminal session using a SAM API key and `sam-codex-agent` |
+| 기본 Codex | `codex` 또는 `codex app` | `~/.codex` | 기존 ChatGPT/Codex 계정과 일반 OpenAI 설정 |
+| SAM Codex | `sam-codex` | `~/.codex-sam` | SAM API 키와 `sam-codex-agent`를 사용하는 터미널 세션 |
 
-The modes do not share a configuration file. `sam-codex` does not replace
-plain `codex`; use it only when you want a SAM-backed session.
+두 방식은 같은 설정 파일을 공유하지 않습니다. `sam-codex`는 일반 `codex`를
+바꾸지 않으며, SAM을 사용할 때만 실행합니다.
 
-## What you get
+## 제공 기능
 
-- A dedicated `sam-codex` terminal command using `sam-codex-agent`.
-- A local SAM key file that is loaded only for SAM sessions.
-- Separate SAM configuration, so normal Codex settings cannot take over.
-- A direct SAM API test and a separate Codex smoke test for faster diagnosis.
-- Optional macOS and Windows Terminal shortcuts.
+- `sam-codex-agent`를 사용하는 전용 `sam-codex` 터미널 명령
+- SAM 세션에서만 불러오는 로컬 SAM API 키 파일
+- 일반 Codex 설정이 SAM 세션을 덮어쓰지 못하는 별도 설정 공간
+- 키·네트워크를 확인하는 SAM 직접 호출과 Codex 스모크 테스트
+- macOS·Windows용 선택적 터미널 바로가기
 
-## Before you begin
+## 시작 전 준비
 
-Install these shared prerequisites before cloning this repository:
+저장소를 내려받기 전에 다음 공통 도구를 설치해야 합니다.
 
 1. Git
-2. Node.js LTS (includes npm)
+2. Node.js LTS(npm 포함)
 3. Codex CLI
 
-The platform guides provide the exact commands and recovery steps when PATH or
-PowerShell policy blocks `codex`.
+운영체제별 가이드에 PATH와 PowerShell 실행 정책 문제를 포함한 정확한
+명령어가 있습니다.
 
-## Choose your platform
+## 운영체제 선택
 
-- [macOS: setup, key management, tests, and shortcut](docs/macos.md)
-- [Windows: setup, key management, tests, and shortcut](docs/windows.md)
-- [macOS 한국어 가이드](docs/ko/macos.md)
-- [Windows 한국어 가이드](docs/ko/windows.md)
+- [macOS: 설치·키 관리·테스트·바로가기](docs/macos.md)
+- [Windows: 설치·키 관리·테스트·바로가기](docs/windows.md)
+- [macOS English guide](docs/macos.en.md)
+- [Windows English guide](docs/windows.en.md)
 
-## Everyday use
+## 일상 사용
 
 ```text
-codex       # Default Codex: ~/.codex
+codex       # 기본 Codex: ~/.codex
 sam-codex   # SAM Codex: ~/.codex-sam
 ```
 
-`sam-codex` opens the Codex terminal UI with the SAM provider,
-`sam-codex-agent`, and the locally stored SAM API key. Use `sam-codex exec
-...` for non-interactive commands. Do not use plain `codex` when you intend a
-SAM session.
+SAM 세션에서는 일반 `codex` 대신 항상 `sam-codex`를 사용합니다. 비대화형
+요청은 `sam-codex exec ...`로 실행합니다.
 
-## How it stays separate
+## 분리 방식
 
-The installer keeps SAM separate from the normal Codex home:
+설치 프로그램은 기존 Codex 홈과 별도로 다음 파일을 만듭니다.
 
-- `~/.codex-sam/config.toml`: SAM provider and model configuration.
-- `~/.sam-code-agent/env` (macOS) or `~/.sam-code-agent/env.ps1` (Windows):
-  local SAM API key file.
-- `sam-codex`: dedicated wrapper that loads the key and sets
-  `CODEX_HOME=~/.codex-sam` for that process only.
+- `~/.codex-sam/config.toml`: SAM provider·모델 설정
+- `~/.sam-code-agent/env`(macOS) 또는 `~/.sam-code-agent/env.ps1`(Windows):
+  로컬 SAM API 키 파일
+- `sam-codex`: 키를 불러오고 실행 프로세스에만
+  `CODEX_HOME=~/.codex-sam`을 설정하는 전용 wrapper
 
-The wrapper also passes the SAM provider settings directly to Codex, so a
-normal `~/.codex/config.toml` profile cannot silently take over the session.
+wrapper는 SAM provider 설정도 Codex 실행 옵션으로 직접 전달하므로,
+일반 `~/.codex/config.toml`이 SAM 세션을 조용히 덮어쓸 수 없습니다.
 
-## API key safety
+## API 키 보안
 
-Create a SAM key whose owner has `agent:codex` or `agent:coding_agents`
-permission. The guides use the installer prompt to store it locally; never put
-a real key in Git, documentation, screenshots, a shell history command, or a
-project `.env` file.
+키 소유자에게 `agent:codex` 또는 `agent:coding_agents` 권한이 있어야
+합니다. 실제 키는 Git, 문서, 스크린샷, 셸 히스토리 명령, 프로젝트 `.env`
+파일에 절대 넣지 마세요.
 
-The direct API test in each guide verifies the key, network route, and
-`/openai/v1/responses` independently of Codex. The separate CLI smoke test then
-verifies the `sam-codex` wrapper and Codex configuration.
+운영체제별 가이드는 키를 안전하게 바꾸는 방법, SAM 직접 호출 테스트,
+그리고 `sam-codex` 스모크 테스트를 각각 안내합니다.
 
-## Use SAM in the default Codex desktop app
+## 기본 Codex 데스크톱 앱을 SAM으로 전환하기
 
-The standard ChatGPT/Codex desktop app can also be **temporarily switched** to
-the SAM provider through its `~/.codex` configuration. This is a provider swap,
-not simultaneous account and SAM modes. Run the platform switcher only after
-the `sam-codex` smoke test succeeds.
+기본 ChatGPT/Codex 데스크톱 앱도 `~/.codex`를 SAM provider로 **일시 전환**해
+사용할 수 있습니다. 이 방식은 기존 계정 모드와 동시에 쓰는 기능이 아니라,
+기본 앱의 provider를 바꿨다가 복원하는 방식입니다. 먼저 `sam-codex` 스모크
+테스트가 성공한 뒤에만 운영체제별 전환기를 사용하세요.
 
-- macOS: [switch and restore the default desktop app](docs/macos.md#optional-temporarily-switch-the-default-macos-codex-desktop-mode-to-sam)
-- Windows: [switch and restore the default desktop app](docs/windows.md#optional-temporarily-switch-the-default-windows-codex-desktop-mode-to-sam)
+- macOS: [기본 데스크톱 앱 전환·복원](docs/macos.md#선택-기본-codex-데스크톱-앱을-sam으로-일시-전환)
+- Windows: [기본 데스크톱 앱 전환·복원](docs/windows.md#선택-기본-windows-codex-데스크톱-모드를-sam으로-일시-전환)
 
-After switching, fully quit the app before reopening it. On macOS, the GUI
-session key disappears after logout or reboot, so rerun the switch command
-before opening the app. `sam-codex app` does not create a separate SAM-Codex app
-or reliably switch the existing desktop provider.
+전환 뒤에는 앱 창만 닫지 말고 `Cmd-Q`(macOS) 또는 완전 종료(Windows) 후
+다시 여세요. macOS의 GUI 세션 키는 로그아웃·재부팅 뒤 사라지므로, 그때는
+앱을 열기 전에 전환 명령을 한 번 더 실행해야 합니다. `sam-codex app`은 별도
+SAM-Codex 앱을 만들거나 기존 데스크톱 앱을 안전하게 전환하는 명령이 아닙니다.
 
-## Current scope
+## 현재 범위
 
-This directory targets Codex. Claude Code and MCP setup will be published as
-separate guides after their installation paths are stable.
+이 디렉터리는 Codex를 대상으로 합니다. Claude Code와 MCP 설정은 설치
+경로가 안정된 뒤 별도 가이드로 제공합니다.
