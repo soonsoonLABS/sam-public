@@ -1,5 +1,5 @@
 param(
-    [string]$SamApiKey = $env:SAM_CODE_API_KEY
+    [string]$SamCodeApiKey = $env:SAM_CODE_API_KEY
 )
 
 $ErrorActionPreference = "Stop"
@@ -22,31 +22,26 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 New-Item -ItemType Directory -Force -Path $SamHome, $CodexSamHome, $BinDir | Out-Null
 
-if ([string]::IsNullOrWhiteSpace($SamApiKey)) {
+if ([string]::IsNullOrWhiteSpace($SamCodeApiKey)) {
     $secure = Read-Host "Enter your dedicated Code Agent SAM API key" -AsSecureString
     $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
     try {
-        $SamApiKey = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+        $SamCodeApiKey = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
     }
     finally {
         [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
     }
 }
 
-if ([string]::IsNullOrWhiteSpace($SamApiKey)) {
-    Write-Host "SAM API key is required."
-    exit 1
-}
+$SamCodeApiKey = $SamCodeApiKey.Trim()
 
-$SamApiKey = $SamApiKey.Trim()
-
-if ([string]::IsNullOrWhiteSpace($SamApiKey)) {
-    Write-Host "SAM API key is required."
+if ([string]::IsNullOrWhiteSpace($SamCodeApiKey)) {
+    Write-Host "SAM Code Agent API key is required."
     exit 1
 }
 
 $EnvFile = Join-Path $SamHome "env.ps1"
-Set-Content -Path $EnvFile -Encoding UTF8 -Value "`$env:SAM_CODE_API_KEY = '$SamApiKey'"
+Set-Content -Path $EnvFile -Encoding UTF8 -Value "`$env:SAM_CODE_API_KEY = '$SamCodeApiKey'"
 if (Get-Command icacls -ErrorAction SilentlyContinue) {
     & icacls $EnvFile /inheritance:r /grant:r "$($env:USERNAME):F" | Out-Null
 }
@@ -61,14 +56,17 @@ $ErrorActionPreference = "Stop"
 $SamHome = Join-Path $HOME ".sam-code-agent"
 $CodexSamHome = Join-Path $HOME ".codex-sam"
 $EnvFile = Join-Path $SamHome "env.ps1"
+$WorkDir = Join-Path $env:TEMP "sam-codex-cli"
 
 if (-not (Test-Path $EnvFile)) {
-    Write-Host "Missing $EnvFile. Run the SAM code-agent installer first."
+    Write-Host "Missing $EnvFile. Run the SAM Code Agent installer first."
     exit 1
 }
 
 . $EnvFile
 $env:CODEX_HOME = $CodexSamHome
+New-Item -ItemType Directory -Force -Path $WorkDir | Out-Null
+Set-Location $WorkDir
 
 $SamCodexConfig = @(
     "-c", "model=`"sam-codex-agent`"",
@@ -112,8 +110,6 @@ Write-Host "sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral
 Write-Host ""
 Write-Host "Interactive terminal command:"
 Write-Host "sam-codex"
-Write-Host ""
-Write-Host "Note: on Windows, use sam-codex for the CLI/TUI. sam-codex app may open the desktop installer."
 Write-Host ""
 Write-Host "After the CLI test succeeds, enable the Windows desktop app profile with:"
 Write-Host "powershell -ExecutionPolicy Bypass -File .\enable-windows-desktop-sam.ps1"

@@ -140,9 +140,21 @@ launchctl unsetenv SAM_CODE_API_KEY
 대화 기록을 삭제하지 않습니다. 다만 SAM API 모드와 ChatGPT 계정 기반 대화
 목록은 서로 다른 인증·세션이므로 하나의 대화 목록으로 합쳐지지 않습니다.
 
-## 데스크톱 분리에 대한 현재 기준
+## 선택: 기존 Codex와 SAM-Codex Desktop 동시 실행
 
-`CODEX_HOME`으로 분리된 환경은 Codex CLI에 사용합니다. 기존 ChatGPT/Codex
-데스크톱 앱을 별도 복제해 독립 프로필로 실행하는 방식은 공식적으로 안정된
-설정 경로가 아니므로, 이 수동 가이드에서는 지원 경로로 안내하지 않습니다.
-데스크톱은 위의 백업·전환·복원 방식으로 사용합니다.
+기존 Codex Desktop을 유지한 채 SAM-Codex를 별도 창으로 띄우려면
+`CODEX_HOME`뿐 아니라 Electron `user-data-dir`도 분리해야 합니다. 설치
+스크립트는 이 작업을 `sam-codex-desktop`으로 제공합니다. 수동으로는 아래처럼
+실행할 수 있습니다.
+
+```bash
+mkdir -p /private/tmp/sam-codex-desktop
+source "$HOME/.sam-code-agent/env"
+launchctl setenv SAM_CODE_API_KEY "$SAM_CODE_API_KEY"
+launchctl setenv CODEX_HOME "$HOME/.codex-sam"
+open -n -a Codex --args --user-data-dir="$HOME/Library/Application Support/SAM Codex Desktop" /private/tmp/sam-codex-desktop
+```
+
+이 방식은 Codex Desktop 내부 실행 인자에 의존하는 launcher입니다. 문제가
+생기면 CLI 스모크 테스트를 기준으로 먼저 진단하세요. 안정성이 가장 높은
+경로는 `sam-codex` CLI입니다.

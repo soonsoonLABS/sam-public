@@ -12,10 +12,11 @@
 | 방식 | 실행 명령 | 설정 홈 |
 | --- | --- | --- |
 | 기본 Codex | `codex` 또는 `codex app` | `~/.codex` |
-| SAM Codex | `sam-codex` | `~/.codex-sam` |
+| SAM Codex CLI | `sam-codex` | `~/.codex-sam` |
+| SAM-Codex Desktop | `sam-codex-desktop` | `~/.codex-sam` + 별도 Electron data |
 
-macOS의 ChatGPT/Codex 데스크톱 앱은 기본 Codex 방식입니다. SAM 전용 세션은
-이 가이드의 `sam-codex` 터미널 명령으로 실행합니다.
+macOS의 SAM 전용 터미널 세션은 `sam-codex`로 실행합니다. 기존 Codex 앱과
+동시에 별도 SAM 데스크톱 창을 띄우려면 `sam-codex-desktop`을 사용합니다.
 
 ## 빠른 설정 요약
 
@@ -141,19 +142,32 @@ unset SAM_CODE_API_KEY
 직접 호출은 성공하지만 `sam-codex exec`가 실패하면 키와 SAM 경로는 정상입니다.
 설치 프로그램을 다시 실행한 뒤 일반 `codex`가 아닌 전용 명령을 사용하세요.
 
-## 7. 터미널 바로가기 만들기
+## 7. 별도 SAM-Codex 데스크톱 창 열기
+
+설치 프로그램은 `sam-codex-desktop`도 만듭니다. 이 명령은 기본 Codex 앱과
+다른 Electron `user-data-dir`을 사용하므로 기존 Codex/ChatGPT Desktop과
+SAM-Codex Desktop을 동시에 열 수 있습니다.
+
+```bash
+sam-codex-desktop
+```
+
+이 방식은 Codex Desktop 내부 실행 인자에 의존하는 launcher입니다. 문제가
+생기면 먼저 `sam-codex exec`로 CLI 경로가 정상인지 확인하세요.
+
+## 8. 터미널 바로가기 만들기
 
 설치가 끝난 뒤 데스크톱에서 실행할 수 있는 터미널 launcher를 만듭니다.
 
 ```bash
 cat > "$HOME/Desktop/SAM-Codex.command" <<'EOF'
 #!/bin/zsh
-exec "$HOME/.local/bin/sam-codex"
+exec "$HOME/.local/bin/sam-codex-desktop"
 EOF
 chmod +x "$HOME/Desktop/SAM-Codex.command"
 ```
 
-`SAM-Codex.command`를 더블클릭하면 SAM Codex 터미널 UI가 열립니다. 처음에는
+`SAM-Codex.command`를 더블클릭하면 별도 SAM-Codex Desktop 창이 열립니다. 처음에는
 macOS가 로컬 실행 파일 확인을 요청할 수 있습니다.
 
 ## 선택: 기본 Codex 데스크톱 앱을 SAM으로 일시 전환
@@ -188,4 +202,5 @@ bash restore-macos-desktop-default.sh
 터미널 명령과 `~/.codex-sam` 설정은 이 전환·복원 과정에서 바뀌지 않습니다.
 
 `sam-codex app`은 별도 SAM-Codex 앱을 설치하거나 기존 ChatGPT 데스크톱 앱을
-안전하게 전환하는 명령이 아닙니다.
+안전하게 전환하는 명령이 아닙니다. 별도 창이 필요하면 `sam-codex-desktop`을
+사용하세요.

@@ -16,8 +16,8 @@ SAM(SoonSoon AI Management)을 지원 클라이언트에서 사용할 수 있도
   설정하는 가장 짧은 가이드
 - [`01-sam-skills/`](01-sam-skills/): AI 에이전트가 전역 설정에서 읽을
   SAM API 기본 사용 스킬 문서
-- [`02-Code-Agent-Codex/`](02-Code-Agent-Codex/): Codex와 Claude Code를 위한 코딩 에이전트
-  연결 도구와 가이드
+- [`02-Code-Agent-Codex/`](02-Code-Agent-Codex/): Codex CLI/Desktop을 SAM
+  Code Agent로 연결하는 도구와 가이드
 
 ## 보안
 

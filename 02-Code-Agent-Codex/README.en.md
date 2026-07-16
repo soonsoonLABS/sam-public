@@ -38,10 +38,13 @@ local key file.
 | Mode | Command | Config home | Use |
 | --- | --- | --- | --- |
 | Default Codex | `codex` or `codex app` | `~/.codex` | Your normal ChatGPT/Codex account and OpenAI configuration |
-| SAM Codex | `sam-codex` | `~/.codex-sam` | A terminal session using a SAM API key and `sam-codex-agent` |
+| SAM Codex CLI | `sam-codex` | `~/.codex-sam` | A terminal session using a SAM API key and `sam-codex-agent` |
+| macOS SAM-Codex Desktop | `sam-codex-desktop` | `~/.codex-sam` plus separate Electron data | A separate SAM desktop window beside normal Codex |
 
 The modes do not share a configuration file. `sam-codex` does not replace
-plain `codex`; use it only when you want a SAM-backed session.
+plain `codex`; use it only when you want a SAM-backed session. On macOS,
+`sam-codex-desktop` uses a separate Electron `user-data-dir` so it can run
+beside the normal Codex/ChatGPT Desktop app.
 
 ## What you get
 
@@ -49,7 +52,7 @@ plain `codex`; use it only when you want a SAM-backed session.
 - A local SAM key file that is loaded only for SAM sessions.
 - Separate SAM configuration, so normal Codex settings cannot take over.
 - A direct SAM API test and a separate Codex smoke test for faster diagnosis.
-- Optional macOS and Windows Terminal shortcuts.
+- Optional macOS side-by-side Desktop launcher and Windows profile switcher.
 
 ## Before you begin
 
@@ -72,8 +75,9 @@ PowerShell policy blocks `codex`.
 ## Everyday use
 
 ```text
-codex       # Default Codex: ~/.codex
-sam-codex   # SAM Codex: ~/.codex-sam
+codex                # Default Codex: ~/.codex
+sam-codex            # SAM Codex CLI: ~/.codex-sam
+sam-codex-desktop    # macOS only: separate Desktop window
 ```
 
 `sam-codex` opens the Codex terminal UI with the SAM provider,
@@ -90,6 +94,9 @@ The installer keeps SAM separate from the normal Codex home:
   local SAM API key file.
 - `sam-codex`: dedicated wrapper that loads the key and sets
   `CODEX_HOME=~/.codex-sam` for that process only.
+- `sam-codex-desktop` on macOS: Desktop launcher using `CODEX_HOME=~/.codex-sam`
+  plus `~/Library/Application Support/SAM Codex Desktop` as a separate Electron
+  data directory.
 
 The wrapper also passes the SAM provider settings directly to Codex, so a
 normal `~/.codex/config.toml` profile cannot silently take over the session.
@@ -105,7 +112,12 @@ The direct API test in each guide verifies the key, network route, and
 `/openai/v1/responses` independently of Codex. The separate CLI smoke test then
 verifies the `sam-codex` wrapper and Codex configuration.
 
-## Use SAM in the default Codex desktop app
+## Desktop app options
+
+On macOS, use `sam-codex-desktop` to open a separate SAM-Codex Desktop window
+while the normal Codex/ChatGPT Desktop remains available. This launcher uses a
+separate Electron `user-data-dir` and depends on Codex Desktop launch arguments;
+if it fails, diagnose with the CLI smoke test first.
 
 The standard ChatGPT/Codex desktop app can also be **temporarily switched** to
 the SAM provider through its `~/.codex` configuration. This is a provider swap,
@@ -118,7 +130,8 @@ the `sam-codex` smoke test succeeds.
 After switching, fully quit the app before reopening it. On macOS, the GUI
 session key disappears after logout or reboot, so rerun the switch command
 before opening the app. `sam-codex app` does not create a separate SAM-Codex app
-or reliably switch the existing desktop provider.
+or reliably switch the existing desktop provider; use `sam-codex-desktop` for a
+separate macOS window.
 
 ## Current scope
 

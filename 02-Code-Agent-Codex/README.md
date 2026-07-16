@@ -2,7 +2,10 @@
 
 **언어:** 한국어 | [English](README.en.md)
 
-`sam-codex` 하나의 전용 명령으로 Codex를 SAM 경유로 실행합니다.
+`sam-codex` 하나의 전용 명령으로 Codex를 SAM 경유로 실행합니다. Codex에
+보여야 하는 모델명은 `sam-codex-agent`입니다. `gpt-5.6-terra`,
+`gpt-5.6-sol` 같은 이름은 SAM 내부 backing model이므로 Codex 설정에 직접
+넣지 마세요.
 
 ## 먼저: 수동 설정
 
@@ -18,7 +21,8 @@
    하나 만듭니다. 일반 서비스 키와 섞어 쓰지 않는 것을 권장합니다.
 2. 이 저장소의 운영체제별 설치 프로그램을 한 번 실행하고, 숨김 입력창에 그
    전용 키만 붙여 넣습니다. 직접 `.env`나 `config.toml`을 만들 필요가 없습니다.
-3. 이후에는 `sam-codex`만 실행합니다.
+3. 이후 터미널에서는 `sam-codex`, macOS 별도 데스크톱 창은
+   `sam-codex-desktop`을 실행합니다.
 
 ```text
 sam-codex
@@ -32,15 +36,18 @@ Code Agent는 `SAM_CODE_API_KEY`만 사용합니다. 이전에 `SAM_API_KEY`로 
 사용자는 수동 설정 2~5단계 또는 설치 프로그램을 한 번 다시 실행해 키 파일을
 갱신하세요.
 
-## Codex 사용 방식 2가지
+## Codex 사용 방식 3가지
 
 | 방식 | 실행 명령 | 설정 홈 | 용도 |
 | --- | --- | --- | --- |
 | 기본 Codex | `codex` 또는 `codex app` | `~/.codex` | 기존 ChatGPT/Codex 계정과 일반 OpenAI 설정 |
-| SAM Codex | `sam-codex` | `~/.codex-sam` | SAM API 키와 `sam-codex-agent`를 사용하는 터미널 세션 |
+| SAM Codex CLI | `sam-codex` | `~/.codex-sam` | SAM API 키와 `sam-codex-agent`를 사용하는 터미널 세션 |
+| macOS SAM-Codex Desktop | `sam-codex-desktop` | `~/.codex-sam` + 별도 Electron data | 기본 Codex 앱과 동시에 쓰는 별도 데스크톱 창 |
 
-두 방식은 같은 설정 파일을 공유하지 않습니다. `sam-codex`는 일반 `codex`를
-바꾸지 않으며, SAM을 사용할 때만 실행합니다.
+`sam-codex`는 일반 `codex`를 바꾸지 않으며, SAM을 사용할 때만 실행합니다.
+macOS의 `sam-codex-desktop`은 별도 Electron `user-data-dir`을 사용해 일반
+Codex/ChatGPT Desktop과 동시에 띄우는 고급 런처입니다. Codex Desktop 내부
+구조에 의존하므로 문제가 생기면 CLI 경로를 기준으로 진단하세요.
 
 ## 제공 기능
 
@@ -48,7 +55,8 @@ Code Agent는 `SAM_CODE_API_KEY`만 사용합니다. 이전에 `SAM_API_KEY`로 
 - SAM 세션에서만 불러오는 로컬 SAM API 키 파일
 - 일반 Codex 설정이 SAM 세션을 덮어쓰지 못하는 별도 설정 공간
 - 키·네트워크를 확인하는 SAM 직접 호출과 Codex 스모크 테스트
-- macOS·Windows용 선택적 터미널 바로가기
+- macOS용 `sam-codex-desktop` 별도 데스크톱 런처
+- Windows용 기본 데스크톱 프로필 전환·복원 스크립트
 
 ## 시작 전 준비
 
@@ -71,12 +79,14 @@ Code Agent는 `SAM_CODE_API_KEY`만 사용합니다. 이전에 `SAM_API_KEY`로 
 ## 일상 사용
 
 ```text
-codex       # 기본 Codex: ~/.codex
-sam-codex   # SAM Codex: ~/.codex-sam
+codex                # 기본 Codex: ~/.codex
+sam-codex            # SAM Codex CLI: ~/.codex-sam
+sam-codex-desktop    # macOS only: 별도 Desktop 창
 ```
 
 SAM 세션에서는 일반 `codex` 대신 항상 `sam-codex`를 사용합니다. 비대화형
-요청은 `sam-codex exec ...`로 실행합니다.
+요청은 `sam-codex exec ...`로 실행합니다. macOS에서 기존 Codex 앱과 동시에
+SAM Desktop을 쓰려면 `sam-codex-desktop`을 사용합니다.
 
 ## 분리 방식
 
@@ -87,6 +97,9 @@ SAM 세션에서는 일반 `codex` 대신 항상 `sam-codex`를 사용합니다.
   로컬 SAM API 키 파일
 - `sam-codex`: 키를 불러오고 실행 프로세스에만
   `CODEX_HOME=~/.codex-sam`을 설정하는 전용 wrapper
+- `sam-codex-desktop`(macOS): `CODEX_HOME=~/.codex-sam`과 별도
+  `~/Library/Application Support/SAM Codex Desktop`을 함께 사용하는 Desktop
+  launcher
 
 wrapper는 SAM provider 설정도 Codex 실행 옵션으로 직접 전달하므로,
 일반 `~/.codex/config.toml`이 SAM 세션을 조용히 덮어쓸 수 없습니다.
@@ -100,12 +113,15 @@ Code Agent 전용 키 소유자에게 `agent:codex` 또는 `agent:coding_agents`
 운영체제별 가이드는 키를 안전하게 바꾸는 방법, SAM 직접 호출 테스트,
 그리고 `sam-codex` 스모크 테스트를 각각 안내합니다.
 
-## 기본 Codex 데스크톱 앱을 SAM으로 전환하기
+## 데스크톱 앱 사용 기준
 
-기본 ChatGPT/Codex 데스크톱 앱도 `~/.codex`를 SAM provider로 **일시 전환**해
-사용할 수 있습니다. 이 방식은 기존 계정 모드와 동시에 쓰는 기능이 아니라,
-기본 앱의 provider를 바꿨다가 복원하는 방식입니다. 먼저 `sam-codex` 스모크
-테스트가 성공한 뒤에만 운영체제별 전환기를 사용하세요.
+macOS에서 기본 Codex 앱과 SAM-Codex를 동시에 띄우려면 `sam-codex-desktop`을
+사용합니다. 이 방식은 별도 Electron `user-data-dir`을 쓰는 launcher 방식입니다.
+
+기본 ChatGPT/Codex 데스크톱 앱 자체를 SAM으로 **일시 전환**할 수도 있습니다.
+이 방식은 기존 계정 모드와 동시에 쓰는 기능이 아니라, 기본 앱의 provider를
+바꿨다가 복원하는 방식입니다. 먼저 `sam-codex` 스모크 테스트가 성공한 뒤에만
+운영체제별 전환기를 사용하세요.
 
 - macOS: [기본 데스크톱 앱 전환·복원](docs/macos.md#선택-기본-codex-데스크톱-앱을-sam으로-일시-전환)
 - Windows: [기본 데스크톱 앱 전환·복원](docs/windows.md#선택-기본-windows-codex-데스크톱-모드를-sam으로-일시-전환)

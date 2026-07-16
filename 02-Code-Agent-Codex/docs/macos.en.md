@@ -147,7 +147,7 @@ desktop:
 ```bash
 cat > "$HOME/Desktop/SAM-Codex.command" <<'EOF'
 #!/bin/zsh
-exec "$HOME/.local/bin/sam-codex"
+exec "$HOME/.local/bin/sam-codex-desktop"
 EOF
 chmod +x "$HOME/Desktop/SAM-Codex.command"
 ```

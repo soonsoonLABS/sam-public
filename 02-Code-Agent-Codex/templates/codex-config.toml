@@ -1,5 +1,6 @@
 # SAM-managed Codex config.
 # This file is intended to live in ~/.codex-sam/config.toml.
+# Codex sees the SAM virtual model alias; SAM routes it to the selected backing model.
 
 model = "sam-codex-agent"
 model_provider = "sam"
