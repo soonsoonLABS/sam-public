@@ -46,7 +46,8 @@ Code Agent는 `SAM_CODE_API_KEY`만 사용합니다. 이전에 `SAM_API_KEY`로 
 
 `sam-codex`는 일반 `codex`를 바꾸지 않으며, SAM을 사용할 때만 실행합니다.
 macOS의 `sam-codex-desktop`은 별도 Electron `user-data-dir`을 사용해 일반
-Codex/ChatGPT Desktop과 동시에 띄우는 고급 런처입니다. Codex Desktop 내부
+Codex/ChatGPT Desktop과 동시에 띄우는 고급 런처입니다. 독립 `Codex.app`이
+없고 `ChatGPT.app`만 설치된 환경도 자동으로 감지합니다. Codex Desktop 내부
 구조에 의존하므로 문제가 생기면 CLI 경로를 기준으로 진단하세요.
 
 ## 제공 기능

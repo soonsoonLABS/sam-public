@@ -12,10 +12,12 @@ path for the same setup.
 | Mode | Command | Config home |
 | --- | --- | --- |
 | Default Codex | `codex` or `codex app` | `~/.codex` |
-| SAM Codex | `sam-codex` | `~/.codex-sam` |
+| SAM Codex CLI | `sam-codex` | `~/.codex-sam` |
+| SAM-Codex Desktop | `sam-codex-desktop` | `~/.codex-sam` plus separate Electron data |
 
-The macOS ChatGPT/Codex desktop app is the default Codex mode. Use the
-`sam-codex` terminal command for a dedicated SAM session.
+Use `sam-codex` for dedicated SAM terminal sessions. To open a separate
+SAM-Codex desktop window beside the normal Codex app, use `sam-codex-desktop`.
+It detects either standalone `Codex.app` or `ChatGPT.app` installations.
 
 ## Quick setup
 

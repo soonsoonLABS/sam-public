@@ -98,7 +98,14 @@ source "$ENV_FILE"
 set +a
 
 [[ -n "${SAM_CODE_API_KEY:-}" ]] || fail "SAM_CODE_API_KEY is not set."
-[[ -d /Applications/Codex.app ]] || fail "/Applications/Codex.app was not found."
+
+if [[ -d /Applications/Codex.app ]]; then
+  APP_NAME="Codex"
+elif [[ -d /Applications/ChatGPT.app ]]; then
+  APP_NAME="ChatGPT"
+else
+  fail "Neither /Applications/Codex.app nor /Applications/ChatGPT.app was found."
+fi
 
 mkdir -p "$USER_DATA_DIR" "$CODEX_HOME_DIR" "$WORKSPACE"
 umask 077
@@ -107,7 +114,7 @@ chmod 600 "$CODEX_HOME_DIR/.env"
 
 launchctl setenv SAM_CODE_API_KEY "$SAM_CODE_API_KEY"
 launchctl setenv CODEX_HOME "$CODEX_HOME_DIR"
-open -n -a Codex --args --user-data-dir="$USER_DATA_DIR" "$WORKSPACE"
+open -n -a "$APP_NAME" --args --user-data-dir="$USER_DATA_DIR" "$WORKSPACE"
 EOF
 chmod +x "$BIN_DIR/sam-codex-desktop"
 

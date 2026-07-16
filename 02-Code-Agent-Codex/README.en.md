@@ -44,7 +44,8 @@ local key file.
 The modes do not share a configuration file. `sam-codex` does not replace
 plain `codex`; use it only when you want a SAM-backed session. On macOS,
 `sam-codex-desktop` uses a separate Electron `user-data-dir` so it can run
-beside the normal Codex/ChatGPT Desktop app.
+beside the normal Codex/ChatGPT Desktop app. It detects either a standalone
+`Codex.app` or a `ChatGPT.app` installation.
 
 ## What you get
 

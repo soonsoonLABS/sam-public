@@ -17,6 +17,7 @@
 
 macOS의 SAM 전용 터미널 세션은 `sam-codex`로 실행합니다. 기존 Codex 앱과
 동시에 별도 SAM 데스크톱 창을 띄우려면 `sam-codex-desktop`을 사용합니다.
+독립 `Codex.app`이 없고 `ChatGPT.app`만 설치된 환경도 자동으로 감지합니다.
 
 ## 빠른 설정 요약
 
