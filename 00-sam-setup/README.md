@@ -83,3 +83,89 @@ $response.joke
 농담 한 줄이 반환되면 API 키, 네트워크, SAM 인증, 그리고 실제 모델 호출이
 정상입니다. `Hello SAM`은 실제 모델을 호출하므로 소량의 SAM 사용량이
 기록됩니다.
+
+---
+
+# 0. First SAM Setup
+
+This is the shortest way to safely load a SAM API key into your current terminal
+and confirm that a real `Hello SAM` call works.
+
+> The key disappears when you close the current terminal window. Do not save or
+> share API keys in Git, `.env` files, URLs, screenshots, or command history.
+
+## macOS
+
+### 1. Enter your key
+
+Run the command below, paste your SAM key, then press Enter. The key will not be
+shown while you type or paste it.
+
+```bash
+read -s "SAM_API_KEY?Enter SAM key: "
+echo
+export SAM_API_KEY
+```
+
+### 2. Check the key prefix
+
+Print only the first 12 characters, not the full key.
+
+```bash
+echo "${SAM_API_KEY:0:12}..."
+```
+
+### 3. Test Hello SAM
+
+An English greeting returns a short one-line English joke.
+
+```bash
+curl -s -X POST https://sam.soonsoon.ai/v1/hello \
+  -H "Authorization: Bearer $SAM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"greeting":"Hello SAM"}' \
+  | sed -E 's/.*"joke":"([^"]*)".*/\1/'
+```
+
+## Windows PowerShell
+
+### 1. Enter your key
+
+Run the commands below, paste your SAM key, then press Enter. The key will not be
+shown while you type or paste it.
+
+```powershell
+$secure = Read-Host "Enter SAM key" -AsSecureString
+$ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+
+try {
+  $env:SAM_API_KEY = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+} finally {
+  [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+}
+```
+
+### 2. Check the key prefix
+
+```powershell
+$env:SAM_API_KEY.Substring(0,12) + "..."
+```
+
+### 3. Test Hello SAM
+
+```powershell
+$response = Invoke-RestMethod `
+  -Method Post `
+  -Uri "https://sam.soonsoon.ai/v1/hello" `
+  -Headers @{ Authorization = "Bearer $env:SAM_API_KEY" } `
+  -ContentType "application/json" `
+  -Body '{"greeting":"Hello SAM"}'
+
+$response.joke
+```
+
+## Success Criteria
+
+If you get one short joke back, your API key, network connection, SAM
+authentication, and real model call are working. `Hello SAM` calls a real model,
+so a small amount of SAM usage is recorded.
