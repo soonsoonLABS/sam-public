@@ -48,13 +48,7 @@ curl -s -X POST https://sam.soonsoon.ai/v1/hello \
 
 ```powershell
 $secure = Read-Host "SAM 키 입력" -AsSecureString
-$ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
-
-try {
-  $env:SAM_API_KEY = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
-} finally {
-  [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
-}
+$env:SAM_API_KEY = (New-Object PSCredential "sam",$secure).GetNetworkCredential().Password
 ```
 
 ### 2. 키 앞부분 확인
@@ -136,13 +130,7 @@ shown while you type or paste it.
 
 ```powershell
 $secure = Read-Host "Enter SAM key" -AsSecureString
-$ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
-
-try {
-  $env:SAM_API_KEY = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
-} finally {
-  [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
-}
+$env:SAM_API_KEY = (New-Object PSCredential "sam",$secure).GetNetworkCredential().Password
 ```
 
 ### 2. Check the key prefix
