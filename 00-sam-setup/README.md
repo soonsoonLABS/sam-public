@@ -61,7 +61,8 @@ $env:SAM_API_KEY.Substring(0,12) + "..."
 
 ### 3. Hello SAM 테스트
 
-영어 인사에는 영어 농담이 한 줄로 반환됩니다.
+PowerShell에서는 macOS용 `curl`, `-H`, `-d`, `\` 줄바꿈 문법을 쓰지
+마세요. 아래 PowerShell 블록 전체를 그대로 사용합니다.
 
 ```powershell
 $response = Invoke-RestMethod `
@@ -69,7 +70,7 @@ $response = Invoke-RestMethod `
   -Uri "https://sam.soonsoon.ai/v1/hello" `
   -Headers @{ Authorization = "Bearer $env:SAM_API_KEY" } `
   -ContentType "application/json" `
-  -Body '{"greeting":"Hello SAM"}'
+  -Body (@{ greeting = "안녕 SAM" } | ConvertTo-Json)
 
 $response.joke
 ```
