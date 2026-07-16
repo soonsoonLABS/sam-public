@@ -5,40 +5,56 @@
 This is the baseline manual setup without an installer. It keeps the API key
 out of shell history and separates normal Codex from SAM Codex CLI state.
 
-## 1. Prepare an existing SAM key or dedicated Code Agent key
+## 1. Choose an existing SAM key or dedicated Code Agent key
 
 An existing SAM key works, but a per-device key such as `Code Agent - Mac` is
-recommended. Create it in SAM web under **API Keys**, then paste it only into
-this hidden prompt.
+recommended. Prepare the key in SAM web under **API Keys**. Even when reusing
+an existing key, enter it separately as `SAM_CODE_API_KEY` for Code Agent.
+
+## 2. Enter the key in the current terminal
+
+Run this command, paste the key, then press Enter. It stays hidden and is not
+saved to disk yet.
 
 ```bash
-mkdir -p "$HOME/.sam-code-agent"
-printf 'Paste SAM Code Agent key: '
-stty -echo
-IFS= read -r SAM_CODE_API_KEY
-stty echo
-printf '\n'
-printf 'export SAM_CODE_API_KEY=%q\n' "$SAM_CODE_API_KEY" > "$HOME/.sam-code-agent/env"
-chmod 600 "$HOME/.sam-code-agent/env"
-unset SAM_CODE_API_KEY
+read -s "SAM_CODE_API_KEY?Enter SAM Code Agent key: "
+echo
+export SAM_CODE_API_KEY
 ```
 
-## 2. Test the key
+## 3. Check the key prefix
+
+Print only the first 12 characters, never the full key.
+
+```bash
+echo "${SAM_CODE_API_KEY:0:12}..."
+```
+
+## 4. Test the key
 
 Verify the SAM route before involving Codex. A successful response includes
 `SAM-CODEX-OK`.
 
 ```bash
-source "$HOME/.sam-code-agent/env"
 curl --silent --show-error --fail-with-body --max-time 120 -X POST \
   'https://sam.soonsoon.ai/openai/v1/responses' \
   -H "Authorization: Bearer $SAM_CODE_API_KEY" \
   -H 'Content-Type: application/json' \
   --data '{"model":"sam-codex-agent","input":"Reply with exactly: SAM-CODEX-OK","stream":false}'
+```
+
+## 5. Save only the verified key in the Code Agent path
+
+Store the key in the Code Agent-only local file only after the test succeeds.
+
+```bash
+mkdir -p "$HOME/.sam-code-agent"
+printf 'export SAM_CODE_API_KEY=%q\n' "$SAM_CODE_API_KEY" > "$HOME/.sam-code-agent/env"
+chmod 600 "$HOME/.sam-code-agent/env"
 unset SAM_CODE_API_KEY
 ```
 
-## 3. Install Codex CLI
+## 6. Install Codex CLI
 
 Install Node.js LTS first if needed, then run:
 
@@ -47,7 +63,7 @@ npm install -g @openai/codex@latest
 codex --version
 ```
 
-## 4. Create an isolated SAM Codex CLI environment
+## 7. Create an isolated SAM Codex CLI environment
 
 Keep SAM configuration in `~/.codex-sam`, not the normal `~/.codex` home.
 
@@ -82,7 +98,7 @@ the subshell, so normal `codex` configuration is unchanged.
 
 Use plain `codex` for the normal OpenAI/ChatGPT Codex CLI.
 
-## 5. Switch and restore the default Codex CLI or desktop app
+## 8. Switch and restore the default Codex CLI or desktop app
 
 The default profile uses `~/.codex/config.toml`. Back it up, replace it with
 the SAM configuration, and set the GUI-session key:

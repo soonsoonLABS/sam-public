@@ -7,7 +7,7 @@ Run Codex through SAM with one dedicated command: `sam-codex`.
 ## Start with manual setup
 
 Before using installer automation, verify the key, connection, isolated CLI,
-and default-app switch/restore through the five manual steps below.
+and default-app switch/restore one step at a time through the manual guide.
 
 - [Manual setup for macOS](MANUAL_SETUP.en.md)
 - [macOS 수동 설정](MANUAL_SETUP.md)
@@ -30,7 +30,7 @@ keeps Codex settings under `~/.codex-sam/`. To rotate a key, rerun the installer
 and enter the new dedicated Code Agent key.
 
 Code Agent uses only `SAM_CODE_API_KEY`. If you previously configured
-`SAM_API_KEY`, rerun manual setup step 1 or the installer once to update the
+`SAM_API_KEY`, rerun manual setup steps 2-5 or the installer once to update the
 local key file.
 
 ## Two Codex modes

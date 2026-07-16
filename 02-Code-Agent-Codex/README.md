@@ -6,8 +6,8 @@
 
 ## 먼저: 수동 설정
 
-설치형 배포보다 먼저 아래 수동 5단계로 키·연결·분리된 CLI·기본 앱 전환과
-복원을 확인하세요.
+설치형 배포보다 먼저 아래 수동 단계로 키·연결·분리된 CLI·기본 앱 전환과
+복원을 하나씩 확인하세요.
 
 - [macOS 수동 설정](MANUAL_SETUP.md)
 - [macOS manual setup (English)](MANUAL_SETUP.en.md)
@@ -29,7 +29,7 @@ sam-codex
 실행해 새 Code Agent 전용 키를 입력하면 됩니다.
 
 Code Agent는 `SAM_CODE_API_KEY`만 사용합니다. 이전에 `SAM_API_KEY`로 설정한
-사용자는 수동 설정 1단계 또는 설치 프로그램을 한 번 다시 실행해 키 파일을
+사용자는 수동 설정 2~5단계 또는 설치 프로그램을 한 번 다시 실행해 키 파일을
 갱신하세요.
 
 ## Codex 사용 방식 2가지
