@@ -1,9 +1,13 @@
 # Windows에서 SAM Codex 사용하기
 
-**언어:** [English](../windows.md) | 한국어
+**언어:** 한국어 | [English](windows.en.md)
 
 이 가이드는 전용 `sam-codex` 터미널 명령을 만듭니다. 이 명령으로만 SAM을
 사용하므로 기존 `codex` 환경은 바뀌지 않습니다.
+
+수동 설정과 전환·복원 원리를 먼저 확인하려면
+[수동 설정 가이드](../MANUAL_SETUP.md)를 사용하세요. Windows 수동 가이드는
+후속으로 추가하며, 이 문서는 현재 자동 설치 경로입니다.
 
 | 방식 | 실행 명령 | 설정 홈 |
 | --- | --- | --- |
@@ -77,7 +81,7 @@ else {
   git clone https://github.com/soonsoonLABS/sam-public.git $Repo
 }
 
-Set-Location "$Repo\code-agent"
+Set-Location "$Repo\02-Code-Agent-Codex"
 ```
 
 ## 3. 전용 SAM 명령 설치
@@ -122,7 +126,7 @@ sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral "Reply with
 표시하게 하므로 중요합니다.
 
 ```powershell
-Set-Location "$HOME\sam-public\code-agent"
+Set-Location "$HOME\sam-public\02-Code-Agent-Codex"
 Remove-Item Env:SAM_API_KEY -ErrorAction SilentlyContinue
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
 ```
@@ -184,14 +188,14 @@ $Shortcut.Save()
 
 전환 전 복원 경로를 확인하세요. 스크립트는 기존 Codex 설정을 백업한 뒤
 바꿉니다. 기존 데스크톱 앱을 바로 이전 프로필로 되돌리려면
-`sam-public\code-agent` 폴더에서 다음을 실행합니다.
+`sam-public\02-Code-Agent-Codex` 폴더에서 다음을 실행합니다.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\restore-windows-desktop-default.ps1
 ```
 
 ```powershell
-Set-Location "$HOME\sam-public\code-agent"
+Set-Location "$HOME\sam-public\02-Code-Agent-Codex"
 powershell -ExecutionPolicy Bypass -File .\enable-windows-desktop-sam.ps1
 ```
 

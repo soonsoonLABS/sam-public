@@ -15,7 +15,7 @@ if (-not (Test-Path $EnvFile)) {
 }
 
 if (-not (Test-Path $Template)) {
-    Write-Host "Missing $Template. Run this script from sam-public\code-agent."
+    Write-Host "Missing $Template. Run this script from sam-public\02-Code-Agent-Codex."
     exit 1
 }
 

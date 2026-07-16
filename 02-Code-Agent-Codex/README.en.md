@@ -1,10 +1,18 @@
 # SAM Code Agent
 
-**Language:** English | [한국어](README.ko.md)
+**Language:** [한국어](README.md) | English
 
 Run Codex through SAM with one dedicated command: `sam-codex`.
 
-## Simplest setup
+## Start with manual setup
+
+Before using installer automation, verify the key, connection, isolated CLI,
+and default-app switch/restore through the five manual steps below.
+
+- [Manual setup for macOS](MANUAL_SETUP.en.md)
+- [macOS 수동 설정](MANUAL_SETUP.md)
+
+## Installer automation
 
 1. In SAM web, open **API Keys** and create a dedicated key named something
    like `Code Agent - my device`. Do not reuse a general service key.
@@ -52,10 +60,10 @@ PowerShell policy blocks `codex`.
 
 ## Choose your platform
 
-- [macOS: setup, key management, tests, and shortcut](docs/macos.md)
-- [Windows: setup, key management, tests, and shortcut](docs/windows.md)
-- [macOS 한국어 가이드](docs/ko/macos.md)
-- [Windows 한국어 가이드](docs/ko/windows.md)
+- [macOS: setup, key management, tests, and shortcut](docs/macos.en.md)
+- [Windows: setup, key management, tests, and shortcut](docs/windows.en.md)
+- [macOS 한국어 가이드](docs/macos.md)
+- [Windows 한국어 가이드](docs/windows.md)
 
 ## Everyday use
 
@@ -100,8 +108,8 @@ the SAM provider through its `~/.codex` configuration. This is a provider swap,
 not simultaneous account and SAM modes. Run the platform switcher only after
 the `sam-codex` smoke test succeeds.
 
-- macOS: [switch and restore the default desktop app](docs/macos.md#optional-temporarily-switch-the-default-macos-codex-desktop-mode-to-sam)
-- Windows: [switch and restore the default desktop app](docs/windows.md#optional-temporarily-switch-the-default-windows-codex-desktop-mode-to-sam)
+- macOS: [switch and restore the default desktop app](docs/macos.en.md#optional-temporarily-switch-the-default-macos-codex-desktop-mode-to-sam)
+- Windows: [switch and restore the default desktop app](docs/windows.en.md#optional-temporarily-switch-the-default-windows-codex-desktop-mode-to-sam)
 
 After switching, fully quit the app before reopening it. On macOS, the GUI
 session key disappears after logout or reboot, so rerun the switch command

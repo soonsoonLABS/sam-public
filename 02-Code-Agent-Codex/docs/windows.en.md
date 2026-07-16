@@ -1,9 +1,13 @@
 # SAM Codex on Windows
 
-**Language:** English | [한국어](ko/windows.md)
+**Language:** [한국어](windows.md) | English
 
 This guide creates a dedicated `sam-codex` terminal command. It uses SAM only
 for that command and leaves your normal `codex` profile unchanged.
+
+Start with the [manual setup guide](../MANUAL_SETUP.en.md) to understand the
+key, switching, and restore approach. A Windows-specific manual guide will
+follow; this document is the current installer path.
 
 | Mode | Command | Config home |
 | --- | --- | --- |
@@ -77,13 +81,14 @@ else {
   git clone https://github.com/soonsoonLABS/sam-public.git $Repo
 }
 
-Set-Location "$Repo\code-agent"
+Set-Location "$Repo\02-Code-Agent-Codex"
 ```
 
 ## 3. Install the dedicated SAM command
 
-Run the installer and paste the dedicated Code Agent SAM API key only into its hidden prompt. The
-key owner needs `agent:codex` or `agent:coding_agents` permission.
+Run the installer and paste the dedicated Code Agent SAM API key only into its
+hidden prompt. The key owner needs `agent:codex` or
+`agent:coding_agents` permission.
 
 ```powershell
 Remove-Item Env:SAM_API_KEY -ErrorAction SilentlyContinue
@@ -121,7 +126,7 @@ Re-run the installer and enter the new dedicated Code Agent key. Removing
 its hidden prompt instead of reusing an inherited key.
 
 ```powershell
-Set-Location "$HOME\sam-public\code-agent"
+Set-Location "$HOME\sam-public\02-Code-Agent-Codex"
 Remove-Item Env:SAM_API_KEY -ErrorAction SilentlyContinue
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
 ```
@@ -184,14 +189,14 @@ SAM-Codex desktop application.
 
 Before switching, note the recovery path. The script saves the current Codex
 config before replacing it. To immediately return the existing desktop app to
-its previous profile, run this from `sam-public\code-agent`:
+its previous profile, run this from `sam-public\02-Code-Agent-Codex`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\restore-windows-desktop-default.ps1
 ```
 
 ```powershell
-Set-Location "$HOME\sam-public\code-agent"
+Set-Location "$HOME\sam-public\02-Code-Agent-Codex"
 powershell -ExecutionPolicy Bypass -File .\enable-windows-desktop-sam.ps1
 ```
 

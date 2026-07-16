@@ -1,9 +1,13 @@
 # SAM Codex on macOS
 
-**Language:** English | [한국어](ko/macos.md)
+**Language:** [한국어](macos.md) | English
 
 This guide creates a dedicated `sam-codex` terminal command. It uses SAM only
 for that command and leaves your normal `codex` profile unchanged.
+
+Start with the [manual setup guide](../MANUAL_SETUP.en.md) to understand the
+key, switching, and restore steps. This document is the installer automation
+path for the same setup.
 
 | Mode | Command | Config home |
 | --- | --- | --- |
@@ -57,13 +61,14 @@ else
   git clone https://github.com/soonsoonLABS/sam-public.git "$HOME/sam-public"
 fi
 
-cd "$HOME/sam-public/code-agent"
+cd "$HOME/sam-public/02-Code-Agent-Codex"
 ```
 
 ## 3. Install the dedicated SAM command
 
-Run the installer and paste the dedicated Code Agent SAM API key only into its hidden prompt. The
-key owner needs `agent:codex` or `agent:coding_agents` permission.
+Run the installer and paste the dedicated Code Agent SAM API key only into its
+hidden prompt. The key owner needs `agent:codex` or
+`agent:coding_agents` permission.
 
 ```bash
 unset SAM_API_KEY
@@ -107,7 +112,7 @@ important: it makes the installer show its hidden prompt instead of reusing a
 key inherited by the shell.
 
 ```bash
-cd "$HOME/sam-public/code-agent"
+cd "$HOME/sam-public/02-Code-Agent-Codex"
 unset SAM_API_KEY
 bash install-macos.sh
 ```
@@ -158,7 +163,7 @@ configuration. It is a provider swap, not simultaneous OpenAI-account and SAM
 modes. Run it only after the `sam-codex exec` smoke test succeeds.
 
 ```bash
-cd "$HOME/sam-public/code-agent"
+cd "$HOME/sam-public/02-Code-Agent-Codex"
 bash enable-macos-desktop-sam.sh
 ```
 
@@ -174,7 +179,7 @@ logout or reboot, so run the switch command again before opening the app.
 Restore the normal OpenAI-account profile with:
 
 ```bash
-cd "$HOME/sam-public/code-agent"
+cd "$HOME/sam-public/02-Code-Agent-Codex"
 bash restore-macos-desktop-default.sh
 ```
 

@@ -1,10 +1,18 @@
 # SAM Code Agent
 
-**언어:** [English](README.md) | 한국어
+**언어:** 한국어 | [English](README.en.md)
 
 `sam-codex` 하나의 전용 명령으로 Codex를 SAM 경유로 실행합니다.
 
-## 가장 간단한 설정
+## 먼저: 수동 설정
+
+설치형 배포보다 먼저 아래 수동 5단계로 키·연결·분리된 CLI·기본 앱 전환과
+복원을 확인하세요.
+
+- [macOS 수동 설정](MANUAL_SETUP.md)
+- [macOS manual setup (English)](MANUAL_SETUP.en.md)
+
+## 자동화 설치 안내
 
 1. SAM 웹의 **API Keys**에서 `Code Agent - 내 기기`처럼 구분되는 전용 키를
    하나 만듭니다. 일반 서비스 키와 섞어 쓰지 않는 것을 권장합니다.
@@ -51,10 +59,10 @@ sam-codex
 
 ## 운영체제 선택
 
-- [macOS: 설치·키 관리·테스트·바로가기](docs/ko/macos.md)
-- [Windows: 설치·키 관리·테스트·바로가기](docs/ko/windows.md)
-- [macOS English guide](docs/macos.md)
-- [Windows English guide](docs/windows.md)
+- [macOS: 설치·키 관리·테스트·바로가기](docs/macos.md)
+- [Windows: 설치·키 관리·테스트·바로가기](docs/windows.md)
+- [macOS English guide](docs/macos.en.md)
+- [Windows English guide](docs/windows.en.md)
 
 ## 일상 사용
 
@@ -95,8 +103,8 @@ Code Agent 전용 키 소유자에게 `agent:codex` 또는 `agent:coding_agents`
 기본 앱의 provider를 바꿨다가 복원하는 방식입니다. 먼저 `sam-codex` 스모크
 테스트가 성공한 뒤에만 운영체제별 전환기를 사용하세요.
 
-- macOS: [기본 데스크톱 앱 전환·복원](docs/ko/macos.md#선택-기본-codex-데스크톱-앱을-sam으로-일시-전환)
-- Windows: [기본 데스크톱 앱 전환·복원](docs/ko/windows.md#선택-기본-windows-codex-데스크톱-모드를-sam으로-일시-전환)
+- macOS: [기본 데스크톱 앱 전환·복원](docs/macos.md#선택-기본-codex-데스크톱-앱을-sam으로-일시-전환)
+- Windows: [기본 데스크톱 앱 전환·복원](docs/windows.md#선택-기본-windows-codex-데스크톱-모드를-sam으로-일시-전환)
 
 전환 뒤에는 앱 창만 닫지 말고 `Cmd-Q`(macOS) 또는 완전 종료(Windows) 후
 다시 여세요. macOS의 GUI 세션 키는 로그아웃·재부팅 뒤 사라지므로, 그때는
