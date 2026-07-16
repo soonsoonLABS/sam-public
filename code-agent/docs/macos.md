@@ -142,8 +142,36 @@ chmod +x "$HOME/Desktop/SAM-Codex.command"
 Double-click `SAM-Codex.command` to open the SAM Codex terminal UI. macOS may
 ask for confirmation the first time because it is a local executable file.
 
-## Desktop app
+## Optional: temporarily switch the default macOS Codex desktop mode to SAM
+
+To use SAM in the standard ChatGPT/Codex app, this switcher backs up the
+existing `~/.codex/config.toml` and replaces it with the SAM provider
+configuration. It is a provider swap, not simultaneous OpenAI-account and SAM
+modes. Run it only after the `sam-codex exec` smoke test succeeds.
+
+```bash
+cd "$HOME/sam-public/code-agent"
+bash enable-macos-desktop-sam.sh
+```
+
+Fully quit the ChatGPT/Codex app with `Cmd-Q`, then reopen the normal app. It
+will use `sam-codex-agent` and the SAM API key.
+
+The script saves the original `~/.codex/config.toml` once under
+`~/.sam-code-agent/backups/`. It does not write the API key to the backup or
+manifest. To make the key available to a GUI app, it uses a `launchctl`
+environment value for the current login session. That value disappears after
+logout or reboot, so run the switch command again before opening the app.
+
+Restore the normal OpenAI-account profile with:
+
+```bash
+cd "$HOME/sam-public/code-agent"
+bash restore-macos-desktop-default.sh
+```
+
+Fully quit and reopen the app after restoring. The dedicated `sam-codex` CLI
+and its `~/.codex-sam` configuration are unchanged by either command.
 
 `sam-codex app` does not install a separate SAM-Codex app or safely switch the
-existing ChatGPT desktop app to SAM. Keep the existing desktop app in the
-default Codex mode, and use `sam-codex` or the Terminal shortcut above for SAM.
+existing ChatGPT desktop app to SAM.

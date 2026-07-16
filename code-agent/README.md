@@ -76,16 +76,20 @@ The direct API test in each guide verifies the key, network route, and
 `/openai/v1/responses` independently of Codex. The separate CLI smoke test then
 verifies the `sam-codex` wrapper and Codex configuration.
 
-## Desktop app note
+## Use SAM in the default Codex desktop app
 
-The standard ChatGPT/Codex desktop app is the `~/.codex` mode. `sam-codex app`
-does not create a separate SAM-Codex app or reliably switch the existing
-desktop app's provider. The dedicated and reliable SAM path is the
-`sam-codex` terminal command and its Terminal shortcut.
+The standard ChatGPT/Codex desktop app can also be **temporarily switched** to
+the SAM provider through its `~/.codex` configuration. This is a provider swap,
+not simultaneous account and SAM modes. Run the platform switcher only after
+the `sam-codex` smoke test succeeds.
 
-On Windows, the optional desktop switcher temporarily changes the existing
-desktop app's `~/.codex` mode to SAM. It does **not** provide both modes at the
-same time; the Windows guide includes the restore command.
+- macOS: [switch and restore the default desktop app](docs/macos.md#optional-temporarily-switch-the-default-macos-codex-desktop-mode-to-sam)
+- Windows: [switch and restore the default desktop app](docs/windows.md#optional-temporarily-switch-the-default-windows-codex-desktop-mode-to-sam)
+
+After switching, fully quit the app before reopening it. On macOS, the GUI
+session key disappears after logout or reboot, so rerun the switch command
+before opening the app. `sam-codex app` does not create a separate SAM-Codex app
+or reliably switch the existing desktop provider.
 
 ## Current scope
 

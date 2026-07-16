@@ -143,8 +143,36 @@ chmod +x "$HOME/Desktop/SAM-Codex.command"
 `SAM-Codex.command`를 더블클릭하면 SAM Codex 터미널 UI가 열립니다. 처음에는
 macOS가 로컬 실행 파일 확인을 요청할 수 있습니다.
 
-## 데스크톱 앱 참고
+## 선택: 기본 Codex 데스크톱 앱을 SAM으로 일시 전환
 
-`sam-codex app`은 별도 SAM-Codex 앱을 설치하거나 기존 ChatGPT 데스크톱
-앱을 SAM으로 안전하게 전환하지 않습니다. 기존 데스크톱 앱은 기본 Codex
-방식으로 두고, SAM은 `sam-codex` 터미널 명령 또는 위 바로가기로 사용하세요.
+기본 ChatGPT/Codex 앱에서도 SAM을 쓰고 싶다면, 이 전환기는 기존
+`~/.codex/config.toml`을 안전하게 백업한 뒤 SAM 설정으로 바꿉니다. 기본
+OpenAI 계정 모드와 SAM 모드를 동시에 쓰는 방식은 아닙니다. 전환 전에
+`sam-codex exec` 스모크 테스트가 성공해야 합니다.
+
+```bash
+cd "$HOME/sam-public/code-agent"
+bash enable-macos-desktop-sam.sh
+```
+
+명령이 끝나면 ChatGPT/Codex 앱의 모든 창을 닫는 것만으로는 부족합니다.
+`Cmd-Q`로 완전히 종료한 뒤 기본 앱을 다시 여세요. 이때 기본 앱은
+`sam-codex-agent`와 SAM API 키를 사용합니다.
+
+전환기는 원래 `~/.codex/config.toml`을 `~/.sam-code-agent/backups/`에 한 번
+백업합니다. API 키는 백업이나 manifest에 기록하지 않습니다. 다만 macOS GUI
+앱에 키를 전달하기 위해 현재 로그인 세션의 `launchctl` 환경변수를 사용하므로,
+로그아웃 또는 재부팅 후에는 다음 명령을 다시 실행한 뒤 앱을 열어야 합니다.
+
+원래 기본 Codex/OpenAI 계정 방식으로 되돌리려면:
+
+```bash
+cd "$HOME/sam-public/code-agent"
+bash restore-macos-desktop-default.sh
+```
+
+복원 뒤에도 `Cmd-Q`로 완전히 종료한 뒤 앱을 다시 여세요. `sam-codex` 전용
+터미널 명령과 `~/.codex-sam` 설정은 이 전환·복원 과정에서 바뀌지 않습니다.
+
+`sam-codex app`은 별도 SAM-Codex 앱을 설치하거나 기존 ChatGPT 데스크톱 앱을
+안전하게 전환하는 명령이 아닙니다.
