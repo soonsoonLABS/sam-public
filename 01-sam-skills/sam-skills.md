@@ -8,6 +8,8 @@
 
 - Base URL: `https://sam.soonsoon.ai`
 - 인증: `Authorization: Bearer $SAM_API_KEY`
+- 에이전트 전역 지시문에 붙여넣을 부트스트랩 문구는
+  [`AGENT_INSTRUCTIONS.md`](AGENT_INSTRUCTIONS.md)를 사용합니다.
 - 키 표준 위치: macOS/Linux는 `~/.sam/env`, Windows PowerShell은
   `~/.sam/env.ps1`
 - SAM 호출 전에 현재 프로세스에 `SAM_API_KEY`가 없으면 위 표준 파일을 먼저
