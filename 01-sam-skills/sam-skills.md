@@ -8,6 +8,13 @@
 
 - Base URL: `https://sam.soonsoon.ai`
 - 인증: `Authorization: Bearer $SAM_API_KEY`
+- 키 표준 위치: macOS/Linux는 `~/.sam/env`, Windows PowerShell은
+  `~/.sam/env.ps1`
+- SAM 호출 전에 현재 프로세스에 `SAM_API_KEY`가 없으면 위 표준 파일을 먼저
+  로드합니다.
+- `~/.config/sam/.env`, 프로젝트 `.env`, 에이전트별 임의 파일처럼 다른 키
+  저장 위치를 새로 만들지 않습니다.
+- 키를 교체한 뒤 이미 실행 중인 CLI나 에이전트는 재시작해야 새 값을 읽습니다.
 - 새 통합은 `/v1/*` 네이티브 API를 우선 사용합니다.
 - OpenAI 호환 클라이언트는 `/openai/v1/*`를 사용합니다.
 - `/api/*`는 legacy이므로 새 작업에 사용하지 않습니다.
@@ -17,6 +24,20 @@
   검색으로 몰래 대체하지 말고 상태를 보고합니다.
 
 ## 공통 헤더
+
+macOS/Linux에서 호출 전 로드:
+
+```bash
+source "$HOME/.sam/env"
+```
+
+Windows PowerShell에서 호출 전 로드:
+
+```powershell
+. "$HOME\.sam\env.ps1"
+```
+
+macOS/Linux 공통 헤더:
 
 ```bash
 AUTH_HEADER="Authorization: Bearer $SAM_API_KEY"

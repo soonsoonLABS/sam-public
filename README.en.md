@@ -10,6 +10,9 @@ SoonSoon AI Management (SAM).
 Start with [`00-sam-setup/`](00-sam-setup/README.en.md) to enter your SAM API
 key, confirm only the key prefix, and run a tiny `Hello SAM` test call.
 
+The standard local location for SAM usage keys is `~/.sam/`. Point other agents
+to that folder's `env` or `env.ps1` file to avoid split keys across processes.
+
 ## Documents
 
 - [`00-sam-setup/`](00-sam-setup/README.en.md): the shortest first SAM setup
@@ -22,4 +25,8 @@ key, confirm only the key prefix, and run a tiny `Hello SAM` test call.
 ## Security
 
 This repository contains no SAM server code, production configuration, or
-credentials. Never add API keys to files, issue text, command history, or URLs.
+credentials. Never add API keys to Git-tracked files, shared docs, issue text,
+command history, or URLs.
+
+Local key files belong outside Git, under `~/.sam/` only. After replacing a key,
+restart any already-running CLI or agent process.

@@ -8,6 +8,14 @@ the key or save it to files.
 
 - Base URL: `https://sam.soonsoon.ai`
 - Auth: `Authorization: Bearer $SAM_API_KEY`
+- Standard key location: `~/.sam/env` on macOS/Linux and `~/.sam/env.ps1` on
+  Windows PowerShell.
+- Before calling SAM, load the standard file when `SAM_API_KEY` is missing from
+  the current process.
+- Do not create alternate key locations such as `~/.config/sam/.env`, project
+  `.env` files, or agent-specific key files.
+- After replacing a key, restart already-running CLI or agent processes so they
+  read the new value.
 - Prefer native `/v1/*` endpoints for new SAM integrations.
 - Use `/openai/v1/*` for OpenAI-compatible clients.
 - Do not use legacy `/api/*` endpoints for new work.
@@ -17,6 +25,20 @@ the key or save it to files.
   Do not silently replace SAM Search with another search provider.
 
 ## Common Headers
+
+Load the key before macOS/Linux calls:
+
+```bash
+source "$HOME/.sam/env"
+```
+
+Load the key before Windows PowerShell calls:
+
+```powershell
+. "$HOME\.sam\env.ps1"
+```
+
+Common macOS/Linux headers:
 
 ```bash
 AUTH_HEADER="Authorization: Bearer $SAM_API_KEY"

@@ -21,9 +21,10 @@ Example instruction:
 ```text
 When using the SAM API, read sam-skills.md first and authenticate with the
 SAM_API_KEY environment variable. Do not print the key or save it to files.
+Load SAM keys only from ~/.sam/env or ~/.sam/env.ps1.
 ```
 
 ## Prerequisite
 
 First complete [`00-sam-setup/`](../00-sam-setup/README.en.md) so `SAM_API_KEY`
-is available in the current terminal and the `Hello SAM` test succeeds.
+is saved under the standard `~/.sam/` folder and the `Hello SAM` test succeeds.

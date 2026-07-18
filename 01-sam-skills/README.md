@@ -20,9 +20,10 @@
 ```text
 SAM API를 사용할 때는 sam-skills.md를 먼저 읽고, SAM_API_KEY 환경변수로
 인증해서 요청하세요. 키를 출력하거나 파일에 저장하지 마세요.
+SAM 키는 ~/.sam/env 또는 ~/.sam/env.ps1만 로드하세요.
 ```
 
 ## 전제
 
-먼저 [`00-sam-setup/`](../00-sam-setup/)에서 `SAM_API_KEY`를 현재 터미널에
-설정하고 `Hello SAM` 테스트가 성공해야 합니다.
+먼저 [`00-sam-setup/`](../00-sam-setup/)에서 `SAM_API_KEY`를 `~/.sam/` 표준
+폴더에 저장하고 `Hello SAM` 테스트가 성공해야 합니다.
