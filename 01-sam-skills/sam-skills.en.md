@@ -8,6 +8,8 @@ the key or save it to files.
 
 - Base URL: `https://sam.soonsoon.ai`
 - Auth: `Authorization: Bearer $SAM_API_KEY`
+- Use [`AGENT_INSTRUCTIONS.md`](AGENT_INSTRUCTIONS.md) as the bootstrap text to
+  paste into other agents' global instructions.
 - Standard key location: `~/.sam/env` on macOS/Linux and `~/.sam/env.ps1` on
   Windows PowerShell.
 - Before calling SAM, load the standard file when `SAM_API_KEY` is missing from
