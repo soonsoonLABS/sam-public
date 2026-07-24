@@ -1,20 +1,41 @@
-# SAM Codex CLI
+# SAM Codex CLI — macOS
 
-**언어:** 한국어 | [English](README.en.md)
+이 문서는 **macOS에서만** SAM 모델을 Codex CLI에 연결하는 방법입니다. 일반 OpenAI
+Codex 계정과 `~/.codex` 설정은 그대로 두고, SAM은 별도 `sam-codex` 명령으로만
+실행합니다.
 
-기존 OpenAI Codex는 그대로 두고, 별도 `sam-codex` 명령으로만 SAM V2와 MCP를
-사용합니다. **수동 설정이 기본 경로**이고 자동 설치는 아래의 선택 항목입니다.
+## 이 구성으로 되는 것
 
-## 수동 설정 (macOS/Linux)
+- Azure Foundry와 AWS Bedrock Mantle의 SAM V2 Responses 모델 사용
+- Codex 내부 `/model`에서 **SAM 모델만** 선택
+- SAM MCP의 사용량 조회와 웹 검색 사용
+- 모델 목록 캐시가 삭제되거나 깨져도 다음 실행에서 자동 복구
 
-`터미널에서 실행` 블록은 복사해 Terminal에 붙여 넣습니다. `파일 내용` 블록은
-`nano`가 열린 뒤 그 편집기에 붙여 넣는 내용이며, Terminal에서 실행하지 않습니다.
-`nano` 저장은 `Control + O` → `Enter` → `Control + X` 순서입니다.
+SAM은 V2 native endpoint만 사용합니다. 일반 OpenAI Codex 설정, 로그인, 사용량에는
+영향을 주지 않습니다.
 
-### 1. SAM 키 저장
+## 준비물
 
-Code Agent 권한이 있는 SAM API 키를 입력합니다. 키는 화면·명령 기록에 보이지
-않고 `~/.sam/env`에만 저장됩니다.
+- macOS Terminal
+- 설치되어 있고 PATH에서 실행되는 Codex CLI
+- Code Agent 권한이 있는 SAM API 키
+
+먼저 확인합니다.
+
+```bash
+codex --version
+```
+
+## 수동 설치
+
+수동 설치가 기본 경로입니다. 아래에서 **터미널에서 실행** 블록은 Terminal에 붙여
+넣습니다. **파일 내용** 블록은 `nano` 편집기에 붙여 넣는 내용입니다.
+
+`nano` 저장: `Control + O` → `Enter` → `Control + X`
+
+### 1. SAM API 키 저장
+
+아래 명령은 키 입력을 화면에 표시하지 않습니다. 키는 `~/.sam/env`에만 저장됩니다.
 
 ```bash
 mkdir -p "$HOME/.sam"
@@ -26,9 +47,10 @@ stty echo
 printf "\n"
 printf 'export SAM_CODEX_API=%q\n' "$SAM_CODEX_API" > "$HOME/.sam/env"
 chmod 600 "$HOME/.sam/env"
+unset SAM_CODEX_API
 ```
 
-### 2. 분리된 Codex 설정 만들기
+### 2. 분리된 SAM Codex 설정 만들기
 
 터미널에서 실행:
 
@@ -37,7 +59,7 @@ mkdir -p "$HOME/.codex-sam"
 nano "$HOME/.codex-sam/config.toml"
 ```
 
-`nano`가 열리면 아래 **파일 내용**을 붙여 넣고 저장합니다.
+`nano`에 아래 **파일 내용**을 붙여 넣고 저장합니다.
 
 ```toml
 model = "azure.gpt-5.6-terra"
@@ -56,6 +78,9 @@ url = "https://sam.soonsoon.ai/mcp"
 bearer_token_env_var = "SAM_CODEX_API"
 ```
 
+`web_search = "disabled"`은 Codex 자체 검색을 끕니다. SAM 웹 검색은 아래 MCP 도구로
+별도 제공됩니다.
+
 ### 3. `sam-codex` 명령 만들기
 
 터미널에서 실행:
@@ -65,8 +90,7 @@ mkdir -p "$HOME/.local/bin"
 nano "$HOME/.local/bin/sam-codex"
 ```
 
-`nano`가 열리면 아래 **파일 내용**을 붙여 넣고 저장합니다. 저장한 뒤 편집기를
-나옵니다. 이 블록 자체는 Terminal에서 실행하지 않습니다.
+`nano`에 아래 **파일 내용**을 붙여 넣고 저장합니다.
 
 ```bash
 #!/usr/bin/env bash
@@ -95,45 +119,10 @@ refresh_model_catalog() {
 }
 
 refresh_model_catalog
-
-models=(
-  "azure.gpt-5.6-terra|Azure Foundry · 기본"
-  "azure.gpt-5.6-sol|Azure Foundry · 고난도"
-  "azure.gpt-5.6-luna|Azure Foundry · 빠름"
-  "azure.gpt-5.4|Azure Foundry · GPT-5.4"
-  "aws.gpt-5.6-terra|AWS Bedrock Mantle · 기본"
-  "aws.gpt-5.6-sol|AWS Bedrock Mantle · 고난도"
-  "aws.gpt-5.6-luna|AWS Bedrock Mantle · 빠름"
-  "aws.gpt-5.5|AWS Bedrock Mantle · GPT-5.5"
-  "aws.gpt-5.4|AWS Bedrock Mantle · GPT-5.4"
-)
-
-if [[ "${1:-}" == "model" ]]; then
-  shift
-  if [[ $# -gt 0 ]]; then
-    selected_model="$1"
-    shift
-  else
-    echo "SAM 모델 선택"
-    PS3="번호를 입력하세요: "
-    select entry in "${models[@]}"; do
-      if [[ -n "${entry:-}" ]]; then
-        selected_model="${entry%%|*}"
-        break
-      fi
-      echo "목록의 번호를 입력하세요."
-    done
-  fi
-  exec codex -m "$selected_model" "$@"
-fi
-
 exec codex "$@"
 ```
 
 ### 4. 최초 1회만 실행
-
-편집기를 닫고 아래를 Terminal에서 한 번만 실행합니다. 실행 권한을 주고
-~/.local/bin을 macOS 기본 셸(zsh)의 PATH에 등록합니다.
 
 ```bash
 chmod +x "$HOME/.local/bin/sam-codex"
@@ -141,65 +130,100 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
 source "$HOME/.zshrc"
 ```
 
-### 5. 매번 실행
+### 5. 실행과 모델 선택
 
-이후에는 새 Terminal을 열어도 아래 한 줄만 실행합니다.
-
-```bash
-sam-codex
-```
-
-정상이라면 기본 모델은 `azure.gpt-5.6-terra`입니다. `sam-codex`는 시작할 때마다
-SAM 전용 모델 목록을 갱신합니다. Codex 안에서 `/model`을 입력하면 Azure Foundry와
-AWS Bedrock Mantle 별칭이 포함된 목록을 볼 수 있습니다.
-
-목록을 새로 고치려면 Codex를 종료한 뒤 다시 실행합니다.
+이후에는 아래 한 줄만 실행합니다.
 
 ```bash
 sam-codex
 ```
 
-터미널에서 바로 특정 모델을 열고 싶을 때만 아래 보조 선택기를 사용합니다.
+Codex가 열리면 `/model`을 입력합니다. 모델 목록에는 SAM에서 허용한 아래 9개만
+표시됩니다.
 
-```bash
-sam-codex model aws.gpt-5.6-sol
+| 제공 경로 | 모델 |
+| --- | --- |
+| Azure Foundry | `azure.gpt-5.6-sol`, `azure.gpt-5.6-terra`, `azure.gpt-5.6-luna`, `azure.gpt-5.4` |
+| AWS Bedrock Mantle | `aws.gpt-5.6-sol`, `aws.gpt-5.6-terra`, `aws.gpt-5.6-luna`, `aws.gpt-5.5`, `aws.gpt-5.4` |
+
+기본값은 `azure.gpt-5.6-terra`입니다. `sol`은 고난도 작업, `terra`는 일반 코딩·분석,
+`luna`는 빠른 작업에 적합합니다.
+
+## 모델 목록은 어디서 오나
+
+`sam-codex`는 시작할 때마다 인증된 V2 endpoint에서 모델 카탈로그를 받아옵니다.
+
+```text
+https://sam.soonsoon.ai/v2/openai/models
 ```
 
-## 첫 확인
+목록은 로컬 `~/.codex-sam/models_cache.json`에만 저장됩니다. 이 파일에는 API 키나
+OpenAI 계정 정보가 들어가지 않습니다. Codex의 내장 모델은 SAM 전용 캐시에서 숨김
+처리되므로 `/model`에서 실수로 비-SAM 모델을 선택할 수 없습니다.
 
-Codex 안에서 다음을 요청합니다.
+## MCP 도구
+
+Codex 안에서 자연어로 요청하면 됩니다.
 
 ```text
 sam_account_usage를 사용해서 이번 달 SAM 사용량과 남은 SSAM을 짧게 보여줘.
 ```
 
-`sam_account_usage`는 무료·읽기 전용입니다. 검색은 “SAM 웹 검색으로 … 찾아줘”라고
-요청합니다. 검색은 사용량으로 기록되며, 페이지 본문이 대화에 들어가면 모델 입력
-토큰이 발생할 수 있습니다.
+- `sam_account_usage`: 무료·읽기 전용 사용량 조회
+- `sam_web_search`: “SAM 웹 검색으로 … 찾아줘”라고 요청. 검색 사용량이 기록됩니다.
+- `sam_open_page`, `sam_find_in_page`: 검색 결과나 공개 URL의 페이지 내용을 읽고 찾는 도구입니다.
 
-## 모델
+페이지 본문이 대화에 들어오면 모델 입력 토큰이 발생할 수 있습니다.
 
-| 모델 | 제공 경로 | 용도 |
-| --- | --- | --- |
-| `azure.gpt-5.6-terra` / `aws.gpt-5.6-terra` | Azure Foundry / AWS Bedrock Mantle | 기본 코딩·분석 |
-| `azure.gpt-5.6-sol` / `aws.gpt-5.6-sol` | Azure Foundry / AWS Bedrock Mantle | 고난도 작업 |
-| `azure.gpt-5.6-luna` / `aws.gpt-5.6-luna` | Azure Foundry / AWS Bedrock Mantle | 가벼운 작업 |
+## 복구
+
+### `/model` 목록이 이상하거나 기본 Codex 모델이 보일 때
+
+Codex를 종료한 뒤 다시 실행합니다.
+
+```bash
+sam-codex
+```
+
+그래도 해결되지 않으면 SAM 전용 캐시만 지우고 다시 실행합니다. 일반 OpenAI Codex
+설정은 건드리지 않습니다.
+
+```bash
+rm -f "$HOME/.codex-sam/models_cache.json"
+sam-codex
+```
+
+### `sam-codex: command not found`
+
+현재 Terminal에서 아래를 실행한 뒤 다시 시도합니다.
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+sam-codex
+```
+
+새 Terminal에서도 유지하려면 위의 “최초 1회만 실행” 단계를 완료합니다.
+
+### `sam-codex-agent`가 보일 때
+
+그것은 폐기 예정인 구 환경입니다. 해당 Codex 창을 닫고 이 문서의 `sam-codex`로
+다시 실행합니다.
 
 ## 자동 설치 (선택)
 
-수동 설정을 이해한 뒤 반복 설치할 때만 사용합니다.
+수동 설치를 이해했고 반복 설치할 때만 사용합니다.
 
 ```bash
 git clone https://github.com/soonsoonLABS/sam-public.git
 bash sam-public/02-Code-Agent-Codex/install-macos.sh
 ```
 
-Windows PowerShell 자동 설치는 다음 명령을 사용합니다.
+자동 설치도 같은 분리 경로(`~/.sam`, `~/.codex-sam`, `~/.local/bin/sam-codex`)와
+동일한 모델 캐시 갱신을 사용합니다.
 
-```powershell
-git clone https://github.com/soonsoonLABS/sam-public.git
-PowerShell -ExecutionPolicy Bypass -File .\sam-public\02-Code-Agent-Codex\install-windows.ps1
-```
+## 보안 경계
 
-`sam-codex-agent`가 보이면 구 환경입니다. 해당 Codex 창을 종료하고, 구
-`sam-codex` wrapper가 아닌 위 V2 수동 설정으로 다시 시작하세요.
+- API 키를 문서, Git, 채팅, 스크린샷에 남기지 않습니다.
+- `~/.sam/env`는 사용자만 읽을 수 있도록 권한 `600`으로 저장합니다.
+- `~/.codex`는 일반 OpenAI Codex용입니다. SAM 설정이나 키를 여기에 넣지 않습니다.
+- 모델 호출은 `/v2/openai`만 사용하며 V1/compat fallback을 사용하지 않습니다.
