@@ -74,6 +74,27 @@ set -euo pipefail
 . "$HOME/.sam/env"
 export CODEX_HOME="$HOME/.codex-sam"
 
+refresh_model_catalog() {
+  local client_version cache_tmp
+  client_version="$(codex --version | awk '{print $2}')"
+  [[ -n "$client_version" ]] || return 0
+  mkdir -p "$CODEX_HOME"
+  umask 077
+  cache_tmp="$(mktemp "$CODEX_HOME/.models_cache.XXXXXX")" || return 0
+  if curl --fail --silent --show-error --max-time 10 --get \
+    -H "Authorization: Bearer $SAM_CODEX_API" \
+    -H 'x-sam-codex-cache: 1' \
+    --data-urlencode "client_version=$client_version" \
+    'https://sam.soonsoon.ai/v2/openai/models' > "$cache_tmp" \
+    && grep -q '"models"' "$cache_tmp"; then
+    mv "$cache_tmp" "$CODEX_HOME/models_cache.json"
+  else
+    rm -f "$cache_tmp"
+  fi
+}
+
+refresh_model_catalog
+
 models=(
   "azure.gpt-5.6-terra|Azure Foundry · everyday"
   "azure.gpt-5.6-sol|Azure Foundry · difficult work"
@@ -127,18 +148,18 @@ After that, open a new Terminal and run only:
 sam-codex
 ```
 
-The default model is `azure.gpt-5.6-terra`. Choose a SAM model in Terminal,
-instead of using `/model` inside Codex:
+The default model is `azure.gpt-5.6-terra`. `sam-codex` refreshes its isolated
+SAM model catalog at startup. Type `/model` inside Codex to see the Azure
+Foundry and AWS Bedrock Mantle aliases.
+
+To refresh the list, close Codex and run it again:
 
 ```bash
-sam-codex model
+sam-codex
 ```
 
-It shows all nine SAM models with their Azure Foundry or AWS Bedrock Mantle
-source. Codex CLI's `/model` screen currently only shows its built-in model
-list, not external provider catalogs.
-
-Open a specific model directly when you already know its alias:
+Use this optional terminal selector only when you already want to launch a
+specific model directly:
 
 ```bash
 sam-codex model aws.gpt-5.6-sol

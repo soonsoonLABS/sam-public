@@ -14,6 +14,24 @@ if ([string]::IsNullOrWhiteSpace($env:SAM_CODEX_API)) {
 }
 
 $env:CODEX_HOME = $CodexSamHome
+try {
+    $clientVersion = ((& codex --version) -split '\s+')[-1]
+    $cacheTmp = Join-Path $CodexSamHome (".models_cache.{0}" -f [guid]::NewGuid().ToString("N"))
+    Invoke-WebRequest -UseBasicParsing -Method Get -Uri ("https://sam.soonsoon.ai/v2/openai/models?client_version={0}" -f [uri]::EscapeDataString($clientVersion)) -Headers @{
+        Authorization = "Bearer $env:SAM_CODEX_API"
+        "x-sam-codex-cache" = "1"
+    } -OutFile $cacheTmp
+    if ((Get-Content -Raw $cacheTmp) -match '"models"') {
+        Move-Item -Force $cacheTmp (Join-Path $CodexSamHome "models_cache.json")
+    }
+    else {
+        Remove-Item -Force $cacheTmp
+    }
+}
+catch {
+    if ($cacheTmp -and (Test-Path $cacheTmp)) { Remove-Item -Force $cacheTmp }
+}
+
 if ($args.Count -gt 0 -and $args[0] -eq "model") {
     $remainingArgs = @($args | Select-Object -Skip 1)
     if ($remainingArgs.Count -gt 0) {
