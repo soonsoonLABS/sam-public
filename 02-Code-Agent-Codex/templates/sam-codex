@@ -21,25 +21,29 @@ fi
 export CODEX_HOME="$CODEX_SAM_HOME"
 
 refresh_model_catalog() {
-  local client_version cache_tmp
-  client_version="$(codex --version | awk '{print $2}')"
-  [[ -n "$client_version" ]] || return 0
+  local catalog_tmp
   mkdir -p "$CODEX_HOME"
   umask 077
-  cache_tmp="$(mktemp "$CODEX_HOME/.models_cache.XXXXXX")" || return 0
-  if curl --fail --silent --show-error --max-time 10 --get \
+  catalog_tmp="$(mktemp "$CODEX_HOME/.models.XXXXXX")" || return 0
+  if curl --fail --silent --show-error --max-time 10 \
     -H "Authorization: Bearer $SAM_CODEX_API" \
-    -H 'x-sam-codex-cache: 1' \
-    --data-urlencode "client_version=$client_version" \
-    'https://sam.soonsoon.ai/v2/openai/models' > "$cache_tmp" \
-    && grep -q '"models"' "$cache_tmp"; then
-    mv "$cache_tmp" "$CODEX_HOME/models_cache.json"
+    'https://sam.soonsoon.ai/v2/openai/models' > "$catalog_tmp" \
+    && grep -q '"models"' "$catalog_tmp"; then
+    mv "$catalog_tmp" "$CODEX_HOME/models.json"
   else
-    rm -f "$cache_tmp"
+    rm -f "$catalog_tmp"
   fi
 }
 
 refresh_model_catalog
+
+if [[ ! -s "$CODEX_HOME/models.json" ]]; then
+  echo "SAM model catalog could not be loaded; SAM Codex did not start." >&2
+  echo "Check SAM API-key access and retry. Your normal OpenAI Codex was not changed." >&2
+  exit 1
+fi
+
+catalog_config="model_catalog_json=\"$CODEX_HOME/models.json\""
 
 models=(
   "azure.gpt-5.6-terra|Azure Foundry · everyday"
@@ -69,7 +73,7 @@ if [[ "${1:-}" == "model" ]]; then
       echo "Enter a number from the list."
     done
   fi
-  exec codex -m "$selected_model" "$@"
+  exec codex -c "$catalog_config" -m "$selected_model" "$@"
 fi
 
-exec codex "$@"
+exec codex -c "$catalog_config" "$@"
