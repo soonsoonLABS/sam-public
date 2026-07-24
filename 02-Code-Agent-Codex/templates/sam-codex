@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SAM_HOME="${SAM_HOME:-$HOME/.sam}"
+CODEX_SAM_HOME="${CODEX_SAM_HOME:-$HOME/.codex-sam}"
+ENV_FILE="$SAM_HOME/env"
+
+if [ ! -r "$ENV_FILE" ]; then
+  echo "Missing $ENV_FILE. Run install-macos.sh first." >&2
+  exit 1
+fi
+
+# shellcheck disable=SC1090
+. "$ENV_FILE"
+
+if [ -z "${SAM_CODEX_API:-}" ]; then
+  echo "SAM_CODEX_API is not set in $ENV_FILE." >&2
+  exit 1
+fi
+
+export CODEX_HOME="$CODEX_SAM_HOME"
+exec codex "$@"

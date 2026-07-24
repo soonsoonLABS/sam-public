@@ -7,7 +7,8 @@
 
 ## 파일
 
-- [`sam-skills.md`](sam-skills.md): 한글 기본 스킬 문서
+- [`sam/SKILL.md`](sam/SKILL.md): Codex용 V2·MCP 스킬 문서
+- [`sam-skills.md`](sam-skills.md): 범용 SAM API 기본 스킬 문서
 - [`sam-skills.en.md`](sam-skills.en.md): 영문 스킬 문서
 - [`AGENT_INSTRUCTIONS.md`](AGENT_INSTRUCTIONS.md): 다른 에이전트의 전역
   지시문에 붙여넣을 한글 부트스트랩 문구
@@ -21,14 +22,14 @@
 권장 로컬 복사 위치:
 
 ```bash
-mkdir -p "$HOME/.sam/skills"
-cp sam-skills.md "$HOME/.sam/skills/sam-skills.md"
+mkdir -p "$HOME/.sam/skills/sam"
+cp sam/SKILL.md "$HOME/.sam/skills/sam/SKILL.md"
 ```
 
 예시 지침:
 
 ```text
-SAM API를 사용할 때는 sam-skills.md를 먼저 읽고, SAM_API_KEY 환경변수로
+SAM Codex를 사용할 때는 sam/SKILL.md를 먼저 읽고, SAM_CODEX_API 환경변수로
 인증해서 요청하세요. 키를 출력하거나 임의 파일에 저장하지 마세요.
 SAM 키는 ~/.sam/env 또는 ~/.sam/env.ps1만 로드하세요.
 ```

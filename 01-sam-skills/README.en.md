@@ -8,7 +8,8 @@ the SAM API.
 
 ## Files
 
-- [`sam-skills.md`](sam-skills.md): Korean default skill document
+- [`sam/SKILL.md`](sam/SKILL.md): V2 and MCP skill document for Codex
+- [`sam-skills.md`](sam-skills.md): general SAM API skill document
 - [`sam-skills.en.md`](sam-skills.en.md): English skill document
 - [`AGENT_INSTRUCTIONS.md`](AGENT_INSTRUCTIONS.md): Korean bootstrap text to
   paste into other agents' global instructions
@@ -22,15 +23,15 @@ instruct the agent to read `sam-skills.md` when it needs SAM API access.
 Recommended local copy location:
 
 ```bash
-mkdir -p "$HOME/.sam/skills"
-cp sam-skills.md "$HOME/.sam/skills/sam-skills.md"
+mkdir -p "$HOME/.sam/skills/sam"
+cp sam/SKILL.md "$HOME/.sam/skills/sam/SKILL.md"
 ```
 
 Example instruction:
 
 ```text
-When using the SAM API, read sam-skills.md first and authenticate with the
-SAM_API_KEY environment variable. Do not print the key or save it to arbitrary
+When using SAM Codex, read sam/SKILL.md first and authenticate with the
+SAM_CODEX_API environment variable. Do not print the key or save it to arbitrary
 files.
 Load SAM keys only from ~/.sam/env or ~/.sam/env.ps1.
 ```

@@ -22,6 +22,9 @@ Point every agent to this path. Do not create alternate key files such as
 `~/.config/sam/.env`. After replacing a key, restart any already-running CLI or
 agent process so it reads the new value.
 
+The Codex installer stores `SAM_CODEX_API` in this file and also exposes the
+same value as `SAM_API_KEY` for existing general-purpose SAM tooling.
+
 ## macOS
 
 ### 1. Save the key
