@@ -2,82 +2,101 @@
 
 **Language:** [한국어](README.md) | English
 
-This package runs Codex with SAM models and MCP tools in a separate environment.
-It does not change your normal `codex`, ChatGPT, or Codex account configuration.
+Keep normal OpenAI Codex unchanged. Use SAM V2 and MCP only through a separate
+`sam-codex` command. **Manual setup is the default path**; the installer is optional.
 
-## What it installs
+## Manual setup (macOS/Linux)
 
-- V2 OpenAI Responses at `https://sam.soonsoon.ai/v2/openai`
-- Azure Foundry and AWS Bedrock Mantle model selection
-- SAM MCP tools for web search, public-page reading, in-page find, and monthly usage
-- A dedicated `sam-codex` command
+### 1. Save the SAM key
 
-Codex provider-hosted search is deliberately disabled. SAM MCP performs search
-and records its SAM usage.
-
-## Install
-
-Prepare a SAM API key with Code Agent access and install Codex CLI first.
+Enter a SAM API key with Code Agent access. It is stored only in `~/.sam/env`.
 
 ```bash
-codex --version
-git clone https://github.com/soonsoonLABS/sam-public.git
-cd sam-public/02-Code-Agent-Codex
-bash install-macos.sh
+mkdir -p "$HOME/.sam"
+chmod 700 "$HOME/.sam"
+printf "SAM Code Agent API key: "
+stty -echo
+IFS= read -r SAM_CODEX_API
+stty echo
+printf "\n"
+printf 'export SAM_CODEX_API=%q\n' "$SAM_CODEX_API" > "$HOME/.sam/env"
+chmod 600 "$HOME/.sam/env"
 ```
 
-On Windows PowerShell:
-
-```powershell
-git clone https://github.com/soonsoonLABS/sam-public.git
-Set-Location sam-public\02-Code-Agent-Codex
-PowerShell -ExecutionPolicy Bypass -File .\install-windows.ps1
-```
-
-The installer securely creates `~/.sam/` for the API key and shared skills, and
-`~/.codex-sam/` for the isolated Codex configuration. Never put the key in Git,
-URLs, screenshots, or command-line arguments.
-
-## Run and verify
+### 2. Create isolated Codex settings
 
 ```bash
+mkdir -p "$HOME/.codex-sam"
+nano "$HOME/.codex-sam/config.toml"
+```
+
+Paste and save:
+
+```toml
+model = "azure.gpt-5.6-terra"
+model_provider = "sam"
+service_tier = "default"
+web_search = "disabled"
+
+[model_providers.sam]
+name = "SAM"
+base_url = "https://sam.soonsoon.ai/v2/openai"
+env_key = "SAM_CODEX_API"
+wire_api = "responses"
+
+[mcp_servers.sam-tools]
+url = "https://sam.soonsoon.ai/mcp"
+bearer_token_env_var = "SAM_CODEX_API"
+```
+
+### 3. Create `sam-codex`
+
+```bash
+mkdir -p "$HOME/.local/bin"
+nano "$HOME/.local/bin/sam-codex"
+```
+
+Paste and save:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+. "$HOME/.sam/env"
+export CODEX_HOME="$HOME/.codex-sam"
+exec codex "$@"
+```
+
+```bash
+chmod +x "$HOME/.local/bin/sam-codex"
+export PATH="$HOME/.local/bin:$PATH"
 sam-codex
 ```
 
-Then ask Codex:
+The default model is `azure.gpt-5.6-terra`. Use `/model` inside Codex to select
+Azure Foundry or AWS Bedrock Mantle models.
+To use it in a new terminal, add `export PATH="$HOME/.local/bin:$PATH"` to your
+shell configuration once.
+
+## Verify
+
+Ask Codex:
 
 ```text
 Use sam_account_usage to briefly show this month's SAM usage and remaining SSAM.
 ```
 
-This read-only tool is free. Model prompts are recorded as normal model-token usage.
+The tool is free and read-only. Ask for “SAM web search” when you need current
+research; search is recorded as SAM usage.
 
-## Choose a model
+## Optional installer
 
-Run `/model` inside Codex. The default is `azure.gpt-5.6-terra`.
+Use this only after you understand the manual setup.
 
-| Model | Provider | Best for |
-| --- | --- | --- |
-| `azure.gpt-5.6-sol`, `aws.gpt-5.6-sol` | Azure Foundry / AWS Bedrock Mantle | difficult coding and long agent work |
-| `azure.gpt-5.6-terra`, `aws.gpt-5.6-terra` | Azure Foundry / AWS Bedrock Mantle | everyday coding and analysis |
-| `azure.gpt-5.6-luna`, `aws.gpt-5.6-luna` | Azure Foundry / AWS Bedrock Mantle | lighter work |
-| `azure.gpt-5.4`, `aws.gpt-5.5`, `aws.gpt-5.4` | Azure Foundry / AWS Bedrock Mantle | general work |
+```bash
+git clone https://github.com/soonsoonLABS/sam-public.git
+bash sam-public/02-Code-Agent-Codex/install-macos.sh
+```
 
-## SAM MCP tools
-
-| Tool | Purpose | SAM usage |
-| --- | --- | --- |
-| `sam_web_search` | web search | recorded as search usage |
-| `sam_open_page` | open a public page | no search charge for the tool itself |
-| `sam_find_in_page` | find text in an opened page | no search charge for the tool itself |
-| `sam_account_usage` | monthly usage and remaining SSAM | free and read-only |
-
-Ask explicitly for “SAM web search” when you need current web research. Page
-content may still create normal input tokens when it is included in the model context.
-
-See [troubleshooting](docs/troubleshooting.md) for common setup errors.
-
-## Scope
-
-This package supports Codex CLI. It does not switch the provider of an existing
-Codex Desktop app because that can conflict with the user's account and settings.
+If `sam-codex-agent` appears, you are in a legacy environment. Close that Codex
+window and use the V2 manual setup above.
