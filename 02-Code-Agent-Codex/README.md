@@ -77,21 +77,27 @@ export CODEX_HOME="$HOME/.codex-sam"
 exec codex "$@"
 ```
 
-### 4. 실행
+### 4. 최초 1회만 실행
 
-편집기를 닫고 Terminal에서 아래를 실행합니다. 마지막 줄 `sam-codex`가 실제
-Codex 실행 명령입니다.
+편집기를 닫고 아래를 Terminal에서 한 번만 실행합니다. 실행 권한을 주고
+~/.local/bin을 macOS 기본 셸(zsh)의 PATH에 등록합니다.
 
 ```bash
 chmod +x "$HOME/.local/bin/sam-codex"
-export PATH="$HOME/.local/bin:$PATH"
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
+source "$HOME/.zshrc"
+```
+
+### 5. 매번 실행
+
+이후에는 새 Terminal을 열어도 아래 한 줄만 실행합니다.
+
+```bash
 sam-codex
 ```
 
 정상이라면 기본 모델은 `azure.gpt-5.6-terra`입니다. Codex 안에서 `/model`을
 입력하면 Azure Foundry와 AWS Bedrock Mantle 모델을 선택할 수 있습니다.
-새 터미널에서도 쓰려면 `export PATH="$HOME/.local/bin:$PATH"`를 셸 설정에
-한 번 추가합니다.
 
 ## 첫 확인
 
