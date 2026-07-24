@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SAM_HOME="${SAM_HOME:-$HOME/.sam}"
-CODEX_SAM_HOME="${CODEX_SAM_HOME:-$HOME/.codex-sam}"
-BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
+# Deliberately fixed paths: SAM must never inherit a caller's CODEX_HOME or
+# CODEX_SAM_HOME and accidentally overwrite the user's normal OpenAI Codex.
+SAM_HOME="$HOME/.sam"
+CODEX_SAM_HOME="$HOME/.codex-sam"
+BIN_DIR="$HOME/.local/bin"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_SOURCE="$SCRIPT_DIR/../01-sam-skills/sam/SKILL.md"
 
