@@ -7,6 +7,10 @@ Keep normal OpenAI Codex unchanged. Use SAM V2 and MCP only through a separate
 
 ## Manual setup (macOS/Linux)
 
+Copy a **Run in Terminal** block into Terminal. A **File contents** block is
+text to paste into `nano`, not a Terminal command. Save in `nano` with
+`Control + O`, `Enter`, then `Control + X`.
+
 ### 1. Save the SAM key
 
 Enter a SAM API key with Code Agent access. It is stored only in `~/.sam/env`.
@@ -25,12 +29,14 @@ chmod 600 "$HOME/.sam/env"
 
 ### 2. Create isolated Codex settings
 
+Run in Terminal:
+
 ```bash
 mkdir -p "$HOME/.codex-sam"
 nano "$HOME/.codex-sam/config.toml"
 ```
 
-Paste and save:
+When `nano` opens, paste these **File contents** and save:
 
 ```toml
 model = "azure.gpt-5.6-terra"
@@ -51,12 +57,15 @@ bearer_token_env_var = "SAM_CODEX_API"
 
 ### 3. Create `sam-codex`
 
+Run in Terminal:
+
 ```bash
 mkdir -p "$HOME/.local/bin"
 nano "$HOME/.local/bin/sam-codex"
 ```
 
-Paste and save:
+When `nano` opens, paste these **File contents**. Save and exit `nano`; do not
+run this block in Terminal.
 
 ```bash
 #!/usr/bin/env bash
@@ -66,6 +75,11 @@ set -euo pipefail
 export CODEX_HOME="$HOME/.codex-sam"
 exec codex "$@"
 ```
+
+### 4. Run
+
+After closing the editor, run this in Terminal. The final `sam-codex` line
+actually starts Codex.
 
 ```bash
 chmod +x "$HOME/.local/bin/sam-codex"

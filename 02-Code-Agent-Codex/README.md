@@ -7,6 +7,10 @@
 
 ## 수동 설정 (macOS/Linux)
 
+`터미널에서 실행` 블록은 복사해 Terminal에 붙여 넣습니다. `파일 내용` 블록은
+`nano`가 열린 뒤 그 편집기에 붙여 넣는 내용이며, Terminal에서 실행하지 않습니다.
+`nano` 저장은 `Control + O` → `Enter` → `Control + X` 순서입니다.
+
 ### 1. SAM 키 저장
 
 Code Agent 권한이 있는 SAM API 키를 입력합니다. 키는 화면·명령 기록에 보이지
@@ -26,12 +30,14 @@ chmod 600 "$HOME/.sam/env"
 
 ### 2. 분리된 Codex 설정 만들기
 
+터미널에서 실행:
+
 ```bash
 mkdir -p "$HOME/.codex-sam"
 nano "$HOME/.codex-sam/config.toml"
 ```
 
-아래 내용만 붙여 넣고 저장합니다.
+`nano`가 열리면 아래 **파일 내용**을 붙여 넣고 저장합니다.
 
 ```toml
 model = "azure.gpt-5.6-terra"
@@ -52,12 +58,15 @@ bearer_token_env_var = "SAM_CODEX_API"
 
 ### 3. `sam-codex` 명령 만들기
 
+터미널에서 실행:
+
 ```bash
 mkdir -p "$HOME/.local/bin"
 nano "$HOME/.local/bin/sam-codex"
 ```
 
-아래 내용만 붙여 넣고 저장합니다.
+`nano`가 열리면 아래 **파일 내용**을 붙여 넣고 저장합니다. 저장한 뒤 편집기를
+나옵니다. 이 블록 자체는 Terminal에서 실행하지 않습니다.
 
 ```bash
 #!/usr/bin/env bash
@@ -67,6 +76,11 @@ set -euo pipefail
 export CODEX_HOME="$HOME/.codex-sam"
 exec codex "$@"
 ```
+
+### 4. 실행
+
+편집기를 닫고 Terminal에서 아래를 실행합니다. 마지막 줄 `sam-codex`가 실제
+Codex 실행 명령입니다.
 
 ```bash
 chmod +x "$HOME/.local/bin/sam-codex"
