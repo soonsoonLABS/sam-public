@@ -74,6 +74,38 @@ set -euo pipefail
 
 . "$HOME/.sam/env"
 export CODEX_HOME="$HOME/.codex-sam"
+
+models=(
+  "azure.gpt-5.6-terra|Azure Foundry · 기본"
+  "azure.gpt-5.6-sol|Azure Foundry · 고난도"
+  "azure.gpt-5.6-luna|Azure Foundry · 빠름"
+  "azure.gpt-5.4|Azure Foundry · GPT-5.4"
+  "aws.gpt-5.6-terra|AWS Bedrock Mantle · 기본"
+  "aws.gpt-5.6-sol|AWS Bedrock Mantle · 고난도"
+  "aws.gpt-5.6-luna|AWS Bedrock Mantle · 빠름"
+  "aws.gpt-5.5|AWS Bedrock Mantle · GPT-5.5"
+  "aws.gpt-5.4|AWS Bedrock Mantle · GPT-5.4"
+)
+
+if [[ "${1:-}" == "model" ]]; then
+  shift
+  if [[ $# -gt 0 ]]; then
+    selected_model="$1"
+    shift
+  else
+    echo "SAM 모델 선택"
+    PS3="번호를 입력하세요: "
+    select entry in "${models[@]}"; do
+      if [[ -n "${entry:-}" ]]; then
+        selected_model="${entry%%|*}"
+        break
+      fi
+      echo "목록의 번호를 입력하세요."
+    done
+  fi
+  exec codex -m "$selected_model" "$@"
+fi
+
 exec codex "$@"
 ```
 
@@ -96,8 +128,22 @@ source "$HOME/.zshrc"
 sam-codex
 ```
 
-정상이라면 기본 모델은 `azure.gpt-5.6-terra`입니다. Codex 안에서 `/model`을
-입력하면 Azure Foundry와 AWS Bedrock Mantle 모델을 선택할 수 있습니다.
+정상이라면 기본 모델은 `azure.gpt-5.6-terra`입니다. 모델을 고를 때는 Codex 안의
+`/model` 대신, 터미널에서 아래를 실행합니다.
+
+```bash
+sam-codex model
+```
+
+Azure Foundry와 AWS Bedrock Mantle의 9개 SAM 모델이 제공 경로와 함께 표시됩니다.
+Codex CLI의 `/model` 화면은 현재 외부 provider의 모델 목록을 표시하지 않고 내장
+기본 목록만 보이므로, SAM 모델 선택에는 사용하지 않습니다.
+
+목록 없이 특정 모델을 바로 열 수도 있습니다.
+
+```bash
+sam-codex model aws.gpt-5.6-sol
+```
 
 ## 첫 확인
 

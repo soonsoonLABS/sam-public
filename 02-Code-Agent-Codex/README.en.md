@@ -73,6 +73,38 @@ set -euo pipefail
 
 . "$HOME/.sam/env"
 export CODEX_HOME="$HOME/.codex-sam"
+
+models=(
+  "azure.gpt-5.6-terra|Azure Foundry · everyday"
+  "azure.gpt-5.6-sol|Azure Foundry · difficult work"
+  "azure.gpt-5.6-luna|Azure Foundry · fast"
+  "azure.gpt-5.4|Azure Foundry · GPT-5.4"
+  "aws.gpt-5.6-terra|AWS Bedrock Mantle · everyday"
+  "aws.gpt-5.6-sol|AWS Bedrock Mantle · difficult work"
+  "aws.gpt-5.6-luna|AWS Bedrock Mantle · fast"
+  "aws.gpt-5.5|AWS Bedrock Mantle · GPT-5.5"
+  "aws.gpt-5.4|AWS Bedrock Mantle · GPT-5.4"
+)
+
+if [[ "${1:-}" == "model" ]]; then
+  shift
+  if [[ $# -gt 0 ]]; then
+    selected_model="$1"
+    shift
+  else
+    echo "Choose a SAM model"
+    PS3="Enter a number: "
+    select entry in "${models[@]}"; do
+      if [[ -n "${entry:-}" ]]; then
+        selected_model="${entry%%|*}"
+        break
+      fi
+      echo "Enter a number from the list."
+    done
+  fi
+  exec codex -m "$selected_model" "$@"
+fi
+
 exec codex "$@"
 ```
 
@@ -95,8 +127,22 @@ After that, open a new Terminal and run only:
 sam-codex
 ```
 
-The default model is `azure.gpt-5.6-terra`. Use `/model` inside Codex to select
-Azure Foundry or AWS Bedrock Mantle models.
+The default model is `azure.gpt-5.6-terra`. Choose a SAM model in Terminal,
+instead of using `/model` inside Codex:
+
+```bash
+sam-codex model
+```
+
+It shows all nine SAM models with their Azure Foundry or AWS Bedrock Mantle
+source. Codex CLI's `/model` screen currently only shows its built-in model
+list, not external provider catalogs.
+
+Open a specific model directly when you already know its alias:
+
+```bash
+sam-codex model aws.gpt-5.6-sol
+```
 
 ## Verify
 
