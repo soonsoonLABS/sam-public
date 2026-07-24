@@ -75,6 +75,27 @@ set -euo pipefail
 . "$HOME/.sam/env"
 export CODEX_HOME="$HOME/.codex-sam"
 
+refresh_model_catalog() {
+  local client_version cache_tmp
+  client_version="$(codex --version | awk '{print $2}')"
+  [[ -n "$client_version" ]] || return 0
+  mkdir -p "$CODEX_HOME"
+  umask 077
+  cache_tmp="$(mktemp "$CODEX_HOME/.models_cache.XXXXXX")" || return 0
+  if curl --fail --silent --show-error --max-time 10 --get \
+    -H "Authorization: Bearer $SAM_CODEX_API" \
+    -H 'x-sam-codex-cache: 1' \
+    --data-urlencode "client_version=$client_version" \
+    'https://sam.soonsoon.ai/v2/openai/models' > "$cache_tmp" \
+    && grep -q '"models"' "$cache_tmp"; then
+    mv "$cache_tmp" "$CODEX_HOME/models_cache.json"
+  else
+    rm -f "$cache_tmp"
+  fi
+}
+
+refresh_model_catalog
+
 models=(
   "azure.gpt-5.6-terra|Azure Foundry · 기본"
   "azure.gpt-5.6-sol|Azure Foundry · 고난도"
@@ -128,18 +149,17 @@ source "$HOME/.zshrc"
 sam-codex
 ```
 
-정상이라면 기본 모델은 `azure.gpt-5.6-terra`입니다. 모델을 고를 때는 Codex 안의
-`/model` 대신, 터미널에서 아래를 실행합니다.
+정상이라면 기본 모델은 `azure.gpt-5.6-terra`입니다. `sam-codex`는 시작할 때마다
+SAM 전용 모델 목록을 갱신합니다. Codex 안에서 `/model`을 입력하면 Azure Foundry와
+AWS Bedrock Mantle 별칭이 포함된 목록을 볼 수 있습니다.
+
+목록을 새로 고치려면 Codex를 종료한 뒤 다시 실행합니다.
 
 ```bash
-sam-codex model
+sam-codex
 ```
 
-Azure Foundry와 AWS Bedrock Mantle의 9개 SAM 모델이 제공 경로와 함께 표시됩니다.
-Codex CLI의 `/model` 화면은 현재 외부 provider의 모델 목록을 표시하지 않고 내장
-기본 목록만 보이므로, SAM 모델 선택에는 사용하지 않습니다.
-
-목록 없이 특정 모델을 바로 열 수도 있습니다.
+터미널에서 바로 특정 모델을 열고 싶을 때만 아래 보조 선택기를 사용합니다.
 
 ```bash
 sam-codex model aws.gpt-5.6-sol
