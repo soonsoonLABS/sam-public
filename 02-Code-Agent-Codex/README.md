@@ -2,7 +2,7 @@
 
 이 문서는 **macOS에서만** SAM 모델을 Codex CLI에 연결하는 방법입니다. 일반 OpenAI
 Codex 계정과 `~/.codex` 설정은 그대로 두고, SAM은 별도 `sam-codex` 명령으로만
-실행합니다.
+실행합니다. 일반 `codex` 명령은 SAM 모델을 사용하지 않습니다.
 
 ## 이 구성으로 되는 것
 
@@ -176,6 +176,24 @@ sam_account_usage를 사용해서 이번 달 SAM 사용량과 남은 SSAM을 짧
 페이지 본문이 대화에 들어오면 모델 입력 토큰이 발생할 수 있습니다.
 
 ## 복구
+
+### 화면에 `Ignored unsupported project-local config keys`가 보일 때
+
+이 경고는 일반 `codex`가 실행됐거나 SAM 설정이 잘못 `~/.codex/config.toml`에 들어간
+상태입니다. 이 화면에서 모델을 고르지 말고 종료합니다. Terminal에서 아래를 실행해
+SAM 전용 wrapper를 직접 엽니다.
+
+```bash
+unset CODEX_HOME CODEX_SAM_HOME
+"$HOME/.local/bin/sam-codex"
+```
+
+정상이라면 시작 화면의 모델이 `azure.gpt-5.6-terra`이고, `/model`에는 Azure/AWS
+SAM 모델만 표시됩니다. 여전히 같은 경고가 나오면 `~/.codex-sam/config.toml`이 없거나
+잘못된 것이므로 위의 “2. 분리된 SAM Codex 설정 만들기”부터 다시 진행합니다.
+
+일반 `~/.codex/config.toml`은 OpenAI Codex 설정이므로 전체 파일을 삭제하거나 덮어쓰지
+마세요. 그 파일에 SAM 관련 설정이 이미 섞였다면 백업 후 SAM 블록만 분리해야 합니다.
 
 ### `/model` 목록이 이상하거나 기본 Codex 모델이 보일 때
 
