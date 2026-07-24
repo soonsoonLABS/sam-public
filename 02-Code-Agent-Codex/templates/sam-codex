@@ -20,6 +20,18 @@ fi
 
 export CODEX_HOME="$CODEX_SAM_HOME"
 
+# Codex treats ~/.codex/config.toml as a project layer when it is launched
+# from $HOME or another non-repository directory below $HOME. That user-level
+# OpenAI configuration could override SAM's isolated default model. Require a
+# real repository for home-directory projects so discovery stops at its root.
+if [[ "$PWD" == "$HOME" || "$PWD" == "$HOME/"* ]]; then
+  if ! git -C "$PWD" rev-parse --show-toplevel >/dev/null 2>&1; then
+    echo "Run sam-codex from a Git project directory, not $HOME." >&2
+    echo "Example: cd ~/Developer/my-project && sam-codex" >&2
+    exit 2
+  fi
+fi
+
 refresh_model_catalog() {
   local catalog_tmp
   mkdir -p "$CODEX_HOME"

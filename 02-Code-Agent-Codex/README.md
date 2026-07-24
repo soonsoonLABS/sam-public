@@ -135,9 +135,21 @@ source "$HOME/.zshrc"
 
 ### 5. 실행과 모델 선택
 
-이후에는 아래 한 줄만 실행합니다.
+SAM Codex는 **Git 프로젝트 폴더 안에서** 실행합니다. 일반 OpenAI Codex 설정이 있는
+홈 폴더(`~`)에서 바로 실행하면 그 설정이 프로젝트 설정처럼 읽혀 SAM 기본 모델을 덮을 수
+있기 때문입니다.
 
 ```bash
+cd "$HOME/Developer/my-project"
+sam-codex
+```
+
+처음 확인할 빈 프로젝트가 필요하면 한 번만 만듭니다.
+
+```bash
+mkdir -p "$HOME/Developer/sam-codex-test"
+cd "$HOME/Developer/sam-codex-test"
+git init
 sam-codex
 ```
 
@@ -182,13 +194,13 @@ sam_account_usage를 사용해서 이번 달 SAM 사용량과 남은 SSAM을 짧
 
 ### 화면에 `Ignored unsupported project-local config keys`가 보일 때
 
-이 경고는 일반 `codex`가 실행됐거나 SAM 설정이 잘못 `~/.codex/config.toml`에 들어간
-상태입니다. 이 화면에서 모델을 고르지 말고 종료합니다. Terminal에서 아래를 실행해
-SAM 전용 wrapper를 직접 엽니다.
+이 경고는 일반 `codex`를 실행했거나, 홈 폴더(`~`)에서 실행해 일반
+`~/.codex/config.toml`이 프로젝트 설정으로 읽힌 상태입니다. 이 화면에서 모델을 고르지
+말고 종료합니다. Git 프로젝트 폴더로 이동한 뒤 SAM 전용 wrapper를 실행합니다.
 
 ```bash
-unset CODEX_HOME CODEX_SAM_HOME
-"$HOME/.local/bin/sam-codex"
+cd "$HOME/Developer/my-project"
+sam-codex
 ```
 
 정상이라면 시작 화면의 모델이 `azure.gpt-5.6-terra`이고, `/model`에는 Azure/AWS
