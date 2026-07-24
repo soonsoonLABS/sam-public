@@ -1,16 +1,20 @@
-# SAM-managed Codex config.
-# This file is intended to live in ~/.codex-sam/config.toml.
-# Codex sees the SAM virtual model alias; SAM routes it to the selected backing model.
+# Managed by sam-codex. This file lives in ~/.codex-sam/config.toml.
+# Keep the user's regular Codex configuration in ~/.codex unchanged.
 
-model = "sam-codex-agent"
+model = "azure.gpt-5.6-terra"
 model_provider = "sam"
-model_reasoning_effort = "medium"
+service_tier = "default"
+
+# SAM MCP provides search, page reading, and account usage.
+# Provider-hosted Codex search is deliberately disabled.
+web_search = "disabled"
 
 [model_providers.sam]
 name = "SAM"
-base_url = "https://sam.soonsoon.ai/openai/v1"
-env_key = "SAM_CODE_API_KEY"
+base_url = "https://sam.soonsoon.ai/v2/openai"
+env_key = "SAM_CODEX_API"
 wire_api = "responses"
-request_max_retries = 4
-stream_max_retries = 5
-stream_idle_timeout_ms = 300000
+
+[mcp_servers.sam-tools]
+url = "https://sam.soonsoon.ai/mcp"
+bearer_token_env_var = "SAM_CODEX_API"

@@ -1,144 +1,121 @@
-# SAM Code Agent
+# SAM Codex CLI
 
 **언어:** 한국어 | [English](README.en.md)
 
-`sam-codex` 하나의 전용 명령으로 Codex를 SAM 경유로 실행합니다. Codex에
-보여야 하는 모델명은 `sam-codex-agent`입니다. `gpt-5.6-terra`,
-`gpt-5.6-sol` 같은 이름은 SAM 내부 backing model이므로 Codex 설정에 직접
-넣지 마세요.
+SAM 모델과 MCP 도구를 기존 Codex와 분리된 환경에서 사용하는 설치 패키지입니다.
+일반 `codex`와 기존 ChatGPT/Codex 계정 설정은 바꾸지 않습니다.
 
-## 먼저: 수동 설정
+## 제공 범위
 
-설치형 배포보다 먼저 아래 수동 단계로 키·연결·분리된 CLI·기본 앱 전환과
-복원을 하나씩 확인하세요.
+- V2 OpenAI Responses: `https://sam.soonsoon.ai/v2/openai`
+- Azure Foundry 및 AWS Bedrock Mantle 모델 선택
+- SAM MCP: 웹 검색, 공개 페이지 읽기, 페이지 내 찾기, 월간 사용량 조회
+- 전용 실행 명령: `sam-codex`
 
-- [macOS 수동 설정](MANUAL_SETUP.md)
-- [macOS manual setup (English)](MANUAL_SETUP.en.md)
-- [Windows 수동 설정](MANUAL_SETUP_WINDOWS.md)
-- [Windows manual setup (English)](MANUAL_SETUP_WINDOWS.en.md)
+기본 Codex의 provider-hosted 검색은 의도적으로 끕니다. 검색은 SAM MCP가
+수행하고, 검색 사용량은 SAM에 기록됩니다.
 
-## 자동화 설치 안내
+## 설치
 
-1. SAM 웹의 **API Keys**에서 `Code Agent - 내 기기`처럼 구분되는 전용 키를
-   하나 만듭니다. 일반 서비스 키와 섞어 쓰지 않는 것을 권장합니다.
-2. 이 저장소의 운영체제별 설치 프로그램을 한 번 실행하고, 숨김 입력창에 그
-   전용 키만 붙여 넣습니다. 직접 `.env`나 `config.toml`을 만들 필요가 없습니다.
-3. 이후 터미널에서는 `sam-codex`, macOS 별도 데스크톱 창은
-   `sam-codex-desktop`을 실행합니다.
+먼저 Code Agent 권한이 있는 SAM API 키를 준비하고 Codex CLI를 설치합니다.
+
+```bash
+codex --version
+git clone https://github.com/soonsoonLABS/sam-public.git
+cd sam-public/02-Code-Agent-Codex
+bash install-macos.sh
+```
+
+Windows PowerShell에서는 다음을 실행합니다.
+
+```powershell
+git clone https://github.com/soonsoonLABS/sam-public.git
+Set-Location sam-public\02-Code-Agent-Codex
+PowerShell -ExecutionPolicy Bypass -File .\install-windows.ps1
+```
+
+설치 프로그램은 키를 숨김 입력으로 받고 다음만 만듭니다.
 
 ```text
+~/.sam/
+  env                         # SAM_CODEX_API, macOS/Linux
+  env.ps1                     # SAM_CODEX_API, Windows
+  skills/sam/SKILL.md          # 공통 SAM 스킬 원본
+
+~/.codex-sam/
+  config.toml                 # V2 provider와 SAM MCP
+  skills/sam/SKILL.md          # Codex가 읽는 복사본
+```
+
+키 파일은 사용자만 읽을 수 있게 저장됩니다. Git, 스크린샷, URL, 명령행 인수에
+API 키를 넣지 마세요.
+
+## 실행과 첫 확인
+
+```bash
 sam-codex
 ```
 
-설치 프로그램은 키를 해당 기기의 `~/.sam-code-agent/`에만 저장하고, Codex
-설정은 `~/.codex-sam/`에 분리합니다. 키를 바꾸려면 설치 프로그램을 다시
-실행해 새 Code Agent 전용 키를 입력하면 됩니다.
-
-Code Agent는 `SAM_CODE_API_KEY`만 사용합니다. 이전에 `SAM_API_KEY`로 설정한
-사용자는 수동 설정 2~5단계 또는 설치 프로그램을 한 번 다시 실행해 키 파일을
-갱신하세요.
-
-## Codex 사용 방식 3가지
-
-| 방식 | 실행 명령 | 설정 홈 | 용도 |
-| --- | --- | --- | --- |
-| 기본 Codex | `codex` 또는 `codex app` | `~/.codex` | 기존 ChatGPT/Codex 계정과 일반 OpenAI 설정 |
-| SAM Codex CLI | `sam-codex` | `~/.codex-sam` | SAM API 키와 `sam-codex-agent`를 사용하는 터미널 세션 |
-| macOS SAM-Codex Desktop | `sam-codex-desktop` | `~/.codex-sam` + 별도 Electron data | 기본 Codex 앱과 동시에 쓰는 별도 데스크톱 창 |
-
-`sam-codex`는 일반 `codex`를 바꾸지 않으며, SAM을 사용할 때만 실행합니다.
-macOS의 `sam-codex-desktop`은 별도 Electron `user-data-dir`을 사용해 일반
-Codex/ChatGPT Desktop과 동시에 띄우는 고급 런처입니다. 독립 `Codex.app`이
-없고 `ChatGPT.app`만 설치된 환경도 자동으로 감지합니다. Codex Desktop 내부
-구조에 의존하므로 문제가 생기면 CLI 경로를 기준으로 진단하세요.
-
-## 제공 기능
-
-- `sam-codex-agent`를 사용하는 전용 `sam-codex` 터미널 명령
-- SAM 세션에서만 불러오는 로컬 SAM API 키 파일
-- 일반 Codex 설정이 SAM 세션을 덮어쓰지 못하는 별도 설정 공간
-- 키·네트워크를 확인하는 SAM 직접 호출과 Codex 스모크 테스트
-- macOS용 `sam-codex-desktop` 별도 데스크톱 런처
-- Windows용 기본 데스크톱 프로필 전환·복원 스크립트
-
-## 시작 전 준비
-
-저장소를 내려받기 전에 다음 공통 도구를 설치해야 합니다.
-
-1. Git
-2. Node.js LTS(npm 포함)
-3. Codex CLI
-
-운영체제별 가이드에 PATH와 PowerShell 실행 정책 문제를 포함한 정확한
-명령어가 있습니다.
-
-## 운영체제 선택
-
-- [macOS: 설치·키 관리·테스트·바로가기](docs/macos.md)
-- [Windows: 설치·키 관리·테스트·바로가기](docs/windows.md)
-- [macOS English guide](docs/macos.en.md)
-- [Windows English guide](docs/windows.en.md)
-
-설치 저장소 없이 직접 구성해야 하는 환경에서는 macOS
-[수동 설정](MANUAL_SETUP.md) 또는 Windows
-[수동 설정](MANUAL_SETUP_WINDOWS.md)을 사용하세요.
-
-## 일상 사용
+Codex 안에서 다음을 요청합니다.
 
 ```text
-codex                # 기본 Codex: ~/.codex
-sam-codex            # SAM Codex CLI: ~/.codex-sam
-sam-codex-desktop    # macOS only: 별도 Desktop 창
+sam_account_usage를 사용해서 이번 달 SAM 사용량과 남은 SSAM을 짧게 보여줘.
 ```
 
-SAM 세션에서는 일반 `codex` 대신 항상 `sam-codex`를 사용합니다. 비대화형
-요청은 `sam-codex exec ...`로 실행합니다. macOS에서 기존 Codex 앱과 동시에
-SAM Desktop을 쓰려면 `sam-codex-desktop`을 사용합니다.
+`sam_account_usage`는 읽기 전용이며 SAM 사용량을 차감하지 않습니다. 모델에
+보내는 요청은 일반 모델 토큰 사용량으로 기록됩니다.
 
-## 분리 방식
+## 모델 선택
 
-설치 프로그램은 기존 Codex 홈과 별도로 다음 파일을 만듭니다.
+Codex 안에서 `/model`을 입력해 모델을 바꿉니다.
 
-- `~/.codex-sam/config.toml`: SAM provider·모델 설정
-- `~/.sam-code-agent/env`(macOS) 또는 `~/.sam-code-agent/env.ps1`(Windows):
-  로컬 SAM API 키 파일
-- `sam-codex`: 키를 불러오고 실행 프로세스에만
-  `CODEX_HOME=~/.codex-sam`을 설정하는 전용 wrapper
-- `sam-codex-desktop`(macOS): `CODEX_HOME=~/.codex-sam`과 별도
-  `~/Library/Application Support/SAM Codex Desktop`을 함께 사용하는 Desktop
-  launcher
+| 모델 | 경로 | 권장 용도 |
+| --- | --- | --- |
+| `azure.gpt-5.6-sol` | Azure Foundry | 고난도 코딩·복잡한 에이전트 작업 |
+| `azure.gpt-5.6-terra` | Azure Foundry | 기본 코딩·분석 |
+| `azure.gpt-5.6-luna` | Azure Foundry | 가벼운 작업 |
+| `azure.gpt-5.4` | Azure Foundry | 범용 작업 |
+| `aws.gpt-5.6-sol` | AWS Bedrock Mantle | 고난도 코딩·복잡한 에이전트 작업 |
+| `aws.gpt-5.6-terra` | AWS Bedrock Mantle | 기본 코딩·분석 |
+| `aws.gpt-5.6-luna` | AWS Bedrock Mantle | 가벼운 작업 |
+| `aws.gpt-5.5` / `aws.gpt-5.4` | AWS Bedrock Mantle | 범용 작업 |
 
-wrapper는 SAM provider 설정도 Codex 실행 옵션으로 직접 전달하므로,
-일반 `~/.codex/config.toml`이 SAM 세션을 조용히 덮어쓸 수 없습니다.
+기본값은 `azure.gpt-5.6-terra`입니다. 모델 목록이 갱신되지 않으면 Codex를
+완전히 종료한 뒤 `sam-codex`로 새 세션을 시작하세요.
 
-## API 키 보안
+## 검색과 페이지 읽기
 
-Code Agent 전용 키 소유자에게 `agent:codex` 또는 `agent:coding_agents`
-권한이 있어야 합니다. 실제 키는 Git, 문서, 스크린샷, 셸 히스토리 명령,
-프로젝트 `.env` 파일에 절대 넣지 마세요.
+SAM MCP를 명시적으로 요청하면 도구 사용이 더 예측 가능합니다.
 
-운영체제별 가이드는 키를 안전하게 바꾸는 방법, SAM 직접 호출 테스트,
-그리고 `sam-codex` 스모크 테스트를 각각 안내합니다.
+```text
+SAM 웹 검색으로 최신 공식 문서를 찾아 핵심만 정리해줘.
+```
 
-## 데스크톱 앱 사용 기준
+```text
+방금 찾은 공식 문서를 열고, tool calling 부분을 찾아 요약해줘.
+```
 
-macOS에서 기본 Codex 앱과 SAM-Codex를 동시에 띄우려면 `sam-codex-desktop`을
-사용합니다. 이 방식은 별도 Electron `user-data-dir`을 쓰는 launcher 방식입니다.
+| MCP 도구 | 역할 | SAM 사용량 |
+| --- | --- | --- |
+| `sam_web_search` | 웹 검색 | 검색 사용량으로 기록 |
+| `sam_open_page` | 공개 페이지 열기 | 도구 자체는 검색 과금 없음 |
+| `sam_find_in_page` | 열린 페이지에서 텍스트 찾기 | 도구 자체는 검색 과금 없음 |
+| `sam_account_usage` | 월간 사용량·잔여 SSAM 조회 | 무료·읽기 전용 |
 
-기본 ChatGPT/Codex 데스크톱 앱 자체를 SAM으로 **일시 전환**할 수도 있습니다.
-이 방식은 기존 계정 모드와 동시에 쓰는 기능이 아니라, 기본 앱의 provider를
-바꿨다가 복원하는 방식입니다. 먼저 `sam-codex` 스모크 테스트가 성공한 뒤에만
-운영체제별 전환기를 사용하세요.
+페이지 본문이 모델의 대화에 들어가면 일반 입력 토큰은 발생할 수 있습니다.
 
-- macOS: [기본 데스크톱 앱 전환·복원](docs/macos.md#선택-기본-codex-데스크톱-앱을-sam으로-일시-전환)
-- Windows: [기본 데스크톱 앱 전환·복원](docs/windows.md#선택-기본-windows-codex-데스크톱-모드를-sam으로-일시-전환)
+## 문제 해결
 
-전환 뒤에는 앱 창만 닫지 말고 `Cmd-Q`(macOS) 또는 완전 종료(Windows) 후
-다시 여세요. macOS의 GUI 세션 키는 로그아웃·재부팅 뒤 사라지므로, 그때는
-앱을 열기 전에 전환 명령을 한 번 더 실행해야 합니다. `sam-codex app`은 별도
-SAM-Codex 앱을 만들거나 기존 데스크톱 앱을 안전하게 전환하는 명령이 아닙니다.
+- `SAM_CODEX_API` 오류: 설치 프로그램을 다시 실행하거나 `~/.sam/env` 또는
+  `~/.sam/env.ps1`이 있는지 확인합니다.
+- 모델 접근 오류: API 키에 Code Agent 권한이 있는지 SAM 관리자에게 확인합니다.
+- `sam-codex` 명령을 찾지 못함: macOS/Linux는 `~/.local/bin`을 PATH에 추가하고,
+  Windows는 새 PowerShell 창을 엽니다.
+- 일반 Codex로 돌아가기: `sam-codex` 대신 평소처럼 `codex`를 실행합니다.
+
+더 자세한 오류 진단은 [문제 해결](docs/troubleshooting.md)을 참고하세요.
 
 ## 현재 범위
 
-이 디렉터리는 Codex를 대상으로 합니다. Claude Code와 MCP 설정은 설치
-경로가 안정된 뒤 별도 가이드로 제공합니다.
+이 패키지는 Codex CLI를 지원합니다. 기존 Codex Desktop 앱의 provider를 직접
+전환하는 기능은 계정·설정 충돌 위험 때문에 제공하지 않습니다.

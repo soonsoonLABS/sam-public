@@ -19,8 +19,8 @@ to that folder's `env` or `env.ps1` file to avoid split keys across processes.
   guide for macOS and Windows
 - [`01-sam-skills/`](01-sam-skills/README.en.md): essential SAM API skill
   documents for AI agents to read from global configuration
-- [`02-Code-Agent-Codex/`](02-Code-Agent-Codex/README.en.md): coding-agent connection tools and
-  guides for Codex and Claude Code
+- [`02-Code-Agent-Codex/`](02-Code-Agent-Codex/README.en.md): installer and
+  guide for isolated Codex CLI with SAM V2 models and MCP
 
 ## Security
 
