@@ -76,21 +76,27 @@ export CODEX_HOME="$HOME/.codex-sam"
 exec codex "$@"
 ```
 
-### 4. Run
+### 4. Run once
 
-After closing the editor, run this in Terminal. The final `sam-codex` line
-actually starts Codex.
+After closing the editor, run this once in Terminal. It makes the wrapper
+executable and adds the local bin directory to the default macOS zsh PATH.
 
 ```bash
 chmod +x "$HOME/.local/bin/sam-codex"
-export PATH="$HOME/.local/bin:$PATH"
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
+source "$HOME/.zshrc"
+```
+
+### 5. Run every time
+
+After that, open a new Terminal and run only:
+
+```bash
 sam-codex
 ```
 
 The default model is `azure.gpt-5.6-terra`. Use `/model` inside Codex to select
 Azure Foundry or AWS Bedrock Mantle models.
-To use it in a new terminal, add `export PATH="$HOME/.local/bin:$PATH"` to your
-shell configuration once.
 
 ## Verify
 
