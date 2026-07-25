@@ -18,7 +18,7 @@ SAM은 V2 native endpoint만 사용합니다. 일반 OpenAI Codex 설정, 로그
 
 - macOS Terminal
 - 설치되어 있고 PATH에서 실행되는 Codex CLI
-- Code Agent 권한이 있는 SAM API 키
+- SAM API 키 (Codex 기본 권한과 Azure Luna 기본 모델은 자동 부여)
 
 먼저 확인합니다.
 
