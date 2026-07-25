@@ -1,7 +1,7 @@
 # Managed by sam-codex. This file lives in ~/.codex-sam/config.toml.
 # Keep the user's regular Codex configuration in ~/.codex unchanged.
 
-model = "azure.gpt-5.6-terra"
+model = "azure.gpt-5.6-luna"
 model_provider = "sam"
 service_tier = "default"
 

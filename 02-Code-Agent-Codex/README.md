@@ -62,7 +62,7 @@ nano "$HOME/.codex-sam/config.toml"
 `nano`에 아래 **파일 내용**을 붙여 넣고 저장합니다.
 
 ```toml
-model = "azure.gpt-5.6-terra"
+model = "azure.gpt-5.6-luna"
 model_provider = "sam"
 service_tier = "default"
 web_search = "disabled"
@@ -161,8 +161,8 @@ Codex가 열리면 `/model`을 입력합니다. 모델 목록에는 SAM에서 �
 | Azure Foundry | `azure.gpt-5.6-sol`, `azure.gpt-5.6-terra`, `azure.gpt-5.6-luna`, `azure.gpt-5.4` |
 | AWS Bedrock Mantle | `aws.gpt-5.6-sol`, `aws.gpt-5.6-terra`, `aws.gpt-5.6-luna`, `aws.gpt-5.5`, `aws.gpt-5.4` |
 
-기본값은 `azure.gpt-5.6-terra`입니다. `sol`은 고난도 작업, `terra`는 일반 코딩·분석,
-`luna`는 빠른 작업에 적합합니다.
+기본값은 저비용 `azure.gpt-5.6-luna`입니다. 기본 접근은 Luna만 제공하며, Terra/Sol과
+AWS 모델은 계정 또는 API 키에 별도 접근 권한이 있을 때만 표시됩니다.
 
 ## 모델 목록은 어디서 오나
 
@@ -203,7 +203,7 @@ cd "$HOME/Developer/my-project"
 sam-codex
 ```
 
-정상이라면 시작 화면의 모델이 `azure.gpt-5.6-terra`이고, `/model`에는 Azure/AWS
+정상이라면 시작 화면의 모델이 `azure.gpt-5.6-luna`이고, `/model`에는 계정에 허용된
 SAM 모델만 표시됩니다. 여전히 같은 경고가 나오면 `~/.codex-sam/config.toml`이 없거나
 잘못된 것이므로 위의 “2. 분리된 SAM Codex 설정 만들기”부터 다시 진행합니다.
 

@@ -39,7 +39,7 @@ nano "$HOME/.codex-sam/config.toml"
 When `nano` opens, paste these **File contents** and save:
 
 ```toml
-model = "azure.gpt-5.6-terra"
+model = "azure.gpt-5.6-luna"
 model_provider = "sam"
 service_tier = "default"
 web_search = "disabled"
@@ -148,7 +148,7 @@ After that, open a new Terminal and run only:
 sam-codex
 ```
 
-The default model is `azure.gpt-5.6-terra`. `sam-codex` refreshes its isolated
+The default model is `azure.gpt-5.6-luna`. `sam-codex` refreshes its isolated
 SAM model catalog at startup. Type `/model` inside Codex to see the Azure
 Foundry and AWS Bedrock Mantle aliases.
 
