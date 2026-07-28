@@ -1,189 +1,158 @@
-# SAM Codex CLI
+# 2. Configure Codex and SAM-Codex
 
 **Language:** [한국어](README.md) | English
 
-Keep normal OpenAI Codex unchanged. Use SAM V2 and MCP only through a separate
-`sam-codex` command. **Manual setup is the default path**; the installer is optional.
+This setup keeps the official `codex` command and adds an isolated `sam-codex`
+command. `sam-codex` uses a separate `CODEX_HOME` and the SAM V2 provider, so it
+does not change the existing OpenAI login, configuration, or sessions.
 
-## Manual setup (macOS/Linux)
+## Two modes
 
-Copy a **Run in Terminal** block into Terminal. A **File contents** block is
-text to paste into `nano`, not a Terminal command. Save in `nano` with
-`Control + O`, `Enter`, then `Control + X`.
+| Mode | Command | Configuration home | API and billing |
+| --- | --- | --- | --- |
+| Official Codex | `codex` | `~/.codex` | Direct OpenAI/ChatGPT; outside SAM |
+| SAM-Codex | `sam-codex` | `~/.codex-sam` | SAM V2 OpenAI; SAM usage and cost |
 
-### 1. Save the SAM key
-
-Enter a SAM API key with Code Agent access. It is stored only in `~/.sam/env`.
-
-```bash
-mkdir -p "$HOME/.sam"
-chmod 700 "$HOME/.sam"
-printf "SAM Code Agent API key: "
-stty -echo
-IFS= read -r SAM_CODEX_API
-stty echo
-printf "\n"
-printf 'export SAM_CODEX_API=%q\n' "$SAM_CODEX_API" > "$HOME/.sam/env"
-chmod 600 "$HOME/.sam/env"
-```
-
-### 2. Create isolated Codex settings
-
-Run in Terminal:
+## A. Use only official Codex
 
 ```bash
-mkdir -p "$HOME/.codex-sam"
-nano "$HOME/.codex-sam/config.toml"
+npm install -g @openai/codex@latest
+codex --version
+codex login
+codex
 ```
 
-When `nano` opens, paste these **File contents** and save:
+Run `codex logout` only when you intend to remove official authentication. It
+is not required when removing SAM-Codex.
+
+## B. Add `sam-codex` without changing official Codex
+
+First use [`../00-sam-setup/`](../00-sam-setup/README.en.md) to confirm that the
+shared `SAM_API_KEY` receives HTTP `200` from `/v2/openai/models`.
+
+### macOS / Linux
+
+```bash
+chmod +x install-macos.sh uninstall-macos.sh
+./install-macos.sh
+```
+
+### Windows PowerShell
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
+```
+
+The installer reuses the shared key in `~/.sam/env` or
+`%USERPROFILE%\.sam\env.ps1`. If it is missing, the installer accepts hidden
+input and stores it in the same standard file.
+
+## Installed files
+
+| Item | macOS / Linux | Windows |
+| --- | --- | --- |
+| Shared key | `~/.sam/env` | `%USERPROFILE%\.sam\env.ps1` |
+| SAM Codex home | `~/.codex-sam` | `%USERPROFILE%\.codex-sam` |
+| Wrapper | `~/.local/bin/sam-codex` | `%USERPROFILE%\bin\sam-codex.*` |
+
+The default model is `azure.gpt-5.6-luna`. Installation stops when current
+authenticated discovery does not admit that model.
 
 ```toml
 model = "azure.gpt-5.6-luna"
 model_provider = "sam"
-service_tier = "default"
 web_search = "disabled"
 
 [model_providers.sam]
-name = "SAM"
 base_url = "https://sam.soonsoon.ai/v2/openai"
-env_key = "SAM_CODEX_API"
+env_key = "SAM_API_KEY"
 wire_api = "responses"
 
 [mcp_servers.sam-tools]
 url = "https://sam.soonsoon.ai/mcp"
-bearer_token_env_var = "SAM_CODEX_API"
+bearer_token_env_var = "SAM_API_KEY"
 ```
 
-### 3. Create `sam-codex`
+Provider-hosted Codex search is disabled. Search, page reading, and usage tools
+are provided through SAM-observed MCP instead.
 
-Run in Terminal:
+## Launch and select a model
 
-```bash
-mkdir -p "$HOME/.local/bin"
-nano "$HOME/.local/bin/sam-codex"
-```
-
-When `nano` opens, paste these **File contents**. Save and exit `nano`; do not
-run this block in Terminal.
+Run SAM-Codex from a Git project. The wrapper blocks a non-project launch under
+the home directory so ordinary `~/.codex` settings cannot be interpreted as a
+project layer and override SAM isolation.
 
 ```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-. "$HOME/.sam/env"
-export CODEX_HOME="$HOME/.codex-sam"
-
-refresh_model_catalog() {
-  local client_version cache_tmp
-  client_version="$(codex --version | awk '{print $2}')"
-  [[ -n "$client_version" ]] || return 0
-  mkdir -p "$CODEX_HOME"
-  umask 077
-  cache_tmp="$(mktemp "$CODEX_HOME/.models_cache.XXXXXX")" || return 0
-  if curl --fail --silent --show-error --max-time 10 --get \
-    -H "Authorization: Bearer $SAM_CODEX_API" \
-    -H 'x-sam-codex-cache: 1' \
-    --data-urlencode "client_version=$client_version" \
-    'https://sam.soonsoon.ai/v2/openai/models' > "$cache_tmp" \
-    && grep -q '"models"' "$cache_tmp"; then
-    mv "$cache_tmp" "$CODEX_HOME/models_cache.json"
-  else
-    rm -f "$cache_tmp"
-  fi
-}
-
-refresh_model_catalog
-
-models=(
-  "azure.gpt-5.6-terra|Azure Foundry · everyday"
-  "azure.gpt-5.6-sol|Azure Foundry · difficult work"
-  "azure.gpt-5.6-luna|Azure Foundry · fast"
-  "azure.gpt-5.4|Azure Foundry · GPT-5.4"
-  "aws.gpt-5.6-terra|AWS Bedrock Mantle · everyday"
-  "aws.gpt-5.6-sol|AWS Bedrock Mantle · difficult work"
-  "aws.gpt-5.6-luna|AWS Bedrock Mantle · fast"
-  "aws.gpt-5.5|AWS Bedrock Mantle · GPT-5.5"
-  "aws.gpt-5.4|AWS Bedrock Mantle · GPT-5.4"
-)
-
-if [[ "${1:-}" == "model" ]]; then
-  shift
-  if [[ $# -gt 0 ]]; then
-    selected_model="$1"
-    shift
-  else
-    echo "Choose a SAM model"
-    PS3="Enter a number: "
-    select entry in "${models[@]}"; do
-      if [[ -n "${entry:-}" ]]; then
-        selected_model="${entry%%|*}"
-        break
-      fi
-      echo "Enter a number from the list."
-    done
-  fi
-  exec codex -m "$selected_model" "$@"
-fi
-
-exec codex "$@"
-```
-
-### 4. Run once
-
-After closing the editor, run this once in Terminal. It makes the wrapper
-executable and adds the local bin directory to the default macOS zsh PATH.
-
-```bash
-chmod +x "$HOME/.local/bin/sam-codex"
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
-source "$HOME/.zshrc"
-```
-
-### 5. Run every time
-
-After that, open a new Terminal and run only:
-
-```bash
+cd "$HOME/Developer/my-project"
 sam-codex
 ```
 
-The default model is `azure.gpt-5.6-luna`. `sam-codex` refreshes its isolated
-SAM model catalog at startup. Type `/model` inside Codex to see the Azure
-Foundry and AWS Bedrock Mantle aliases.
-
-To refresh the list, close Codex and run it again:
+For an empty test project:
 
 ```bash
+mkdir -p "$HOME/Developer/sam-codex-test"
+cd "$HOME/Developer/sam-codex-test"
+git init
 sam-codex
 ```
 
-Use this optional terminal selector only when you already want to launch a
-specific model directly:
+`/model` contains only SAM Responses models admitted for the current account
+and key by authenticated V2 discovery. The catalog is cached only under the
+SAM-specific home and contains no key.
+
+No-generation wrapper and discovery check:
 
 ```bash
-sam-codex model aws.gpt-5.6-sol
+sam-codex --version
 ```
 
-## Verify
+Run one minimal provider-native Responses call only when you intend to create
+SAM usage:
 
-Ask Codex:
+```bash
+sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral \
+  "Reply with exactly: SAM-CODEX-OK"
+```
+
+Daily use:
 
 ```text
-Use sam_account_usage to briefly show this month's SAM usage and remaining SSAM.
+codex        # official OpenAI/ChatGPT environment
+sam-codex    # SAM environment
 ```
 
-The tool is free and read-only. Ask for “SAM web search” when you need current
-research; search is recorded as SAM usage.
-
-## Optional installer
-
-Use this only after you understand the manual setup.
+## Remove only `sam-codex`
 
 ```bash
-git clone https://github.com/soonsoonLABS/sam-public.git
-bash sam-public/02-Code-Agent-Codex/install-macos.sh
+./uninstall-macos.sh
 ```
 
-If `sam-codex-agent` appears, you are in a legacy environment. Close that Codex
-window and use the V2 manual setup above.
+```powershell
+powershell -ExecutionPolicy Bypass -File .\uninstall-windows.ps1
+```
+
+The uninstaller removes only the wrapper and SAM Codex provider
+configuration. It leaves official `codex`, `~/.codex`, the shared SAM key,
+`sam-claude`, and existing SAM-Codex session data unchanged.
+
+After removing both SAM wrappers, use the shared-key removal step in
+[`../00-sam-setup/`](../00-sam-setup/README.en.md) if the key is no longer
+needed.
+
+## Diagnostic order
+
+1. `codex --version`: official CLI installation
+2. `/readyz`: network and SAM readiness
+3. `/v2/openai/models`: key, grant, and admitted model
+4. `sam-codex --version` in a Git project: isolated wrapper
+5. Minimal generation: V2 Responses and usage
+
+`MODEL_NOT_NATIVE_ON_SURFACE` means the selected alias is not admitted on the
+V2 OpenAI surface. Use `/model` or a provider-explicit alias from current
+discovery.
+
+## Official references
+
+- [Codex configuration](https://learn.chatgpt.com/docs/config-file/config-basic)
+- [Codex environment variables](https://learn.chatgpt.com/docs/config-file/environment-variables)
+- [Codex custom model providers](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers)

@@ -12,9 +12,9 @@ web_search = "disabled"
 [model_providers.sam]
 name = "SAM"
 base_url = "https://sam.soonsoon.ai/v2/openai"
-env_key = "SAM_CODEX_API"
+env_key = "SAM_API_KEY"
 wire_api = "responses"
 
 [mcp_servers.sam-tools]
 url = "https://sam.soonsoon.ai/mcp"
-bearer_token_env_var = "SAM_CODEX_API"
+bearer_token_env_var = "SAM_API_KEY"

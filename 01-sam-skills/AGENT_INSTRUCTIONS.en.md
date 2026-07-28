@@ -19,13 +19,17 @@ Key loading rules:
 - Windows PowerShell: if SAM_API_KEY is missing from the current process, dot-source ~/.sam/env.ps1.
 - Do not create or prefer ~/.config/sam/.env, project .env files, or agent-specific key files.
 - If the current shell's temporary SAM_API_KEY differs from the standard key file, prefer the value loaded from the standard key file.
-- Never print the key. If confirmation is needed, show only the first 12 characters.
+- Never print all or part of the key.
 - After replacing a key, tell the user that already-running CLI or agent processes must be restarted.
 
 Call rules:
 - Base URL is https://sam.soonsoon.ai.
-- Prefer native /v1/* endpoints for new SAM integrations.
-- OpenAI-compatible clients use https://sam.soonsoon.ai/openai/v1.
+- Use provider-native V2 for new model-execution and Coding Agent integrations.
+- Codex/OpenAI uses https://sam.soonsoon.ai/v2/openai.
+- Claude Code/Anthropic uses https://sam.soonsoon.ai/v2/anthropic.
+- Stable control APIs such as account, key, and usage remain under /v1/*.
+- /v1/generate and /openai/v1/* are compatibility execution surfaces. Do not
+  use them for new Coding Agents or as a fallback from V2.
 - Do not use legacy /api/* endpoints for new work.
 - Run model, image, and search calls only within the user's intent because they may create usage.
 - On failure, briefly report the HTTP status, SAM capability, and next action.

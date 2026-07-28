@@ -2,31 +2,52 @@
 
 **Language:** [한국어](README.md) | English
 
-Public tools, installers, and documentation for connecting supported clients to
-SoonSoon AI Management (SAM).
+Public guides and installers for using SAM (SoonSoon AI Management) from local
+coding-agent CLIs. The core rule is simple: **leave the official CLIs unchanged
+and add separate SAM-only commands**.
 
-## Start Here
+## Recommended order
 
-Start with [`00-sam-setup/`](00-sam-setup/README.en.md) to enter your SAM API
-key, confirm only the key prefix, and run a tiny `Hello SAM` test call.
+1. Use [`00-sam-setup/`](00-sam-setup/README.en.md) to test SAM connectivity
+   and the shared API key with no-generation discovery requests.
+2. Use [`02-Code-Agent-Codex/`](02-Code-Agent-Codex/README.en.md) to add
+   `sam-codex` alongside the existing `codex` command.
+3. Use [`03-Code-Agent-Claude/`](03-Code-Agent-Claude/README.en.md) to add
+   `sam-claude` alongside the existing `claude` command.
+4. Remove either wrapper independently. Delete the shared key file only after
+   both wrappers are no longer needed.
 
-The standard local location for SAM usage keys is `~/.sam/`. Point other agents
-to that folder's `env` or `env.ps1` file to avoid split keys across processes.
+## Command and configuration isolation
 
-## Documents
+| Command | Destination | Local configuration | Authentication |
+| --- | --- | --- | --- |
+| `codex` | OpenAI / ChatGPT | `~/.codex` | Existing OpenAI login or key |
+| `sam-codex` | SAM V2 OpenAI | `~/.codex-sam` | Shared `SAM_API_KEY` |
+| `claude` | Anthropic | `~/.claude` | Existing Anthropic login or key |
+| `sam-claude` | SAM V2 Anthropic | `~/.claude-sam` | The same `SAM_API_KEY` |
 
-- [`00-sam-setup/`](00-sam-setup/README.en.md): the shortest first SAM setup
-  guide for macOS and Windows
-- [`01-sam-skills/`](01-sam-skills/README.en.md): essential SAM API skill
-  documents for AI agents to read from global configuration
-- [`02-Code-Agent-Codex/`](02-Code-Agent-Codex/README.en.md): installer and
-  guide for isolated Codex CLI with SAM V2 models and MCP
+The standard local key location is `~/.sam/`. Both wrappers read the same key
+from that folder. Removing one wrapper does not delete the key, so the other
+wrapper keeps working.
 
-## Security
+## Documentation
 
-This repository contains no SAM server code, production configuration, or
-credentials. Never add API keys to Git-tracked files, shared docs, issue text,
-command history, or URLs.
+- [`00-sam-setup/`](00-sam-setup/README.en.md): environment, network,
+  shared-key, and grant checks
+- [`01-sam-skills/`](01-sam-skills/README.en.md): operating guidance for AI
+  agents using the SAM API
+- [`02-Code-Agent-Codex/`](02-Code-Agent-Codex/README.en.md): official Codex
+  versus `sam-codex`, including installation, verification, and removal
+- [`03-Code-Agent-Claude/`](03-Code-Agent-Claude/README.en.md): official Claude
+  Code versus `sam-claude`, including installation, verification, and removal
 
-Local key files belong outside Git, under `~/.sam/` only. After replacing a key,
-restart any already-running CLI or agent process.
+## Security and cost
+
+- Never paste key values into Git-tracked files, documentation, issues, URLs,
+  screenshots, or command history.
+- `/readyz` and model discovery do not generate model output and do not create
+  model usage.
+- Real generation tests such as `sam-codex exec ...` and `sam-claude -p ...`
+  may create SAM usage and cost.
+- Traffic from the official `codex` and `claude` commands does not pass through
+  SAM and is not included in SAM usage.

@@ -2,7 +2,7 @@
 
 This document is the baseline operating guide for AI agents using the SAM API.
 Always authenticate with the `SAM_API_KEY` environment variable. Do not print
-the key or save it to files.
+the key or save it in arbitrary files outside the standard `~/.sam/` folder.
 
 ## Core Rules
 
@@ -18,8 +18,12 @@ the key or save it to files.
   `.env` files, or agent-specific key files.
 - After replacing a key, restart already-running CLI or agent processes so they
   read the new value.
-- Prefer native `/v1/*` endpoints for new SAM integrations.
-- Use `/openai/v1/*` for OpenAI-compatible clients.
+- Use provider-native V2 for new model-execution and Coding Agent integrations.
+- Use `/v2/openai/*` for Codex/OpenAI and `/v2/anthropic/*` for Claude
+  Code/Anthropic.
+- Stable control APIs such as account, key, and usage remain under `/v1/*`.
+- Existing `/v1/generate` and `/openai/v1/*` routes are compatibility execution
+  surfaces for known consumers, not new Coding Agent integrations.
 - Do not use legacy `/api/*` endpoints for new work.
 - Confirm the user's intent and model before calls that create usage.
 - Never put API keys in logs, docs, commits, issues, or URLs.
@@ -97,29 +101,34 @@ Important response fields:
 Only set `options.stream=true` when streaming is required. Native SAM streaming
 uses SSE events such as `content`, `usage`, `done`, and `error`.
 
-## OpenAI-Compatible Calls
+## Provider-native Coding Agent calls
 
-For OpenAI SDKs or OpenAI-compatible tools, set the base URL to
-`https://sam.soonsoon.ai/openai/v1`. Do not use `/v1/generate` as an OpenAI base
-URL.
+For Codex or a Responses API client, set the base URL to
+`https://sam.soonsoon.ai/v2/openai`. Discover the authenticated model inventory
+first.
 
 ```bash
-curl -s -X POST "https://sam.soonsoon.ai/openai/v1/chat/completions" \
+curl -s "https://sam.soonsoon.ai/v2/openai/models" \
+  -H "$AUTH_HEADER"
+```
+
+```bash
+curl -s -X POST "https://sam.soonsoon.ai/v2/openai/responses" \
   -H "$AUTH_HEADER" \
   -H "$SERVICE_HEADER" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4-nano",
-    "messages": [
-      { "role": "user", "content": "Say hello in Korean." }
-    ],
+    "model": "<discovered-provider-alias>",
+    "input": "Say hello in Korean.",
     "stream": false
   }'
 ```
 
-Codex custom providers and Responses API clients use
-`POST /openai/v1/responses`. Coding-agent usage may require `agent:codex`,
+For Claude Code or an Anthropic Messages client, use
+`https://sam.soonsoon.ai/v2/anthropic` as the base URL and discover models at
+`GET /v2/anthropic/v1/models`. Coding-agent usage may require `agent:codex`,
 `agent:claude_code`, or `agent:coding_agents` access on the account or key.
+Never silently fall back from V2 to a V1 execution route.
 
 ## Check Usage
 

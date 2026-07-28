@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
-$SamHome = if ($env:SAM_HOME) { $env:SAM_HOME } else { Join-Path $HOME ".sam" }
-$CodexSamHome = if ($env:CODEX_SAM_HOME) { $env:CODEX_SAM_HOME } else { Join-Path $HOME ".codex-sam" }
+$SamHome = Join-Path $HOME ".sam"
+$CodexSamHome = Join-Path $HOME ".codex-sam"
 $EnvFile = Join-Path $SamHome "env.ps1"
 
 if (-not (Test-Path $EnvFile)) {
@@ -9,8 +9,8 @@ if (-not (Test-Path $EnvFile)) {
 }
 
 . $EnvFile
-if ([string]::IsNullOrWhiteSpace($env:SAM_CODEX_API)) {
-    throw "SAM_CODEX_API is not set in $EnvFile."
+if ([string]::IsNullOrWhiteSpace($env:SAM_API_KEY)) {
+    throw "SAM_API_KEY is not set in $EnvFile."
 }
 
 $env:CODEX_HOME = $CodexSamHome
@@ -18,7 +18,7 @@ try {
     $clientVersion = ((& codex --version) -split '\s+')[-1]
     $cacheTmp = Join-Path $CodexSamHome (".models_cache.{0}" -f [guid]::NewGuid().ToString("N"))
     Invoke-WebRequest -UseBasicParsing -Method Get -Uri ("https://sam.soonsoon.ai/v2/openai/models?client_version={0}" -f [uri]::EscapeDataString($clientVersion)) -Headers @{
-        Authorization = "Bearer $env:SAM_CODEX_API"
+        Authorization = "Bearer $env:SAM_API_KEY"
         "x-sam-codex-cache" = "1"
     } -OutFile $cacheTmp
     if ((Get-Content -Raw $cacheTmp) -match '"models"') {

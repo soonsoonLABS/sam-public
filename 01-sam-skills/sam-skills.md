@@ -1,8 +1,8 @@
 # SAM Skills
 
 이 문서는 AI 에이전트가 SAM API를 사용할 때 읽는 기본 운용 지침입니다.
-항상 `SAM_API_KEY` 환경변수로 인증하고, 키 값을 출력하거나 파일에 저장하지
-마세요.
+항상 `SAM_API_KEY` 환경변수로 인증하고, 키 값을 출력하거나 표준
+`~/.sam/` 밖의 임의 파일에 저장하지 마세요.
 
 ## 기본 규칙
 
@@ -17,8 +17,12 @@
 - `~/.config/sam/.env`, 프로젝트 `.env`, 에이전트별 임의 파일처럼 다른 키
   저장 위치를 새로 만들지 않습니다.
 - 키를 교체한 뒤 이미 실행 중인 CLI나 에이전트는 재시작해야 새 값을 읽습니다.
-- 새 통합은 `/v1/*` 네이티브 API를 우선 사용합니다.
-- OpenAI 호환 클라이언트는 `/openai/v1/*`를 사용합니다.
+- 새 모델 실행·Coding Agent 통합은 provider-native V2를 사용합니다.
+- Codex/OpenAI는 `/v2/openai/*`, Claude Code/Anthropic은
+  `/v2/anthropic/*`를 사용합니다.
+- 계정·키·사용량 같은 안정된 control API는 현재 `/v1/*`를 사용합니다.
+- 기존 `/v1/generate`, `/openai/v1/*`는 알려진 소비자를 위한 호환
+  실행면이며 신규 Coding Agent에 사용하지 않습니다.
 - `/api/*`는 legacy이므로 새 작업에 사용하지 않습니다.
 - 사용량이 발생하는 호출 전에는 사용자의 의도와 모델을 확인합니다.
 - 로그, 문서, 커밋, 이슈, URL에 API 키를 남기지 않습니다.
@@ -97,30 +101,35 @@ curl -s -X POST "https://sam.soonsoon.ai/v1/generate" \
 SAM SSE 이벤트이며 `content`, `usage`, `done`, `error` 이벤트를 처리해야
 합니다.
 
-## OpenAI 호환 호출
+## Provider-native Coding Agent 호출
 
-OpenAI SDK나 OpenAI 호환 도구를 붙일 때는 base URL을
-`https://sam.soonsoon.ai/openai/v1`로 설정합니다. `/v1/generate`를 OpenAI
-base URL로 쓰면 안 됩니다.
+Codex 또는 Responses API client는 base URL을
+`https://sam.soonsoon.ai/v2/openai`로 설정합니다. 모델은 먼저 인증된
+discovery에서 확인합니다.
 
 ```bash
-curl -s -X POST "https://sam.soonsoon.ai/openai/v1/chat/completions" \
+curl -s "https://sam.soonsoon.ai/v2/openai/models" \
+  -H "$AUTH_HEADER"
+```
+
+```bash
+curl -s -X POST "https://sam.soonsoon.ai/v2/openai/responses" \
   -H "$AUTH_HEADER" \
   -H "$SERVICE_HEADER" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4-nano",
-    "messages": [
-      { "role": "user", "content": "Say hello in Korean." }
-    ],
+    "model": "<discovered-provider-alias>",
+    "input": "Say hello in Korean.",
     "stream": false
   }'
 ```
 
-Codex custom provider나 Responses API 클라이언트는
-`POST /openai/v1/responses`를 사용합니다. 코딩 에이전트 용도는 계정 또는
+Claude Code 또는 Anthropic Messages client는
+`https://sam.soonsoon.ai/v2/anthropic`을 base URL로 사용하고, 모델은
+`GET /v2/anthropic/v1/models`에서 확인합니다. Coding Agent 용도는 계정 또는
 키에 `agent:codex`, `agent:claude_code`, 또는 `agent:coding_agents` 권한이
-필요할 수 있습니다.
+필요할 수 있습니다. V2가 실패할 때 V1 execution으로 몰래 fallback하지
+마세요.
 
 ## 사용량 확인
 

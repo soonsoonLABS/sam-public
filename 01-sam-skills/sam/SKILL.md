@@ -10,7 +10,7 @@ place the API key in URLs, project files, commits, or prompts.
 
 ## Connection contract
 
-- API key environment variable: `SAM_CODEX_API`
+- API key environment variable: `SAM_API_KEY`
 - V2 OpenAI Responses base URL: `https://sam.soonsoon.ai/v2/openai`
 - Use SAM registry aliases, never a provider deployment ID.
 - Do not fall back to V1 or compatibility endpoints.
@@ -19,9 +19,10 @@ place the API key in URLs, project files, commits, or prompts.
 
 ## Model selection
 
-- `azure.gpt-5.6-terra` and `aws.gpt-5.6-terra`: default coding and analysis.
+- `azure.gpt-5.6-luna`: stable low-cost default.
+- `azure.gpt-5.6-terra` and `aws.gpt-5.6-terra`: everyday coding and analysis.
 - `azure.gpt-5.6-sol` and `aws.gpt-5.6-sol`: difficult coding or long agent work.
-- `azure.gpt-5.6-luna` and `aws.gpt-5.6-luna`: lighter work.
+- Other discovered Luna models: lighter work when admitted for the active key.
 - Choose only models available to the active key. If unsure, ask the user to use
   `/model` in Codex.
 

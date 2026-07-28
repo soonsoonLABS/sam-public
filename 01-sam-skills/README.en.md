@@ -31,7 +31,7 @@ Example instruction:
 
 ```text
 When using SAM Codex, read sam/SKILL.md first and authenticate with the
-SAM_CODEX_API environment variable. Do not print the key or save it to arbitrary
+SAM_API_KEY environment variable. Do not print the key or save it to arbitrary
 files.
 Load SAM keys only from ~/.sam/env or ~/.sam/env.ps1.
 ```
@@ -42,4 +42,5 @@ into each agent's global instruction file.
 ## Prerequisite
 
 First complete [`00-sam-setup/`](../00-sam-setup/README.en.md) so `SAM_API_KEY`
-is saved under the standard `~/.sam/` folder and the `Hello SAM` test succeeds.
+is saved under the standard `~/.sam/` folder and both no-generation Coding
+Agent discovery checks succeed.
