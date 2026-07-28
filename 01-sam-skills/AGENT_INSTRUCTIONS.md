@@ -19,13 +19,17 @@ instructions, Kiro steering 문서.
 - Windows PowerShell: SAM_API_KEY가 현재 프로세스에 없으면 ~/.sam/env.ps1 을 dot-source 한다.
 - ~/.config/sam/.env, 프로젝트 .env, 에이전트별 임의 키 파일을 새로 만들거나 우선하지 않는다.
 - 현재 셸의 임시 SAM_API_KEY와 표준 키 파일 값이 다르면 표준 키 파일을 로드한 값을 기준으로 한다.
-- 키를 출력하지 않는다. 확인이 필요하면 앞 12자리만 보여준다.
+- 키 전체나 일부를 출력하지 않는다.
 - 키 교체 후에는 실행 중인 CLI/에이전트 프로세스를 재시작해야 새 키를 읽는다고 안내한다.
 
 호출 규칙:
 - Base URL은 https://sam.soonsoon.ai 이다.
-- 새 SAM 통합은 /v1/* 네이티브 API를 우선 사용한다.
-- OpenAI 호환 클라이언트는 https://sam.soonsoon.ai/openai/v1 을 사용한다.
+- 새 모델 실행과 Coding Agent 통합은 provider-native V2를 사용한다.
+- Codex/OpenAI는 https://sam.soonsoon.ai/v2/openai 을 사용한다.
+- Claude Code/Anthropic은 https://sam.soonsoon.ai/v2/anthropic 을 사용한다.
+- 계정, 키, 사용량 같은 stable control API는 현재 /v1/*를 사용한다.
+- /v1/generate와 /openai/v1/*는 기존 호환 실행면이며 신규 Coding Agent에
+  사용하거나 V2 실패의 fallback으로 사용하지 않는다.
 - /api/* legacy 경로는 새 작업에 사용하지 않는다.
 - 비용이 발생할 수 있는 모델/이미지/검색 호출은 사용자의 의도 범위 안에서만 실행한다.
 - 실패 시 HTTP 상태, 사용한 SAM 기능, 다음 조치를 간단히 보고한다.

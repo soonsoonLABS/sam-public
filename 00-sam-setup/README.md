@@ -1,12 +1,10 @@
-# 0. SAM 최초 환경 설정
+# 0. SAM 환경과 공용 API 키 테스트
 
 **언어:** 한국어 | [English](README.en.md)
 
-SAM API 키를 사용자 기기의 표준 로컬 폴더 `~/.sam/`에 저장하고, 현재
-터미널에서 불러온 뒤, `Hello SAM`으로 실제 호출을 확인하는 시작 방법입니다.
-
-> 키 파일은 Git 저장소 밖의 사용자 기기에만 저장합니다. 키를 문서, 이슈,
-> 명령 기록, URL, 캡처에 넣거나 공유하지 마세요.
+`sam-codex`와 `sam-claude`가 함께 쓸 하나의 `SAM_API_KEY`를 표준 로컬
+폴더 `~/.sam/`에 저장합니다. 설치 전에 아래 순서로 환경, 키, 두 Coding
+Agent 권한을 분리해 확인합니다.
 
 ## 표준 경로
 
@@ -17,97 +15,141 @@ SAM API 키를 사용자 기기의 표준 로컬 폴더 `~/.sam/`에 저장하�
   skills/   # 에이전트가 읽을 SAM 스킬 문서
 ```
 
-모든 에이전트는 위 경로만 읽게 맞춥니다. `~/.config/sam/.env`처럼 다른 키
-파일을 새로 만들지 마세요. 키를 교체한 뒤에는 이미 실행 중인 CLI나
-에이전트 프로세스를 다시 시작해야 새 키를 읽습니다.
+다른 키 파일을 에이전트별로 만들지 마세요. 키를 교체한 뒤에는 이미 실행
+중인 CLI나 에이전트를 다시 시작해야 새 키를 읽습니다.
 
-Codex 설치기는 이 파일에 `SAM_CODEX_API`를 저장하고, 기존 범용 도구 호환을
-위해 같은 값을 `SAM_API_KEY`로도 현재 프로세스에 제공합니다.
+## 1. SAM 사용 환경 테스트
 
-## macOS
+키 없이 서비스 연결과 readiness만 확인합니다. 이 호출은 모델을 생성하지
+않습니다.
 
-### 1. 키 저장
+```bash
+curl -fsS --max-time 10 https://sam.soonsoon.ai/readyz
+```
 
-아래 명령을 입력한 뒤 SAM 키를 붙여넣고 Enter를 누릅니다. 입력 중에는
-키가 화면에 보이지 않습니다.
+```powershell
+(Invoke-WebRequest -TimeoutSec 10 -Uri "https://sam.soonsoon.ai/readyz").StatusCode
+```
+
+JSON readiness 응답 또는 HTTP `200`이면 네트워크·DNS·TLS·SAM 진입점이
+정상입니다. 이 결과만으로 API 키나 모델 provider까지 정상이라고 판단하면
+안 됩니다.
+
+## 2. 공용 SAM API 키 저장
+
+키를 명령문에 직접 쓰지 말고 숨김 입력으로 받습니다.
+
+### macOS / Linux
 
 ```bash
 mkdir -p "$HOME/.sam"
 chmod 700 "$HOME/.sam"
-read -s "SAM_API_KEY?SAM 키 입력: "
-echo
-printf "export SAM_API_KEY='%s'\n" "$SAM_API_KEY" > "$HOME/.sam/env"
+printf "SAM API 키 입력: "
+stty -echo
+IFS= read -r SAM_API_KEY
+stty echo
+printf "\n"
+printf 'export SAM_API_KEY=%q\n' "$SAM_API_KEY" > "$HOME/.sam/env"
 chmod 600 "$HOME/.sam/env"
+unset SAM_API_KEY
 source "$HOME/.sam/env"
 ```
 
-### 2. 키 앞부분 확인
-
-전체 키를 출력하지 않고 앞 12자리만 확인합니다.
-
-```bash
-source "$HOME/.sam/env"
-echo "${SAM_API_KEY:0:12}..."
-```
-
-### 3. Hello SAM 테스트
-
-한국어 인사에는 한국어 농담이 한 줄로 반환됩니다.
-
-```bash
-curl -s -X POST https://sam.soonsoon.ai/v1/hello \
-  -H "Authorization: Bearer $SAM_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"greeting":"안녕 SAM"}' \
-  | sed -E 's/.*"joke":"([^"]*)".*/\1/'
-```
-
-## Windows PowerShell
-
-### 1. 키 저장
-
-아래를 실행한 뒤 SAM 키를 붙여넣고 Enter를 누릅니다. 입력 중에는 키가
-화면에 보이지 않습니다.
+### Windows PowerShell
 
 ```powershell
 $SamHome = Join-Path $HOME ".sam"
 New-Item -ItemType Directory -Force -Path $SamHome | Out-Null
-$secure = Read-Host "SAM 키 입력" -AsSecureString
+$secure = Read-Host "SAM API 키 입력" -AsSecureString
 $key = (New-Object PSCredential "sam",$secure).GetNetworkCredential().Password
-Set-Content -Path (Join-Path $SamHome "env.ps1") -Encoding UTF8 -Value "`$env:SAM_API_KEY = '$key'"
-icacls (Join-Path $SamHome "env.ps1") /inheritance:r /grant:r "$($env:USERNAME):F" | Out-Null
+$safeKey = $key.Replace("'", "''")
+Set-Content -Path (Join-Path $SamHome "env.ps1") -Encoding UTF8 `
+  -Value "`$env:SAM_API_KEY = '$safeKey'"
+icacls (Join-Path $SamHome "env.ps1") /inheritance:r `
+  /grant:r "$($env:USERNAME):F" | Out-Null
 . (Join-Path $SamHome "env.ps1")
+$key = $null
+$safeKey = $null
 ```
 
-### 2. 키 앞부분 확인
+키 전체나 앞부분을 출력하지 마세요. installer를 실행하면 기존 표준 키를
+재사용하며, 현재 터미널의 `SAM_API_KEY`에 새 키가 있으면 표준 파일을
+갱신합니다.
+
+## 3. 키와 Coding Agent 권한 테스트
+
+같은 키로 OpenAI/Codex와 Anthropic/Claude Code discovery를 각각 확인합니다.
+두 요청 모두 모델을 생성하지 않으므로 모델 사용량이 없습니다.
+
+### macOS / Linux
+
+```bash
+source "$HOME/.sam/env"
+
+curl -sS --max-time 15 -o /dev/null \
+  -w "SAM OpenAI discovery: HTTP %{http_code}\n" \
+  https://sam.soonsoon.ai/v2/openai/models \
+  -H "Authorization: Bearer $SAM_API_KEY"
+
+curl -sS --max-time 15 -o /dev/null \
+  -w "SAM Anthropic discovery: HTTP %{http_code}\n" \
+  https://sam.soonsoon.ai/v2/anthropic/v1/models \
+  -H "Authorization: Bearer $SAM_API_KEY"
+```
+
+### Windows PowerShell
 
 ```powershell
 . "$HOME\.sam\env.ps1"
-$env:SAM_API_KEY.Substring(0,12) + "..."
+$headers = @{ Authorization = "Bearer $env:SAM_API_KEY" }
+
+(Invoke-WebRequest -TimeoutSec 15 `
+  -Uri "https://sam.soonsoon.ai/v2/openai/models" `
+  -Headers $headers).StatusCode
+
+(Invoke-WebRequest -TimeoutSec 15 `
+  -Uri "https://sam.soonsoon.ai/v2/anthropic/v1/models" `
+  -Headers $headers).StatusCode
 ```
 
-### 3. Hello SAM 테스트
+## 결과 해석
 
-PowerShell에서는 macOS용 `curl`, `-H`, `-d`, `\` 줄바꿈 문법을 쓰지
-마세요. 아래 PowerShell 블록 전체를 그대로 사용합니다.
+| 결과 | 의미 | 조치 |
+| --- | --- | --- |
+| 두 discovery 모두 `200` | 키와 두 Coding Agent 권한 정상 | 설치 진행 |
+| `401 AUTH_INVALID` | 키가 잘못됐거나 폐기됨 | SAM에서 활성 키를 확인하고 다시 저장 |
+| `403` | 키는 인식됐지만 해당 Agent 권한 없음 | 계정/키의 Coding Agent 권한 확인 |
+| `404` | 오래된 URL 또는 잘못된 base URL | 반드시 이 문서의 V2 URL 사용 |
+| timeout / HTTP `000` | 네트워크 또는 SAM runtime 문제 | readiness와 discovery 결과를 분리해 보고 |
+
+`/readyz`의 `200`은 인프라 readiness만 뜻합니다. 인증된 discovery의 `200`이
+나오기 전에는 CLI 설정 문제로 단정하거나 유료 생성 테스트를 실행하지
+마세요.
+
+## 선택: 실제 생성까지 확인
+
+`Hello SAM`은 실제 모델을 호출하므로 소량의 SAM 사용량이 기록될 수
+있습니다. 비용 없는 discovery가 성공한 뒤에만 실행합니다.
+
+```bash
+curl -sS -X POST https://sam.soonsoon.ai/v1/hello \
+  -H "Authorization: Bearer $SAM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"greeting":"안녕 SAM"}'
+```
+
+## 공용 키 최종 삭제
+
+먼저 `sam-codex`와 `sam-claude`를 각각 해제합니다. 그 후에만 공용 키 삭제
+스크립트를 실행합니다.
+
+```bash
+./remove-shared-key-macos.sh
+```
 
 ```powershell
-(Invoke-RestMethod `
-  -Method Post `
-  -Uri "https://sam.soonsoon.ai/v1/hello" `
-  -Headers @{ Authorization = "Bearer $env:SAM_API_KEY" } `
-  -ContentType "application/json" `
-  -Body (@{ greeting = "안녕 SAM" } | ConvertTo-Json)).joke
+powershell -ExecutionPolicy Bypass -File .\remove-shared-key-windows.ps1
 ```
 
-## 키 교체
-
-새 키를 넣을 때는 위의 키 저장 단계를 다시 실행해서 `~/.sam/env` 또는
-`~/.sam/env.ps1`만 덮어씁니다. 오래된 키는 SAM 웹의 **API Keys**에서
-폐기하세요.
-
-## 성공 기준
-
-농담 한 줄이 반환되면 API 키, 네트워크, SAM 인증, 그리고 실제 모델 호출이
-정상입니다. `Hello SAM`은 실제 모델을 호출하므로 소량의 SAM 사용량이
-기록됩니다.
+이미 열린 macOS/Linux 터미널에서는 마지막으로 `unset SAM_API_KEY`를
+실행합니다.

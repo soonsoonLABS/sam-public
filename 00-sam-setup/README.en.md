@@ -1,15 +1,12 @@
-# 0. First SAM Setup
+# 0. Test the SAM environment and shared API key
 
 **Language:** [한국어](README.md) | English
 
-This guide stores a SAM API key in the user's standard local SAM folder,
-`~/.sam/`, loads it into the current terminal, and verifies a real `Hello SAM`
-call.
+Store one `SAM_API_KEY` for both `sam-codex` and `sam-claude` in the standard
+local folder, `~/.sam/`. Test the environment, key, and two Coding Agent grants
+separately before installation.
 
-> The key file stays only on the user's device, outside Git. Do not put API keys
-> in docs, issues, command history, URLs, screenshots, or shared messages.
-
-## Standard Path
+## Standard path
 
 ```text
 ~/.sam/
@@ -18,96 +15,136 @@ call.
   skills/   # SAM skill documents for agents
 ```
 
-Point every agent to this path. Do not create alternate key files such as
-`~/.config/sam/.env`. After replacing a key, restart any already-running CLI or
-agent process so it reads the new value.
+Do not create a different key file for each agent. Restart already-running
+CLIs and agents after replacing the key.
 
-The Codex installer stores `SAM_CODEX_API` in this file and also exposes the
-same value as `SAM_API_KEY` for existing general-purpose SAM tooling.
+## 1. Test the SAM environment
 
-## macOS
+Check connectivity and readiness without a key. This does not generate model
+output.
 
-### 1. Save the key
+```bash
+curl -fsS --max-time 10 https://sam.soonsoon.ai/readyz
+```
 
-Run the command below, paste your SAM key, then press Enter. The key will not be
-shown while you type or paste it.
+```powershell
+(Invoke-WebRequest -TimeoutSec 10 -Uri "https://sam.soonsoon.ai/readyz").StatusCode
+```
+
+A readiness JSON response or HTTP `200` confirms the network, DNS, TLS, and SAM
+entrypoint. It does not validate your key or a model provider.
+
+## 2. Save the shared SAM API key
+
+Use hidden input. Never paste the key value into a literal command.
+
+### macOS / Linux
 
 ```bash
 mkdir -p "$HOME/.sam"
 chmod 700 "$HOME/.sam"
-read -s "SAM_API_KEY?Enter SAM key: "
-echo
-printf "export SAM_API_KEY='%s'\n" "$SAM_API_KEY" > "$HOME/.sam/env"
+printf "Enter SAM API key: "
+stty -echo
+IFS= read -r SAM_API_KEY
+stty echo
+printf "\n"
+printf 'export SAM_API_KEY=%q\n' "$SAM_API_KEY" > "$HOME/.sam/env"
 chmod 600 "$HOME/.sam/env"
+unset SAM_API_KEY
 source "$HOME/.sam/env"
 ```
 
-### 2. Check the key prefix
-
-Print only the first 12 characters, not the full key.
-
-```bash
-source "$HOME/.sam/env"
-echo "${SAM_API_KEY:0:12}..."
-```
-
-### 3. Test Hello SAM
-
-An English greeting returns a short one-line English joke.
-
-```bash
-curl -s -X POST https://sam.soonsoon.ai/v1/hello \
-  -H "Authorization: Bearer $SAM_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"greeting":"Hello SAM"}' \
-  | sed -E 's/.*"joke":"([^"]*)".*/\1/'
-```
-
-## Windows PowerShell
-
-### 1. Save the key
-
-Run the commands below, paste your SAM key, then press Enter. The key will not be
-shown while you type or paste it.
+### Windows PowerShell
 
 ```powershell
 $SamHome = Join-Path $HOME ".sam"
 New-Item -ItemType Directory -Force -Path $SamHome | Out-Null
-$secure = Read-Host "Enter SAM key" -AsSecureString
+$secure = Read-Host "Enter SAM API key" -AsSecureString
 $key = (New-Object PSCredential "sam",$secure).GetNetworkCredential().Password
-Set-Content -Path (Join-Path $SamHome "env.ps1") -Encoding UTF8 -Value "`$env:SAM_API_KEY = '$key'"
-icacls (Join-Path $SamHome "env.ps1") /inheritance:r /grant:r "$($env:USERNAME):F" | Out-Null
+$safeKey = $key.Replace("'", "''")
+Set-Content -Path (Join-Path $SamHome "env.ps1") -Encoding UTF8 `
+  -Value "`$env:SAM_API_KEY = '$safeKey'"
+icacls (Join-Path $SamHome "env.ps1") /inheritance:r `
+  /grant:r "$($env:USERNAME):F" | Out-Null
 . (Join-Path $SamHome "env.ps1")
+$key = $null
+$safeKey = $null
 ```
 
-### 2. Check the key prefix
+Do not print the full key or a prefix. Installers reuse the existing standard
+key, or update it when the current terminal contains a new `SAM_API_KEY`.
+
+## 3. Test the key and Coding Agent grants
+
+Use the same key for both OpenAI/Codex and Anthropic/Claude Code discovery.
+Neither request generates model output.
+
+### macOS / Linux
+
+```bash
+source "$HOME/.sam/env"
+
+curl -sS --max-time 15 -o /dev/null \
+  -w "SAM OpenAI discovery: HTTP %{http_code}\n" \
+  https://sam.soonsoon.ai/v2/openai/models \
+  -H "Authorization: Bearer $SAM_API_KEY"
+
+curl -sS --max-time 15 -o /dev/null \
+  -w "SAM Anthropic discovery: HTTP %{http_code}\n" \
+  https://sam.soonsoon.ai/v2/anthropic/v1/models \
+  -H "Authorization: Bearer $SAM_API_KEY"
+```
+
+### Windows PowerShell
 
 ```powershell
 . "$HOME\.sam\env.ps1"
-$env:SAM_API_KEY.Substring(0,12) + "..."
+$headers = @{ Authorization = "Bearer $env:SAM_API_KEY" }
+
+(Invoke-WebRequest -TimeoutSec 15 `
+  -Uri "https://sam.soonsoon.ai/v2/openai/models" `
+  -Headers $headers).StatusCode
+
+(Invoke-WebRequest -TimeoutSec 15 `
+  -Uri "https://sam.soonsoon.ai/v2/anthropic/v1/models" `
+  -Headers $headers).StatusCode
 ```
 
-### 3. Test Hello SAM
+## Interpret the result
 
-In PowerShell, do not use the macOS `curl`, `-H`, `-d`, or `\` line-continuation
-syntax. Copy and run the full PowerShell block below.
+| Result | Meaning | Action |
+| --- | --- | --- |
+| Both return `200` | Key and both Coding Agent grants are valid | Continue |
+| `401 AUTH_INVALID` | Invalid or revoked key | Check the active key in SAM and save it again |
+| `403` | Key is known but lacks the Agent grant | Check the account/key Coding Agent grant |
+| `404` | Old or incorrect base URL | Use the V2 URLs in this guide |
+| timeout / HTTP `000` | Network or SAM runtime problem | Report readiness and discovery separately |
+
+HTTP `200` from `/readyz` proves only infrastructure readiness. Do not diagnose
+the CLI or run a paid generation test until authenticated discovery succeeds.
+
+## Optional: test a real generation
+
+`Hello SAM` calls a real model and may record a small amount of SAM usage. Run
+it only after no-generation discovery succeeds.
+
+```bash
+curl -sS -X POST https://sam.soonsoon.ai/v1/hello \
+  -H "Authorization: Bearer $SAM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"greeting":"Hello SAM"}'
+```
+
+## Delete the shared key
+
+Remove both `sam-codex` and `sam-claude` first, then run:
+
+```bash
+./remove-shared-key-macos.sh
+```
 
 ```powershell
-(Invoke-RestMethod `
-  -Method Post `
-  -Uri "https://sam.soonsoon.ai/v1/hello" `
-  -Headers @{ Authorization = "Bearer $env:SAM_API_KEY" } `
-  -ContentType "application/json" `
-  -Body (@{ greeting = "Hello SAM" } | ConvertTo-Json)).joke
+powershell -ExecutionPolicy Bypass -File .\remove-shared-key-windows.ps1
 ```
 
-## Replace the Key
-
-To replace the key, rerun the save step above and overwrite only `~/.sam/env` or
-`~/.sam/env.ps1`. Revoke the old key in SAM web under **API Keys**.
-
-## Success Criteria
-
-If you get one short joke back, your API key, network connection, SAM
-authentication, and real model call are working. `Hello SAM` calls a real model,
-so a small amount of SAM usage is recorded.
+Finally run `unset SAM_API_KEY` in each already-open macOS/Linux terminal.
