@@ -2,7 +2,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-README="$SCRIPT_DIR/README.md"
+README="$SCRIPT_DIR/MANUAL_SETUP.md"
+QUICKSTART="$SCRIPT_DIR/README.md"
 TEST_ROOT="$(mktemp -d)"
 trap 'rm -rf "$TEST_ROOT"' EXIT
 
@@ -89,5 +90,8 @@ grep -Fq 'bearer_token_env_var = "SAM_API_KEY"' \
   "$HOME/.codex-sam/config.toml"
 grep -Fq 'grep -Fxc "# >>> SAM-Codex managed >>>"' "$README"
 grep -Fq 'grep -Fxc "# <<< SAM-Codex managed <<<"' "$README"
+grep -Fq '[완전 수동 설정](./MANUAL_SETUP.md)' "$QUICKSTART"
+grep -Fq '[문제 해결](./TROUBLESHOOTING.md)' "$QUICKSTART"
+grep -Fq '[동작 방식](./HOW_IT_WORKS.md)' "$QUICKSTART"
 
 printf 'PASS: README manual config, wrapper, function, isolation, MCP, official return\n'
