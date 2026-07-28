@@ -57,6 +57,11 @@ git init
 sam-codex
 ```
 
+홈 폴더나 Git 프로젝트가 아닌 곳에서 `sam-codex`를 실행하면 공식
+`~/.codex` 설정이 섞이지 않도록 자동으로 `~/SAM-Codex` 전용 작업 폴더에서
+시작합니다. 기존 프로젝트를 작업하려면 해당 Git 프로젝트 폴더로 이동한 뒤
+실행하세요.
+
 화면 아래 모델이 `azure.gpt-5.6-luna`, `azure.gpt-5.6-terra` 또는
 `azure.gpt-5.6-sol`이면 SAM 환경입니다. 같은 화면을 사용하지만 연결 대상이
 다릅니다.
@@ -105,6 +110,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main
 
 삭제기는 `sam-codex` 명령과 관리 블록을 제거하고 `~/.codex-sam`을 휴지통으로
 옮깁니다. 공식 `codex`, `~/.codex`, 공용 `~/.sam/env` 키는 보존합니다.
+설치 전부터 사용자가 직접 만든 동명의 함수나 별칭은 삭제하지 않습니다.
 
 ## 오류 확인
 

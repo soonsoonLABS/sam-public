@@ -63,12 +63,14 @@ mkdir -p "$SAM_HOME" "$CODEX_SAM_HOME" "$BIN_DIR"
 chmod 700 "$SAM_HOME" "$CODEX_SAM_HOME"
 
 key=""
-if [ -n "${SAM_API_KEY:-}" ]; then
-  key="$SAM_API_KEY"
-elif [ -r "$ENV_FILE" ]; then
+key_from_existing_file=0
+if [ -r "$ENV_FILE" ]; then
   # shellcheck disable=SC1090
   . "$ENV_FILE"
   key="${SAM_API_KEY:-}"
+  key_from_existing_file=1
+elif [ -n "${SAM_API_KEY:-}" ]; then
+  key="$SAM_API_KEY"
 else
   [ -r /dev/tty ] || fail "Run this installer from an interactive terminal."
   IFS= read -r -s -p "SAM API key: " key </dev/tty
@@ -106,8 +108,10 @@ done
 [ -n "$default_model" ] ||
   fail "No supported SAM Codex default model was returned by discovery."
 
-printf 'export SAM_API_KEY=%q\n' "$key" >"$ENV_FILE"
-chmod 600 "$ENV_FILE"
+if [ "$key_from_existing_file" -eq 0 ]; then
+  printf 'export SAM_API_KEY=%q\n' "$key" >"$ENV_FILE"
+  chmod 600 "$ENV_FILE"
+fi
 unset key SAM_API_KEY
 
 mv "$catalog_tmp" "$CODEX_SAM_HOME/models.json"
@@ -120,6 +124,7 @@ model = "$default_model"
 model_provider = "sam"
 model_catalog_json = "models.json"
 web_search = "disabled"
+project_root_markers = [".git", ".sam-codex-root"]
 
 [model_providers.sam]
 name = "SAM"
@@ -143,6 +148,7 @@ SAM_HOME="$HOME/.sam"
 CODEX_SAM_HOME="$HOME/.codex-sam"
 ENV_FILE="$SAM_HOME/env"
 DISCOVERY_URL="https://sam.soonsoon.ai/v2/openai/models"
+DEFAULT_WORKSPACE="$HOME/SAM-Codex"
 
 [ -r "$ENV_FILE" ] || {
   echo "Missing $ENV_FILE. Re-run the SAM-Codex installer." >&2
@@ -175,7 +181,36 @@ else
   echo "Warning: using the last verified SAM model catalog." >&2
 fi
 
-exec codex -c "model_catalog_json=\"$CODEX_HOME/models.json\"" "$@"
+default_model="$(
+  sed -n 's/^model = "\(azure\.gpt-5\.6-[a-z]*\)"$/\1/p' \
+    "$CODEX_HOME/config.toml" | head -n 1
+)"
+case "$default_model" in
+  azure.gpt-5.6-luna | azure.gpt-5.6-terra | azure.gpt-5.6-sol) ;;
+  *)
+    echo "SAM default model is missing from $CODEX_HOME/config.toml." >&2
+    exit 1
+    ;;
+esac
+
+if command -v git >/dev/null 2>&1 &&
+  git -C "$PWD" rev-parse --show-toplevel >/dev/null 2>&1; then
+  :
+elif [ -e "$PWD/.sam-codex-root" ]; then
+  :
+else
+  mkdir -p "$DEFAULT_WORKSPACE"
+  : >"$DEFAULT_WORKSPACE/.sam-codex-root"
+  cd "$DEFAULT_WORKSPACE"
+  echo "SAM-Codex workspace: $DEFAULT_WORKSPACE" >&2
+fi
+
+exec codex \
+  -c 'model_provider="sam"' \
+  -c "model=\"$default_model\"" \
+  -c "model_catalog_json=\"$CODEX_HOME/models.json\"" \
+  -c 'web_search="disabled"' \
+  "$@"
 EOF
 chmod 755 "$WRAPPER"
 
@@ -193,12 +228,24 @@ if ! grep -Fq "$MANAGED_START" "$ZSHRC"; then
     printf '%s\n' "$MANAGED_START"
     # shellcheck disable=SC2016
     printf 'export PATH="$HOME/.local/bin:$PATH"\n'
+    printf 'sam-codex() {\n'
+    # shellcheck disable=SC2016
+    printf '  command "$HOME/.local/bin/sam-codex" "$@"\n'
+    printf '}\n'
     printf '%s\n' "$MANAGED_END"
   } >>"$ZSHRC"
 else
   zshrc_tmp="$(mktemp "$HOME/.zshrc.sam-codex.XXXXXX")"
   awk -v start="$MANAGED_START" -v end="$MANAGED_END" '
-    $0 == start { managed = 1; print start; print "export PATH=\"$HOME/.local/bin:$PATH\""; next }
+    $0 == start {
+      managed = 1
+      print start
+      print "export PATH=\"$HOME/.local/bin:$PATH\""
+      print "sam-codex() {"
+      print "  command \"$HOME/.local/bin/sam-codex\" \"$@\""
+      print "}"
+      next
+    }
     $0 == end { managed = 0; print end; next }
     !managed { print }
   ' "$ZSHRC" >"$zshrc_tmp"
