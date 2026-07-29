@@ -15,7 +15,7 @@ codex_client_version() {
   [[ "$version_output" != *$'\n'* ]] || return 1
   if [[ "$version_output" =~ ^codex-cli\ ([0-9]+\.[0-9]+\.[0-9]+([.+-][0-9A-Za-z.-]+)?)$ ]]; then
     case "${BASH_REMATCH[1]}" in
-      0.145.*) printf '%s\n' "${BASH_REMATCH[1]}" ;;
+      0.145.* | 0.146.0) printf '%s\n' "${BASH_REMATCH[1]}" ;;
     esac
   fi
 }
@@ -96,12 +96,9 @@ $slug
 
     [[ "$visibility" == "list" && "$supported" == "true" ]] || return 1
     ((${#slug} >= 1 && ${#slug} <= 128)) || return 1
-    [[ "$slug" =~ ^[a-z0-9]+([._-][a-z0-9]+)*$ ]] || return 1
+    [[ "$slug" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || return 1
     case "$slug" in
-      azure.* | aws.*)
-        [[ "$slug" =~ ^(azure|aws)\.[a-z0-9]+([._-][a-z0-9]+)*$ ]] ||
-          return 1
-        ;;
+      azure.* | aws.*) ;;
       *)
         description="$(
           /usr/bin/plutil -extract "models.$index.description" raw \
@@ -187,7 +184,7 @@ set +x
 
 client_version="$(codex_client_version)" || client_version=""
 [[ -n "$client_version" ]] || {
-  echo "SAM-Codex currently requires one exact Codex 0.145.x version line." >&2
+  echo "SAM-Codex currently requires one exact Codex 0.145.x or 0.146.0 version line." >&2
   exit 1
 }
 

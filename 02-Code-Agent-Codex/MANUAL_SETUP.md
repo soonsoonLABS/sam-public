@@ -5,7 +5,7 @@
 자동 설치 프로그램 없이 SAM 전용 폴더, 설정, 실행 명령을 직접 구성합니다.
 공식 `codex`, `~/.codex`, OpenAI/ChatGPT 로그인은 변경하지 않습니다.
 
-> 현재 지원 범위는 macOS, zsh, Codex `0.145.x`입니다.
+> 현재 지원 범위는 macOS, zsh, Codex `0.145.x`와 `0.146.0`입니다.
 
 ## 1. SAM 전용 폴더 만들기
 
@@ -45,15 +45,16 @@ Git, 명령 기록에 적지 않습니다.
 codex --version
 ```
 
-`codex-cli 0.145.x`가 아니면 현재 검증 버전을 설치합니다.
+`codex-cli 0.145.x` 또는 `codex-cli 0.146.0`이 아니면 현재 검증 버전을
+설치합니다.
 
 ```bash
-npm install -g @openai/codex@0.145.0
+npm install -g @openai/codex@0.146.0
 codex --version
 ```
 
-새 minor 버전은 새로운 Codex 내장 모델이 `/model`에 섞이지 않는지 SAM 계약이
-검증된 뒤 지원합니다. 버전 검사를 임의로 우회하지 마세요.
+검증되지 않은 이후 버전은 새로운 Codex 내장 모델이 `/model`에 섞이지 않는지
+SAM 계약을 확인한 뒤 지원합니다. 버전 검사를 임의로 우회하지 마세요.
 
 ## 4. SAM Codex 설정 만들기
 

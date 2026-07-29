@@ -30,8 +30,8 @@ function Get-CodexClientVersion {
         throw "Could not parse the codex-cli version line."
     }
     $clientVersion = $versionMatch.Groups[1].Value
-    if ($clientVersion -cnotmatch '^0\.145\.') {
-        throw "SAM-Codex currently supports Codex 0.145.x."
+    if ($clientVersion -cnotmatch '^(?:0\.145\.[0-9]+|0\.146\.0)$') {
+        throw "SAM-Codex currently supports Codex 0.145.x and 0.146.0."
     }
     return $clientVersion
 }

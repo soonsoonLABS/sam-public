@@ -31,7 +31,12 @@ case "$*" in
   *) exit 22 ;;
 esac
 case "$*" in
-  *"--data-urlencode client_version=0.145.0"*"https://sam.soonsoon.ai/v2/codex/models"*) ;;
+  *"--data-urlencode client_version=0.145.0"*"https://sam.soonsoon.ai/v2/codex/models"*)
+    requested_version="0.145.0"
+    ;;
+  *"--data-urlencode client_version=0.146.0"*"https://sam.soonsoon.ai/v2/codex/models"*)
+    requested_version="0.146.0"
+    ;;
   *) exit 22 ;;
 esac
 printf '%s\n' "$*" >>"$CURL_LOG"
@@ -49,43 +54,43 @@ case "$(cat "$CURL_MODE_FILE")" in
     ;;
   bundled-visible)
     emit_catalog \
-      "0.145.0" \
+      "$requested_version" \
       '{"slug":"gpt-5.6-sol","visibility":"list","supported_in_api":true},{"slug":"azure.gpt-5.6-luna","visibility":"list","supported_in_api":true}'
     exit 0
     ;;
   duplicate-visible)
     emit_catalog \
-      "0.145.0" \
+      "$requested_version" \
       '{"slug":"azure.gpt-5.6-luna","visibility":"list","supported_in_api":true},{"slug":"azure.gpt-5.6-luna","visibility":"list","supported_in_api":true}'
     exit 0
     ;;
   selection-changed)
     emit_catalog \
-      "0.145.0" \
-      '{"slug":"azure.gpt-5.6-luna","visibility":"hide","supported_in_api":true},{"slug":"aws.gpt-5.6-terra","visibility":"list","supported_in_api":true}'
+      "$requested_version" \
+      '{"slug":"aws.gpt-5.6-terra","visibility":"list","supported_in_api":true}'
     exit 0
     ;;
   compat-only)
     emit_catalog \
-      "0.145.0" \
-      '{"slug":"fw-kimi-k3","display_name":"Kimi K3 (Fireworks)","description":"not V2 provider-native","visibility":"list","supported_in_api":true},{"slug":"az-deepseek-v4-pro","display_name":"DeepSeek V4 Pro","description":"not V2 provider-native","visibility":"list","supported_in_api":true}'
+      "$requested_version" \
+      '{"slug":"fw-kimi-k3","display_name":"Kimi K3 (Fireworks)","description":"Kimi coding model (not V2 provider-native)","visibility":"list","supported_in_api":true,"comp_hash":"sam-compat-fw-kimi-k3","priority":100},{"slug":"az-deepseek-v4-pro","display_name":"DeepSeek V4 Pro","description":"DeepSeek coding model (not V2 provider-native)","visibility":"list","supported_in_api":true,"comp_hash":"sam-compat-az-deepseek-v4-pro","priority":101}'
     exit 0
     ;;
   missing-hide)
-    printf '%s\n' \
-      '{"fetched_at":"2026-07-29T00:00:00Z","etag":"sam-v2-unified-codex-catalog","client_version":"0.145.0","models":[{"slug":"gpt-5.6-sol","visibility":"hide","supported_in_api":false},{"slug":"azure.gpt-5.6-luna","visibility":"list","supported_in_api":true}]}'
+    printf '{"fetched_at":"2026-07-29T00:00:00Z","etag":"sam-v2-unified-codex-catalog","client_version":"%s","models":[{"slug":"gpt-5.6-sol","visibility":"hide","supported_in_api":false},{"slug":"azure.gpt-5.6-luna","visibility":"list","supported_in_api":true}]}\n' \
+      "$requested_version"
     exit 0
     ;;
   malicious-slug)
     emit_catalog \
-      "0.145.0" \
+      "$requested_version" \
       '{"slug":"azure.gpt-5.6-luna\"injected","visibility":"list","supported_in_api":true}'
     exit 0
     ;;
 esac
 emit_catalog \
-  "0.145.0" \
-  '{"slug":"azure.gpt-5.6-sol","visibility":"list","supported_in_api":true},{"slug":"azure.gpt-5.6-terra","visibility":"list","supported_in_api":true},{"slug":"azure.gpt-5.6-luna","visibility":"list","supported_in_api":true},{"slug":"fw-kimi-k3","display_name":"Kimi K3 (Fireworks)","description":"not V2 provider-native","visibility":"list","supported_in_api":true},{"slug":"az-deepseek-v4-pro","display_name":"DeepSeek V4 Pro","description":"not V2 provider-native","visibility":"list","supported_in_api":true}'
+  "$requested_version" \
+  '{"slug":"azure.gpt-5.6-sol","visibility":"list","supported_in_api":true},{"slug":"azure.gpt-5.6-terra","visibility":"list","supported_in_api":true},{"slug":"azure.gpt-5.6-luna","visibility":"list","supported_in_api":true},{"slug":"fw-kimi-k3","display_name":"Kimi K3 (Fireworks)","description":"Kimi coding model (not V2 provider-native)","visibility":"list","supported_in_api":true,"comp_hash":"sam-compat-fw-kimi-k3","priority":100},{"slug":"az-deepseek-v4-pro","display_name":"DeepSeek V4 Pro","description":"DeepSeek coding model (not V2 provider-native)","visibility":"list","supported_in_api":true,"comp_hash":"sam-compat-az-deepseek-v4-pro","priority":101}'
 EOF
 
 cat >"$FAKE_BIN/codex" <<'EOF'
@@ -93,8 +98,9 @@ cat >"$FAKE_BIN/codex" <<'EOF'
 if [ "${1:-}" = "--version" ] && [ -z "${CODEX_HOME:-}" ]; then
   case "$(cat "$CODEX_VERSION_MODE_FILE")" in
     extra-line) printf 'warning: update available\ncodex-cli 0.145.0\n' ;;
-    future) printf 'codex-cli 0.146.0\n' ;;
-    *) printf 'codex-cli 0.145.0\n' ;;
+    legacy) printf 'codex-cli 0.145.0\n' ;;
+    future) printf 'codex-cli 0.147.0\n' ;;
+    *) printf 'codex-cli 0.146.0\n' ;;
   esac
   exit 0
 fi
@@ -153,7 +159,7 @@ grep -Fq \
 test "$(grep -Fc -- '-H x-sam-codex-cache: 1' "$CURL_LOG")" -ge 2
 test "$(
   grep -Fc -- \
-    '--data-urlencode client_version=0.145.0' \
+    '--data-urlencode client_version=0.146.0' \
     "$CURL_LOG"
 )" -ge 2
 test "$(grep -Fc '# >>> SAM-Codex managed >>>' "$HOME/.zshrc")" -eq 1
@@ -294,6 +300,14 @@ grep -Fq 'blocks model/provider/config override options' \
   "$TEST_ROOT/override.stderr"
 
 printf 'success\n' >"$CURL_MODE_FILE"
+printf 'legacy\n' >"$CODEX_VERSION_MODE_FILE"
+"$HOME/.local/bin/sam-codex" --version >/dev/null
+grep -Fq -- \
+  '--data-urlencode client_version=0.145.0' \
+  "$CURL_LOG"
+printf 'strict\n' >"$CODEX_VERSION_MODE_FILE"
+"$HOME/.local/bin/sam-codex" --version >/dev/null
+
 curl_count_before_bad_version="$(wc -l <"$CURL_LOG" | tr -d ' ')"
 printf 'extra-line\n' >"$CODEX_VERSION_MODE_FILE"
 if (
@@ -302,7 +316,7 @@ if (
   printf 'Expected strict Codex version parsing to reject extra output.\n' >&2
   exit 1
 fi
-grep -Fq 'requires one exact Codex 0.145.x version line' \
+grep -Fq 'requires one exact Codex 0.145.x or 0.146.0 version line' \
   "$TEST_ROOT/version.stderr"
 test "$(wc -l <"$CURL_LOG" | tr -d ' ')" = \
   "$curl_count_before_bad_version"
@@ -317,7 +331,7 @@ if (
   printf 'Expected future Codex minor version to fail closed.\n' >&2
   exit 1
 fi
-grep -Fq 'requires one exact Codex 0.145.x version line' \
+grep -Fq 'requires one exact Codex 0.145.x or 0.146.0 version line' \
   "$TEST_ROOT/future-version.stderr"
 test "$(wc -l <"$CURL_LOG" | tr -d ' ')" = \
   "$curl_count_before_future_version"

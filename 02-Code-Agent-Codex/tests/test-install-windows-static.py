@@ -26,7 +26,11 @@ class WindowsSamCodexSetupTests(unittest.TestCase):
             self.assertIn("^codex-cli (", script)
             self.assertIn("$versionOutput.Count -ne 1", script)
             self.assertIn("$versionPattern.Match(", script)
-            self.assertIn("$clientVersion -cnotmatch '^0\\.145\\.'", script)
+            self.assertIn(
+                "$clientVersion -cnotmatch "
+                "'^(?:0\\.145\\.[0-9]+|0\\.146\\.0)$'",
+                script,
+            )
             self.assertIn("?client_version={1}", script)
             self.assertIn('"x-sam-codex-cache" = "1"', script)
             self.assertIn("sam-v2-unified-codex-catalog", script)

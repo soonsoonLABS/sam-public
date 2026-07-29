@@ -26,7 +26,7 @@ export WRAPPER_SOURCE
 
 printf 'success\n' >"$CURL_MODE_FILE"
 printf 'export SAM_API_KEY=%q\n' "manual-test-key" >"$HOME/.sam/env"
-printf '%s\n' '{"fetched_at":"2026-07-29T00:00:00Z","etag":"sam-v2-unified-codex-catalog","client_version":"0.145.0","models":[{"slug":"gpt-5.6-sol","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.6-terra","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.6-luna","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.5","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.4","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.4-mini","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.2","visibility":"hide","supported_in_api":false},{"slug":"codex-auto-review","visibility":"hide","supported_in_api":false},{"slug":"azure.gpt-5.6-luna","visibility":"list","supported_in_api":true},{"slug":"fw-kimi-k3","display_name":"Kimi K3 (Fireworks)","description":"not V2 provider-native","visibility":"list","supported_in_api":true}]}' \
+printf '%s\n' '{"fetched_at":"2026-07-29T00:00:00Z","etag":"sam-v2-unified-codex-catalog","client_version":"0.146.0","models":[{"slug":"gpt-5.6-sol","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.6-terra","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.6-luna","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.5","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.4","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.4-mini","visibility":"hide","supported_in_api":false},{"slug":"gpt-5.2","visibility":"hide","supported_in_api":false},{"slug":"codex-auto-review","visibility":"hide","supported_in_api":false},{"slug":"azure.gpt-5.6-luna","visibility":"list","supported_in_api":true},{"slug":"fw-kimi-k3","display_name":"Kimi K3 (Fireworks)","description":"Kimi coding model (not V2 provider-native)","visibility":"list","supported_in_api":true,"comp_hash":"sam-compat-fw-kimi-k3","priority":100}]}' \
   >"$FAKE_CATALOG"
 printf '%s\n' 'model = "gpt-5.6-sol"' >"$HOME/.codex/config.toml"
 printf '%s\n' 'export BEFORE=value' >"$HOME/.zshrc"
@@ -61,7 +61,7 @@ case "$arguments" in
   *) exit 22 ;;
 esac
 case "$arguments" in
-  *"--data-urlencode client_version=0.145.0"*"https://sam.soonsoon.ai/v2/codex/models"*) ;;
+  *"--data-urlencode client_version=0.146.0"*"https://sam.soonsoon.ai/v2/codex/models"*) ;;
   *) exit 22 ;;
 esac
 printf '%s\n' "$arguments" >>"$CURL_LOG"
@@ -76,7 +76,7 @@ EOF
 cat >"$FAKE_BIN/codex" <<'EOF'
 #!/usr/bin/env bash
 if [ "${1:-}" = "--version" ] && [ -z "${CODEX_HOME:-}" ]; then
-  printf 'codex-cli 0.145.0\n'
+  printf 'codex-cli 0.146.0\n'
   exit 0
 fi
 printf 'CODEX_HOME=%s\n' "${CODEX_HOME:-}"
@@ -164,7 +164,7 @@ if printf '%s' "$official_output" | grep -Fq '.codex-sam'; then
   exit 1
 fi
 
-grep -Fq '@openai/codex@0.145.0' "$README"
+grep -Fq '@openai/codex@0.146.0' "$README"
 grep -Fq 'Agent 페이지에서' "$README"
 grep -Fq '선택한 V2-native 모델과 인증된' "$README"
 grep -Fq 'templates/sam-codex' "$README"
