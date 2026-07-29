@@ -2,9 +2,10 @@
 
 [빠른 시작으로 돌아가기](./README.md)
 
-설치 프로그램을 사용하지 않고 키, 모델 목록, Codex 설정, 실행 파일, 터미널
-함수를 직접 만드는 과정입니다. 자동 설치를 완료했다면 다시 진행할 필요가
-없습니다.
+자동 설치 프로그램 없이 SAM 전용 폴더, 설정, 실행 명령을 직접 구성합니다.
+공식 `codex`, `~/.codex`, OpenAI/ChatGPT 로그인은 변경하지 않습니다.
+
+> 현재 지원 범위는 macOS, zsh, Codex `0.145.x`입니다.
 
 ## 1. SAM 전용 폴더 만들기
 
@@ -15,11 +16,13 @@ chmod 700 "$HOME/.sam" "$HOME/.codex-sam"
 
 ## 2. SAM API Key 저장하기
 
-기존 `~/.sam/env`가 없다면:
+기존 `~/.sam/env`가 없다면 아래 블록을 붙여 넣습니다.
 
 ```bash
+set +x
 if [[ ! -r "$HOME/.sam/env" ]]; then
-  read -r -s "SAM API Key: " SAM_KEY
+  printf 'SAM API Key: '
+  read -r -s SAM_KEY </dev/tty
   echo
   if [[ -n "$SAM_KEY" ]]; then
     printf 'export SAM_API_KEY=%q\n' "$SAM_KEY" > "$HOME/.sam/env"
@@ -33,48 +36,29 @@ else
 fi
 ```
 
-키 값은 화면에 표시되지 않습니다. `~/.sam/env`는 SAM-Codex와 SAM-Claude가
-함께 사용할 수 있으므로 제품 설정 파일에 키를 다시 적지 않습니다.
+입력 문자는 화면에 표시되지 않습니다. 키 값은 `config.toml`, 프로젝트 파일,
+Git, 명령 기록에 적지 않습니다.
 
-## 3. 키와 허용 모델 확인하기
-
-```bash
-source "$HOME/.sam/env"
-curl -fsSL --max-time 25 \
-  -H "Authorization: Bearer $SAM_API_KEY" \
-  "https://sam.soonsoon.ai/v2/openai/models" \
-  -o "$HOME/.codex-sam/models.json"
-chmod 600 "$HOME/.codex-sam/models.json"
-```
-
-오류 없이 끝났다면 키 인증과 SAM Codex 모델 권한이 확인된 것입니다.
+## 3. 지원 Codex 버전 확인하기
 
 ```bash
-SAM_MODEL=""
-for candidate in \
-  azure.gpt-5.6-luna \
-  azure.gpt-5.6-terra \
-  azure.gpt-5.6-sol
-do
-  if grep -Eq "\"slug\"[[:space:]]*:[[:space:]]*\"$candidate\"" \
-    "$HOME/.codex-sam/models.json"; then
-    SAM_MODEL="$candidate"
-    break
-  fi
-done
-
-if [[ -n "$SAM_MODEL" ]]; then
-  echo "기본 SAM 모델: $SAM_MODEL"
-else
-  echo "사용 가능한 SAM Codex 모델이 없습니다. 다음 단계로 진행하지 마세요."
-fi
+codex --version
 ```
+
+`codex-cli 0.145.x`가 아니면 현재 검증 버전을 설치합니다.
+
+```bash
+npm install -g @openai/codex@0.145.0
+codex --version
+```
+
+새 minor 버전은 새로운 Codex 내장 모델이 `/model`에 섞이지 않는지 SAM 계약이
+검증된 뒤 지원합니다. 버전 검사를 임의로 우회하지 마세요.
 
 ## 4. SAM Codex 설정 만들기
 
 ```bash
-cat > "$HOME/.codex-sam/config.toml" <<EOF
-model = "$SAM_MODEL"
+cat > "$HOME/.codex-sam/config.toml" <<'EOF'
 model_provider = "sam"
 model_catalog_json = "models.json"
 web_search = "disabled"
@@ -82,7 +66,7 @@ project_root_markers = [".git", ".sam-codex-root"]
 
 [model_providers.sam]
 name = "SAM"
-base_url = "https://sam.soonsoon.ai/v2/openai"
+base_url = "https://sam.soonsoon.ai/v2/codex"
 env_key = "SAM_API_KEY"
 wire_api = "responses"
 
@@ -93,91 +77,71 @@ required = true
 EOF
 
 chmod 600 "$HOME/.codex-sam/config.toml"
-unset SAM_MODEL SAM_API_KEY
 ```
 
-## 5. `sam-codex` 실행 파일 만들기
+모델 ID를 고정해서 적지 않습니다. `sam-codex`가 실행될 때 Agent 페이지에서
+선택된 모델을 인증된 discovery로 받아 결정합니다.
 
-아래 블록 전체를 한 번에 붙여 넣습니다.
+## 5. 검증된 `sam-codex` 실행 파일 받기
 
 ```bash
-cat > "$HOME/.local/bin/sam-codex" <<'EOF'
-#!/usr/bin/env bash
-# SAM_CODEX_INSTALLER_MANAGED=1
-set -euo pipefail
-
-SAM_HOME="$HOME/.sam"
-CODEX_SAM_HOME="$HOME/.codex-sam"
-ENV_FILE="$SAM_HOME/env"
-DISCOVERY_URL="https://sam.soonsoon.ai/v2/openai/models"
-DEFAULT_WORKSPACE="$HOME/SAM-Codex"
-
-[[ -r "$ENV_FILE" ]] || {
-  echo "Missing $ENV_FILE" >&2
-  exit 1
-}
-
-source "$ENV_FILE"
-export CODEX_HOME="$CODEX_SAM_HOME"
-umask 077
-
-catalog_tmp="$(mktemp "$CODEX_HOME/.models.XXXXXX")"
-if curl -fsSL --max-time 15 \
-  -H "Authorization: Bearer $SAM_API_KEY" \
-  "$DISCOVERY_URL" > "$catalog_tmp" &&
-  grep -q '"models"' "$catalog_tmp"; then
-  mv "$catalog_tmp" "$CODEX_HOME/models.json"
+SAM_WRAPPER_TMP="$(mktemp "$HOME/.local/bin/.sam-codex.XXXXXX")"
+if curl -fsSL \
+  "https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/02-Code-Agent-Codex/templates/sam-codex" \
+  -o "$SAM_WRAPPER_TMP" &&
+  grep -Fq "SAM_CODEX_INSTALLER_MANAGED=1" "$SAM_WRAPPER_TMP"; then
+  chmod 755 "$SAM_WRAPPER_TMP"
+  mv "$SAM_WRAPPER_TMP" "$HOME/.local/bin/sam-codex"
+  echo "sam-codex 실행 파일을 설치했습니다."
 else
-  rm -f "$catalog_tmp"
-  [[ -s "$CODEX_HOME/models.json" ]] || exit 1
-  echo "Warning: 마지막으로 확인된 SAM 모델 목록을 사용합니다." >&2
+  rm -f "$SAM_WRAPPER_TMP"
+  echo "실행 파일을 받지 못했습니다. 다음 단계로 진행하지 마세요."
 fi
-
-default_model="$(
-  sed -n 's/^model = "\(azure\.gpt-5\.6-[a-z]*\)"$/\1/p' \
-    "$CODEX_HOME/config.toml" | head -n 1
-)"
-
-case "$default_model" in
-  azure.gpt-5.6-luna | azure.gpt-5.6-terra | azure.gpt-5.6-sol) ;;
-  *) echo "SAM 기본 모델 설정이 올바르지 않습니다." >&2; exit 1 ;;
-esac
-
-if command -v git >/dev/null 2>&1 &&
-  git -C "$PWD" rev-parse --show-toplevel >/dev/null 2>&1; then
-  :
-elif [[ -e "$PWD/.sam-codex-root" ]]; then
-  :
-else
-  mkdir -p "$DEFAULT_WORKSPACE"
-  : > "$DEFAULT_WORKSPACE/.sam-codex-root"
-  cd "$DEFAULT_WORKSPACE"
-  echo "SAM-Codex workspace: $DEFAULT_WORKSPACE" >&2
-fi
-
-exec codex \
-  -c 'model_provider="sam"' \
-  -c "model=\"$default_model\"" \
-  -c "model_catalog_json=\"$CODEX_HOME/models.json\"" \
-  -c 'web_search="disabled"' \
-  "$@"
-EOF
-
-chmod 755 "$HOME/.local/bin/sam-codex"
+unset SAM_WRAPPER_TMP
 ```
+
+이 파일이 모델 cache 형식, Codex 버전, 숨김 모델, 안전한 모델 ID를 검사합니다.
+갱신 실패 시 이전 cache 파일은 보존하지만 제거된 모델일 수 있어 Codex를
+실행하지 않습니다.
 
 ## 6. 터미널 명령 등록하기
 
-기존 마커가 없을 때만 명령을 추가합니다. 정상 블록이 이미 있으면 재사용하고,
-마커가 손상됐다면 아무것도 바꾸지 않습니다.
+아래 블록은 SAM 관리 마커가 없거나 정확히 한 쌍일 때만 변경합니다. 마커가
+손상됐거나 중복되면 `.zshrc`를 그대로 둡니다.
 
 ```bash
 touch "$HOME/.zshrc"
-SAM_START_COUNT="$(grep -Fxc "# >>> SAM-Codex managed >>>" "$HOME/.zshrc" || true)"
-SAM_END_COUNT="$(grep -Fxc "# <<< SAM-Codex managed <<<" "$HOME/.zshrc" || true)"
+SAM_START="# >>> SAM-Codex managed >>>"
+SAM_END="# <<< SAM-Codex managed <<<"
+SAM_START_COUNT="$(grep -Fxc "$SAM_START" "$HOME/.zshrc" || true)"
+SAM_END_COUNT="$(grep -Fxc "$SAM_END" "$HOME/.zshrc" || true)"
 
+SAM_BLOCK_OK=0
 if [[ "$SAM_START_COUNT" -eq 0 && "$SAM_END_COUNT" -eq 0 ]]; then
-  cat >> "$HOME/.zshrc" <<'EOF'
+  SAM_BLOCK_OK=1
+elif [[ "$SAM_START_COUNT" -eq 1 && "$SAM_END_COUNT" -eq 1 ]] &&
+  awk -v start="$SAM_START" -v end="$SAM_END" '
+    $0 == start {
+      if (seen_start || seen_end) exit 1
+      seen_start = 1
+    }
+    $0 == end {
+      if (!seen_start || seen_end) exit 1
+      seen_end = 1
+    }
+    END { if (!seen_start || !seen_end) exit 1 }
+  ' "$HOME/.zshrc"; then
+  SAM_BLOCK_OK=1
+fi
+
+if [[ "$SAM_BLOCK_OK" -eq 1 ]]; then
+  SAM_ZSHRC_TMP="$(mktemp "$HOME/.zshrc.sam-codex.XXXXXX")"
+  awk -v start="$SAM_START" -v end="$SAM_END" '
+    $0 == start { managed = 1; next }
+    $0 == end { managed = 0; next }
+    !managed { print }
+  ' "$HOME/.zshrc" > "$SAM_ZSHRC_TMP"
+  cat >> "$SAM_ZSHRC_TMP" <<'EOF'
 # >>> SAM-Codex managed >>>
 export PATH="$HOME/.local/bin:$PATH"
 sam-codex() {
@@ -185,109 +149,98 @@ sam-codex() {
 }
 # <<< SAM-Codex managed <<<
 EOF
-  source "$HOME/.zshrc"
-elif [[ "$SAM_START_COUNT" -eq 1 && "$SAM_END_COUNT" -eq 1 ]] &&
-  awk '
-    $0 == "# >>> SAM-Codex managed >>>" {
-      if (seen_start || seen_end) exit 1
-      seen_start = 1
-    }
-    $0 == "# <<< SAM-Codex managed <<<" {
-      if (!seen_start || seen_end) exit 1
-      seen_end = 1
-    }
-    END { if (!seen_start || !seen_end) exit 1 }
-  ' "$HOME/.zshrc"; then
-  echo "기존 SAM-Codex 관리 블록을 사용합니다."
+  mv "$SAM_ZSHRC_TMP" "$HOME/.zshrc"
   source "$HOME/.zshrc"
 else
-  echo "SAM-Codex 마커가 손상됐습니다. ~/.zshrc를 확인하세요."
+  echo "SAM-Codex 마커가 손상됐습니다. ~/.zshrc는 변경하지 않았습니다."
 fi
 
-unset SAM_START_COUNT SAM_END_COUNT
+unset SAM_START SAM_END SAM_START_COUNT SAM_END_COUNT SAM_BLOCK_OK SAM_ZSHRC_TMP
 ```
 
 ## 7. 연결 확인하기
 
+먼저 생성 비용이 없는 설정·discovery를 확인합니다.
+
 ```bash
 type sam-codex
+sam-codex --version
 sam-codex mcp list
 ```
 
-`sam-tools`가 `enabled`이면 MCP 연결이 정상입니다.
+- 화면 제목 `OpenAI Codex`: 정상
+- 모델: Agent 페이지에서 선택한 native 또는 인증된 호환 모델의 원래 alias
+- `sam-tools ... enabled`: SAM MCP 연결
+
+Codex 안에서 `/model`을 열면 Agent 페이지에서 선택한 V2-native 모델과 인증된
+호환 모델이 원래 이름으로 함께 표시되어야 합니다.
+
+실제 모델 호출은 사용량이 기록될 수 있습니다.
 
 ```bash
-cd "$HOME"
 sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral \
   "Reply with exactly: SAM-CODEX-OK"
 ```
 
-정상 출력:
+## 8. 공식 Codex 사용하기
 
-```text
-workdir: /Users/사용자이름/SAM-Codex
-model: azure.gpt-5.6-luna
-provider: sam
-```
-
-모델은 현재 권한에 따라 Terra 또는 Sol일 수도 있습니다.
-
-## 8. 공식 Codex로 돌아가기
-
-SAM-Codex를 종료한 뒤:
+SAM-Codex를 종료한 뒤 평소처럼 실행합니다.
 
 ```bash
 codex
 ```
 
-`codex`는 기존 `~/.codex`와 OpenAI/ChatGPT 로그인을 사용합니다.
+`codex`는 계속 기존 `~/.codex`와 OpenAI/ChatGPT 로그인을 사용합니다.
 
 ## 수동 해제
 
-아래 블록은 관리 마커가 시작·종료 각각 하나이고 순서도 정상일 때만
-실행됩니다. 이상이 있으면 아무 파일도 변경하지 않습니다.
+아래 블록은 정상 SAM 관리 블록과 관리된 wrapper만 제거합니다.
+`~/.codex-sam`은 휴지통으로 이동하고, 공식 Codex와 공용 `~/.sam/env` 키는
+보존합니다.
 
 ```bash
-SAM_START_COUNT="$(grep -Fxc "# >>> SAM-Codex managed >>>" "$HOME/.zshrc" || true)"
-SAM_END_COUNT="$(grep -Fxc "# <<< SAM-Codex managed <<<" "$HOME/.zshrc" || true)"
+SAM_START="# >>> SAM-Codex managed >>>"
+SAM_END="# <<< SAM-Codex managed <<<"
+SAM_START_COUNT="$(grep -Fxc "$SAM_START" "$HOME/.zshrc" || true)"
+SAM_END_COUNT="$(grep -Fxc "$SAM_END" "$HOME/.zshrc" || true)"
 
 if [[ "$SAM_START_COUNT" -eq 1 && "$SAM_END_COUNT" -eq 1 ]] &&
-  awk '
-    $0 == "# >>> SAM-Codex managed >>>" {
+  awk -v start="$SAM_START" -v end="$SAM_END" '
+    $0 == start {
       if (seen_start || seen_end) exit 1
       seen_start = 1
     }
-    $0 == "# <<< SAM-Codex managed <<<" {
+    $0 == end {
       if (!seen_start || seen_end) exit 1
       seen_end = 1
     }
     END { if (!seen_start || !seen_end) exit 1 }
   ' "$HOME/.zshrc"; then
-  SAM_TRASH="$HOME/.Trash/SAM-Codex-manual-$(date +%Y%m%d-%H%M%S)"
-  mkdir -p "$SAM_TRASH"
-
-  awk '
-    $0 == "# >>> SAM-Codex managed >>>" { managed = 1; next }
-    $0 == "# <<< SAM-Codex managed <<<" { managed = 0; next }
+  SAM_ZSHRC_TMP="$(mktemp "$HOME/.zshrc.sam-codex.XXXXXX")"
+  awk -v start="$SAM_START" -v end="$SAM_END" '
+    $0 == start { managed = 1; next }
+    $0 == end { managed = 0; next }
     !managed { print }
-  ' "$HOME/.zshrc" > "$HOME/.zshrc.sam-codex.tmp"
-  mv "$HOME/.zshrc.sam-codex.tmp" "$HOME/.zshrc"
+  ' "$HOME/.zshrc" > "$SAM_ZSHRC_TMP"
+  mv "$SAM_ZSHRC_TMP" "$HOME/.zshrc"
 
-  [[ ! -e "$HOME/.local/bin/sam-codex" ]] ||
-    mv "$HOME/.local/bin/sam-codex" "$SAM_TRASH/"
-  [[ ! -d "$HOME/.codex-sam" ]] ||
-    mv "$HOME/.codex-sam" "$SAM_TRASH/"
-  [[ ! -d "$HOME/SAM-Codex" ]] ||
-    mv "$HOME/SAM-Codex" "$SAM_TRASH/"
+  if [[ -f "$HOME/.local/bin/sam-codex" ]] &&
+    grep -Fq "SAM_CODEX_INSTALLER_MANAGED=1" \
+      "$HOME/.local/bin/sam-codex"; then
+    rm -f "$HOME/.local/bin/sam-codex"
+  fi
 
-  unfunction sam-codex 2>/dev/null || true
+  if [[ -d "$HOME/.codex-sam" ]]; then
+    SAM_TRASH="$HOME/.Trash/SAM-Codex-manual-$(date +%Y%m%d-%H%M%S)"
+    mkdir -p "$HOME/.Trash"
+    mv "$HOME/.codex-sam" "$SAM_TRASH"
+    echo "SAM-Codex 설정을 휴지통으로 이동했습니다: $SAM_TRASH"
+  fi
+
   source "$HOME/.zshrc"
-  echo "SAM-Codex 수동 해제 완료: $SAM_TRASH"
 else
-  echo "SAM-Codex 마커가 올바르지 않아 수동 해제를 중단했습니다."
+  echo "SAM-Codex 마커가 없거나 손상됐습니다. 아무것도 삭제하지 않았습니다."
 fi
 
-unset SAM_START_COUNT SAM_END_COUNT
+unset SAM_START SAM_END SAM_START_COUNT SAM_END_COUNT SAM_ZSHRC_TMP SAM_TRASH
 ```
-
-공용 `~/.sam/env` 키는 SAM-Claude가 사용할 수 있으므로 보존합니다.

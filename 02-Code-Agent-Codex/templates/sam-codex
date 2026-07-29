@@ -1,58 +1,271 @@
 #!/usr/bin/env bash
+# SAM_CODEX_INSTALLER_MANAGED=1
+set +x
 set -euo pipefail
 
 SAM_HOME="$HOME/.sam"
 CODEX_SAM_HOME="$HOME/.codex-sam"
 ENV_FILE="$SAM_HOME/env"
+DISCOVERY_URL="https://sam.soonsoon.ai/v2/codex/models"
+DEFAULT_WORKSPACE="$HOME/SAM-Codex"
 
-if [ ! -r "$ENV_FILE" ]; then
-  echo "Missing $ENV_FILE. Run install-macos.sh first." >&2
-  exit 1
-fi
-
-# shellcheck disable=SC1090,SC1091
-. "$ENV_FILE"
-
-if [ -z "${SAM_API_KEY:-}" ]; then
-  echo "SAM_API_KEY is not set in $ENV_FILE." >&2
-  exit 1
-fi
-
-export CODEX_HOME="$CODEX_SAM_HOME"
-
-# Codex treats ~/.codex/config.toml as a project layer when it is launched
-# from $HOME or another non-repository directory below $HOME. That user-level
-# OpenAI configuration could override SAM's isolated default model. Require a
-# real repository for home-directory projects so discovery stops at its root.
-if [[ "$PWD" == "$HOME" || "$PWD" == "$HOME/"* ]]; then
-  if ! git -C "$PWD" rev-parse --show-toplevel >/dev/null 2>&1; then
-    echo "Run sam-codex from a Git project directory, not $HOME." >&2
-    echo "Example: cd ~/Developer/my-project && sam-codex" >&2
-    exit 2
-  fi
-fi
-
-refresh_model_catalog() {
-  local catalog_tmp
-  mkdir -p "$CODEX_HOME"
-  umask 077
-  catalog_tmp="$(mktemp "$CODEX_HOME/.models.XXXXXX")" || return 0
-  if curl --fail --silent --show-error --max-time 10 \
-    -H "Authorization: Bearer $SAM_API_KEY" \
-    'https://sam.soonsoon.ai/v2/openai/models' > "$catalog_tmp" \
-    && grep -q '"models"' "$catalog_tmp"; then
-    mv "$catalog_tmp" "$CODEX_HOME/models.json"
-  else
-    rm -f "$catalog_tmp"
-  fi
+codex_client_version() {
+  local version_output
+  version_output="$(codex --version 2>/dev/null)" || return 1
+  [[ "$version_output" == "codex-cli 0.145.0" ]] || return 1
+  printf '%s\n' "0.145.0"
 }
 
-refresh_model_catalog
+catalog_is_verified() {
+  local catalog_path expected_version fetched_at etag actual_version
+  local model_count index slug visibility supported visible_count visible_slugs
+  local hidden_count hidden_slugs description comp_hash priority
+  catalog_path="$1"
+  expected_version="${2:-}"
+  [[ -s "$catalog_path" ]] || return 1
+  [[ "$(wc -c <"$catalog_path")" -le 1048576 ]] || return 1
 
-if [[ ! -s "$CODEX_HOME/models.json" ]]; then
-  echo "SAM model catalog could not be loaded; SAM Codex did not start." >&2
-  echo "Check SAM API-key access and retry. Your normal OpenAI Codex was not changed." >&2
+  fetched_at="$(
+    /usr/bin/plutil -extract fetched_at raw -expect string -o - \
+      "$catalog_path" 2>/dev/null
+  )" || return 1
+  etag="$(
+    /usr/bin/plutil -extract etag raw -expect string -o - \
+      "$catalog_path" 2>/dev/null
+  )" || return 1
+  actual_version="$(
+    /usr/bin/plutil -extract client_version raw -expect string -o - \
+      "$catalog_path" 2>/dev/null
+  )" || return 1
+  model_count="$(
+    /usr/bin/plutil -extract models raw -expect array -o - \
+      "$catalog_path" 2>/dev/null
+  )" || return 1
+
+  [[ "$fetched_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z$ ]] ||
+    return 1
+  [[ "$etag" == "sam-v2-unified-codex-catalog" ]] || return 1
+  [[ -n "$actual_version" ]] || return 1
+  if [[ -n "$expected_version" ]]; then
+    [[ "$actual_version" == "$expected_version" ]] || return 1
+  fi
+  [[ "$model_count" =~ ^[0-9]+$ ]] || return 1
+  ((model_count > 0 && model_count <= 256)) || return 1
+
+  index=0
+  visible_count=0
+  visible_slugs=""
+  hidden_count=0
+  hidden_slugs=""
+  while ((index < model_count)); do
+    slug="$(
+      /usr/bin/plutil -extract "models.$index.slug" raw -expect string -o - \
+        "$catalog_path" 2>/dev/null
+    )" || return 1
+    visibility="$(
+      /usr/bin/plutil -extract "models.$index.visibility" raw -expect string -o - \
+        "$catalog_path" 2>/dev/null
+    )" || return 1
+    supported="$(
+      /usr/bin/plutil -extract "models.$index.supported_in_api" raw -expect bool -o - \
+        "$catalog_path" 2>/dev/null
+    )" || return 1
+    case "$slug" in
+      gpt-5.6-sol | gpt-5.6-terra | gpt-5.6-luna | gpt-5.5 | gpt-5.4 | \
+        gpt-5.4-mini | gpt-5.2 | codex-auto-review)
+        [[ "$visibility" == "hide" && "$supported" == "false" ]] ||
+          return 1
+        case "
+$hidden_slugs
+" in
+          *"
+$slug
+"*) return 1 ;;
+        esac
+        hidden_slugs="${hidden_slugs}${hidden_slugs:+
+}$slug"
+        hidden_count=$((hidden_count + 1))
+        index=$((index + 1))
+        continue
+        ;;
+    esac
+
+    [[ "$visibility" == "list" && "$supported" == "true" ]] || return 1
+    ((${#slug} >= 1 && ${#slug} <= 128)) || return 1
+    [[ "$slug" =~ ^[a-z0-9]+([._-][a-z0-9]+)*$ ]] || return 1
+    case "$slug" in
+      azure.* | aws.*)
+        [[ "$slug" =~ ^(azure|aws)\.[a-z0-9]+([._-][a-z0-9]+)*$ ]] ||
+          return 1
+        ;;
+      *)
+        description="$(
+          /usr/bin/plutil -extract "models.$index.description" raw \
+            -expect string -o - "$catalog_path" 2>/dev/null
+        )" || return 1
+        comp_hash="$(
+          /usr/bin/plutil -extract "models.$index.comp_hash" raw \
+            -expect string -o - "$catalog_path" 2>/dev/null
+        )" || return 1
+        priority="$(
+          /usr/bin/plutil -extract "models.$index.priority" raw \
+            -expect integer -o - "$catalog_path" 2>/dev/null
+        )" || return 1
+        [[ "$description" == *"(not V2 provider-native)" ]] || return 1
+        [[ "$comp_hash" == "sam-compat-$slug" ]] || return 1
+        [[ "$priority" =~ ^[0-9]+$ && "$priority" -ge 100 ]] || return 1
+        ;;
+    esac
+    case "
+$visible_slugs
+" in
+      *"
+$slug
+"*) return 1 ;;
+    esac
+    visible_slugs="${visible_slugs}${visible_slugs:+
+}$slug"
+    visible_count=$((visible_count + 1))
+    index=$((index + 1))
+  done
+  ((hidden_count == 8 && visible_count > 0))
+}
+
+visible_sam_model() {
+  local catalog_path preferred model_count index slug visibility supported first
+  catalog_path="$1"
+  preferred="${2:-}"
+  model_count="$(
+    /usr/bin/plutil -extract models raw -expect array -o - \
+      "$catalog_path" 2>/dev/null
+  )" || return 1
+  index=0
+  first=""
+  while ((index < model_count)); do
+    slug="$(
+      /usr/bin/plutil -extract "models.$index.slug" raw -expect string -o - \
+        "$catalog_path" 2>/dev/null
+    )" || return 1
+    visibility="$(
+      /usr/bin/plutil -extract "models.$index.visibility" raw -expect string -o - \
+        "$catalog_path" 2>/dev/null
+    )" || return 1
+    supported="$(
+      /usr/bin/plutil -extract "models.$index.supported_in_api" raw -expect bool -o - \
+        "$catalog_path" 2>/dev/null
+    )" || return 1
+    if [[ "$visibility" == "list" && "$supported" == "true" ]]; then
+      [[ -n "$first" ]] || first="$slug"
+      if [[ -n "$preferred" && "$slug" == "$preferred" ]]; then
+        printf '%s\n' "$slug"
+        return 0
+      fi
+    fi
+    index=$((index + 1))
+  done
+  [[ -z "$preferred" ]] || return 1
+  [[ -n "$first" ]] || return 1
+  printf '%s\n' "$first"
+}
+
+[[ -r "$ENV_FILE" ]] || {
+  echo "Missing $ENV_FILE. Re-run the SAM-Codex installer." >&2
+  exit 1
+}
+
+# shellcheck disable=SC1090
+. "$ENV_FILE"
+set +x
+[[ -n "${SAM_API_KEY:-}" ]] || {
+  echo "SAM_API_KEY is missing from $ENV_FILE." >&2
+  exit 1
+}
+
+client_version="$(codex_client_version)" || client_version=""
+[[ -n "$client_version" ]] || {
+  echo "SAM-Codex currently requires Codex CLI 0.145.0 exactly." >&2
+  exit 1
+}
+
+for argument in "$@"; do
+  case "$argument" in
+    -c | --config | -m | --model | -p | --profile | --oss | \
+      --local-provider | --search | -c?* | -m?* | -p?* | \
+      --config=* | --model=* | --profile=* | --local-provider=*)
+      echo "SAM-Codex blocks model/provider/config override options. Use /model inside SAM-Codex." >&2
+      exit 2
+      ;;
+  esac
+done
+
+export CODEX_HOME="$CODEX_SAM_HOME"
+mkdir -p "$CODEX_HOME"
+umask 077
+
+catalog_tmp="$(mktemp "$CODEX_HOME/.models.XXXXXX")"
+if curl --fail --silent --show-error --max-time 15 \
+  --get \
+  --data-urlencode "client_version=$client_version" \
+  -H "Authorization: Bearer $SAM_API_KEY" \
+  -H "x-sam-codex-cache: 1" \
+  "$DISCOVERY_URL" >"$catalog_tmp" &&
+  catalog_is_verified "$catalog_tmp" "$client_version"; then
+  mv "$catalog_tmp" "$CODEX_HOME/models.json"
+  chmod 600 "$CODEX_HOME/models.json"
+else
+  rm -f "$catalog_tmp"
+  if catalog_is_verified "$CODEX_HOME/models.json"; then
+    echo "SAM model refresh failed. The verified cache was preserved, but SAM-Codex will not start." >&2
+  else
+    echo "SAM model discovery failed and no verified cache exists." >&2
+  fi
   exit 1
 fi
 
-exec codex -c "model_catalog_json=\"$CODEX_HOME/models.json\"" "$@"
+configured_model=""
+if [[ -r "$CODEX_HOME/config.toml" ]]; then
+  configured_model="$(
+    sed -n 's/^model = "\([^"]*\)"$/\1/p' \
+      "$CODEX_HOME/config.toml" | head -n 1
+  )"
+fi
+default_model=""
+if [[ -n "$configured_model" ]]; then
+  default_model="$(
+    visible_sam_model "$CODEX_HOME/models.json" "$configured_model"
+  )" || default_model=""
+fi
+if [[ -z "$default_model" ]]; then
+  default_model="$(
+    visible_sam_model \
+      "$CODEX_HOME/models.json" \
+      "azure.gpt-5.6-luna"
+  )" || default_model=""
+fi
+if [[ -z "$default_model" ]]; then
+  default_model="$(visible_sam_model "$CODEX_HOME/models.json")" ||
+    default_model=""
+fi
+[[ -n "$default_model" ]] || {
+  echo "The verified SAM catalog has no visible selected model." >&2
+  exit 1
+}
+
+if command -v git >/dev/null 2>&1 &&
+  git -C "$PWD" rev-parse --show-toplevel >/dev/null 2>&1; then
+  :
+elif [[ -e "$PWD/.sam-codex-root" ]]; then
+  :
+else
+  mkdir -p "$DEFAULT_WORKSPACE"
+  : >"$DEFAULT_WORKSPACE/.sam-codex-root"
+  cd "$DEFAULT_WORKSPACE"
+  echo "SAM-Codex workspace: $DEFAULT_WORKSPACE" >&2
+fi
+
+exec codex \
+  -c 'model_provider="sam"' \
+  -c "model=\"$default_model\"" \
+  -c "model_catalog_json=\"$CODEX_HOME/models.json\"" \
+  -c 'web_search="disabled"' \
+  "$@"

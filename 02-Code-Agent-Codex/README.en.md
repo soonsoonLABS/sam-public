@@ -16,11 +16,14 @@ does not change the existing OpenAI login, configuration, or sessions.
 ## A. Use only official Codex
 
 ```bash
-npm install -g @openai/codex@latest
+npm install -g @openai/codex@0.145.0
 codex --version
 codex login
 codex
 ```
+
+The current SAM model-catalog contract supports Codex `0.145.x`. A newer minor
+version is rejected until its bundled-model hide contract is verified.
 
 Run `codex logout` only when you intend to remove official authentication. It
 is not required when removing SAM-Codex.
@@ -28,9 +31,9 @@ is not required when removing SAM-Codex.
 ## B. Add `sam-codex` without changing official Codex
 
 First use [`../00-sam-setup/`](../00-sam-setup/README.en.md) to confirm that the
-shared `SAM_API_KEY` receives HTTP `200` from `/v2/openai/models`.
+shared `SAM_API_KEY` receives HTTP `200` from `/v2/codex/models`.
 
-### macOS / Linux
+### macOS
 
 ```bash
 chmod +x install-macos.sh uninstall-macos.sh
@@ -49,28 +52,32 @@ input and stores it in the same standard file.
 
 ## Installed files
 
-| Item | macOS / Linux | Windows |
+| Item | macOS | Windows |
 | --- | --- | --- |
 | Shared key | `~/.sam/env` | `%USERPROFILE%\.sam\env.ps1` |
 | SAM Codex home | `~/.codex-sam` | `%USERPROFILE%\.codex-sam` |
 | Wrapper | `~/.local/bin/sam-codex` | `%USERPROFILE%\bin\sam-codex.*` |
 
-The default model is `azure.gpt-5.6-luna`. Installation stops when current
-authenticated discovery does not admit that model.
+The installer keeps an existing configured model while it remains admitted.
+For a fresh setup it prefers `azure.gpt-5.6-luna` when selected, then falls back
+to the first Web-selected model returned by authenticated discovery.
+Installation stops when the unified selected catalog is empty or cannot be
+verified.
 
 ```toml
-model = "azure.gpt-5.6-luna"
+model = "<a selected native or certified compatibility alias>"
 model_provider = "sam"
 web_search = "disabled"
 
 [model_providers.sam]
-base_url = "https://sam.soonsoon.ai/v2/openai"
+base_url = "https://sam.soonsoon.ai/v2/codex"
 env_key = "SAM_API_KEY"
 wire_api = "responses"
 
 [mcp_servers.sam-tools]
 url = "https://sam.soonsoon.ai/mcp"
 bearer_token_env_var = "SAM_API_KEY"
+required = true
 ```
 
 Provider-hosted Codex search is disabled. Search, page reading, and usage tools
@@ -78,9 +85,9 @@ are provided through SAM-observed MCP instead.
 
 ## Launch and select a model
 
-Run SAM-Codex from a Git project. The wrapper blocks a non-project launch under
-the home directory so ordinary `~/.codex` settings cannot be interpreted as a
-project layer and override SAM isolation.
+Run SAM-Codex from a Git project. When launched from the home directory or
+another non-Git directory, the wrapper moves to the isolated `~/SAM-Codex`
+workspace so ordinary `~/.codex` settings cannot override SAM isolation.
 
 ```bash
 cd "$HOME/Developer/my-project"
@@ -96,9 +103,12 @@ git init
 sam-codex
 ```
 
-`/model` contains only SAM Responses models admitted for the current account
-and key by authenticated V2 discovery. The catalog is cached only under the
-SAM-specific home and contains no key.
+At every launch, the wrapper requests a client-versioned catalog. `/model`
+contains Web-selected native models plus selected, certified compatibility
+models under their original aliases. Compatibility rows are not V2-native;
+SAM classifies their aliases before execution. The catalog is cached only under
+the SAM-specific home and contains no key. A failed refresh preserves the prior
+file but stops the launch so a model removed on the Agent page cannot be reused.
 
 No-generation wrapper and discovery check:
 
@@ -131,9 +141,10 @@ sam-codex    # SAM environment
 powershell -ExecutionPolicy Bypass -File .\uninstall-windows.ps1
 ```
 
-The uninstaller removes only the wrapper and SAM Codex provider
-configuration. It leaves official `codex`, `~/.codex`, the shared SAM key,
-`sam-claude`, and existing SAM-Codex session data unchanged.
+Both uninstallers leave official `codex`, `~/.codex`, the shared SAM key, and
+`sam-claude` unchanged. On macOS, `~/.codex-sam` (including its sessions) is
+moved to Trash for recovery. On Windows, the provider configuration and wrapper
+are removed while other files under `.codex-sam` are preserved.
 
 After removing both SAM wrappers, use the shared-key removal step in
 [`../00-sam-setup/`](../00-sam-setup/README.en.md) if the key is no longer
@@ -143,13 +154,13 @@ needed.
 
 1. `codex --version`: official CLI installation
 2. `/readyz`: network and SAM readiness
-3. `/v2/openai/models`: key, grant, and admitted model
+3. `/v2/codex/models`: key, grant, and admitted native/compatibility model
 4. `sam-codex --version` in a Git project: isolated wrapper
 5. Minimal generation: V2 Responses and usage
 
-`MODEL_NOT_NATIVE_ON_SURFACE` means the selected alias is not admitted on the
-V2 OpenAI surface. Use `/model` or a provider-explicit alias from current
-discovery.
+`MODEL_NOT_NATIVE_ON_SURFACE`, `MODEL_NOT_SELECTED`, or
+`MODEL_NOT_CODEX_CERTIFIED` means the alias is not admitted on the unified
+SAM-Codex surface. Use `/model` or a selected alias from current discovery.
 
 ## Official references
 

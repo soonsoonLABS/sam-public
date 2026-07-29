@@ -8,14 +8,14 @@
 
 아래쪽 모델을 확인하세요.
 
-- `azure.gpt-5.6-luna`, `azure.gpt-5.6-terra`, `azure.gpt-5.6-sol`: SAM
-- `gpt-5.6-*`처럼 `azure.`가 없는 모델: 공식 설정이 섞였을 가능성
+- `provider: sam`: SAM
+- `gpt-5.6-*`처럼 `azure.`/`aws.`가 없는 모델: 공식 설정이 섞였을 가능성
 
 정상 SAM 실행은 전용 작업 폴더와 SAM 모델을 표시합니다.
 
 ```text
 directory: ~/SAM-Codex
-model: azure.gpt-5.6-luna
+model: Agent 페이지에서 선택한 모델의 원래 alias
 ```
 
 ## `sam-codex: command not found`
@@ -66,10 +66,18 @@ sam-tools  https://sam.soonsoon.ai/mcp  ...  enabled
 없다면 설치를 다시 실행하세요. `~/.codex-sam/config.toml`에 키 값 자체를
 적으면 안 됩니다.
 
-## `MODEL_NOT_NATIVE_ON_SURFACE`
+## 모델 선택 오류
 
-현재 SAM V2 OpenAI surface에서 허용되지 않은 모델을 선택한 것입니다.
-`/model`에서 현재 표시되는 `azure.*` 모델을 선택하세요.
+`MODEL_NOT_NATIVE_ON_SURFACE`, `MODEL_NOT_SELECTED`,
+`MODEL_NOT_CODEX_CERTIFIED`는 현재 SAM-Codex catalog에서 실행할 수 없는 alias를
+선택했다는 뜻입니다.
+`/model`에서 현재 표시되는 native 또는 인증된 호환 모델을 선택하세요.
+
+## `requires one exact Codex 0.145.x version line`
+
+현재 공개 설정은 Codex `0.145.x`의 내장 모델 목록만 검증했습니다. 임의로 검사를
+우회하지 말고, 빠른 시작의 지원 버전을 설치하거나 SAM 문서가 새 버전을 지원할
+때까지 기다리세요.
 
 ## OpenAI 페이지 읽기가 실패합니다
 

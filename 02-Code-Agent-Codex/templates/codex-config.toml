@@ -3,18 +3,21 @@
 
 model = "azure.gpt-5.6-luna"
 model_provider = "sam"
+model_catalog_json = "models_cache.json"
 service_tier = "default"
 
 # SAM MCP provides search, page reading, and account usage.
 # Provider-hosted Codex search is deliberately disabled.
 web_search = "disabled"
+project_root_markers = [".git", ".sam-codex-root"]
 
 [model_providers.sam]
 name = "SAM"
-base_url = "https://sam.soonsoon.ai/v2/openai"
+base_url = "https://sam.soonsoon.ai/v2/codex"
 env_key = "SAM_API_KEY"
 wire_api = "responses"
 
 [mcp_servers.sam-tools]
 url = "https://sam.soonsoon.ai/mcp"
 bearer_token_env_var = "SAM_API_KEY"
+required = true

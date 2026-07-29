@@ -18,9 +18,12 @@
 Codex가 없다면:
 
 ```bash
-npm install -g @openai/codex@latest
+npm install -g @openai/codex@0.145.0
 codex --version
 ```
+
+현재 SAM 전용 모델 카탈로그는 Codex `0.145.x`만 허용합니다. 그보다 새 버전은
+내장 모델이 다시 노출되지 않도록 SAM 계약이 갱신될 때까지 실행을 중단합니다.
 
 ## 1. 한 줄 설치
 
@@ -57,12 +60,14 @@ Git 프로젝트가 아닌 곳에서 실행하면 안전한 `~/SAM-Codex` 작업
 다음 두 항목을 확인하세요.
 
 ```text
-model: azure.gpt-5.6-luna
+model: Agent 페이지에서 선택한 모델의 원래 alias
 directory: ~/SAM-Codex
 ```
 
-모델은 권한에 따라 `azure.gpt-5.6-terra` 또는 `azure.gpt-5.6-sol`일 수도
-있습니다. **모델명이 `azure.*`이면 SAM 연결입니다.**
+정확한 모델은 Agent 페이지에서 선택한 목록과 계정 권한에 따라 달라집니다.
+**provider가 `sam`이면 SAM 연결입니다.** Codex 안에서 `/model`을 열면 현재
+Agent 페이지에서 선택한 V2-native 모델과 인증된 호환 모델이 원래 이름으로
+함께 표시됩니다.
 
 SAM 도구 확인:
 
