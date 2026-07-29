@@ -350,10 +350,11 @@ codex_client_version() {
 catalog_is_verified() {
   local catalog_path expected_version fetched_at etag actual_version
   local model_count index slug visibility supported visible_count visible_slugs
-  local hidden_count hidden_slugs
+  local hidden_count hidden_slugs description comp_hash priority
   catalog_path="$1"
   expected_version="${2:-}"
   [[ -s "$catalog_path" ]] || return 1
+  [[ "$(wc -c <"$catalog_path")" -le 1048576 ]] || return 1
 
   fetched_at="$(
     /usr/bin/plutil -extract fetched_at raw -expect string -o - \
@@ -380,7 +381,7 @@ catalog_is_verified() {
     [[ "$actual_version" == "$expected_version" ]] || return 1
   fi
   [[ "$model_count" =~ ^[0-9]+$ ]] || return 1
-  ((model_count > 0)) || return 1
+  ((model_count > 0 && model_count <= 256)) || return 1
 
   index=0
   visible_count=0
@@ -415,30 +416,44 @@ $slug
         hidden_slugs="${hidden_slugs}${hidden_slugs:+
 }$slug"
         hidden_count=$((hidden_count + 1))
+        index=$((index + 1))
+        continue
         ;;
     esac
 
-    if [[ "$visibility" == "list" ]]; then
-      [[ "$supported" == "true" ]] || return 1
-      case "$slug" in
-        [A-Za-z0-9]*)
-          case "$slug" in
-            *[!A-Za-z0-9._-]*) return 1 ;;
-          esac
-          ;;
-        *) return 1 ;;
-      esac
-      case "
+    [[ "$visibility" == "list" && "$supported" == "true" ]] || return 1
+    ((${#slug} >= 1 && ${#slug} <= 128)) || return 1
+    [[ "$slug" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || return 1
+    case "$slug" in
+      azure.* | aws.*) ;;
+      *)
+        description="$(
+          /usr/bin/plutil -extract "models.$index.description" raw \
+            -expect string -o - "$catalog_path" 2>/dev/null
+        )" || return 1
+        comp_hash="$(
+          /usr/bin/plutil -extract "models.$index.comp_hash" raw \
+            -expect string -o - "$catalog_path" 2>/dev/null
+        )" || return 1
+        priority="$(
+          /usr/bin/plutil -extract "models.$index.priority" raw \
+            -expect integer -o - "$catalog_path" 2>/dev/null
+        )" || return 1
+        [[ "$description" == *"(not V2 provider-native)" ]] || return 1
+        [[ "$comp_hash" == "sam-compat-$slug" ]] || return 1
+        [[ "$priority" =~ ^[0-9]+$ && "$priority" -ge 100 ]] || return 1
+        ;;
+    esac
+    case "
 $visible_slugs
 " in
-        *"
+      *"
 $slug
 "*) return 1 ;;
-      esac
-      visible_slugs="${visible_slugs}${visible_slugs:+
+    esac
+    visible_slugs="${visible_slugs}${visible_slugs:+
 }$slug"
-      visible_count=$((visible_count + 1))
-    fi
+    visible_count=$((visible_count + 1))
     index=$((index + 1))
   done
   ((hidden_count == 8 && visible_count > 0))
@@ -467,14 +482,6 @@ visible_sam_model() {
       /usr/bin/plutil -extract "models.$index.supported_in_api" raw -expect bool -o - \
         "$catalog_path" 2>/dev/null
     )" || return 1
-    case "$slug" in
-      [A-Za-z0-9]*)
-        case "$slug" in
-          *[!A-Za-z0-9._-]*) return 1 ;;
-        esac
-        ;;
-      *) return 1 ;;
-    esac
     if [[ "$visibility" == "list" && "$supported" == "true" ]]; then
       [[ -n "$first" ]] || first="$slug"
       if [[ -n "$preferred" && "$slug" == "$preferred" ]]; then

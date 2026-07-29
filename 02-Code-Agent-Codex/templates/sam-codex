@@ -12,8 +12,12 @@ DEFAULT_WORKSPACE="$HOME/SAM-Codex"
 codex_client_version() {
   local version_output
   version_output="$(codex --version 2>/dev/null)" || return 1
-  [[ "$version_output" == "codex-cli 0.145.0" ]] || return 1
-  printf '%s\n' "0.145.0"
+  [[ "$version_output" != *$'\n'* ]] || return 1
+  if [[ "$version_output" =~ ^codex-cli\ ([0-9]+\.[0-9]+\.[0-9]+([.+-][0-9A-Za-z.-]+)?)$ ]]; then
+    case "${BASH_REMATCH[1]}" in
+      0.145.*) printf '%s\n' "${BASH_REMATCH[1]}" ;;
+    esac
+  fi
 }
 
 catalog_is_verified() {
@@ -183,7 +187,7 @@ set +x
 
 client_version="$(codex_client_version)" || client_version=""
 [[ -n "$client_version" ]] || {
-  echo "SAM-Codex currently requires Codex CLI 0.145.0 exactly." >&2
+  echo "SAM-Codex currently requires one exact Codex 0.145.x version line." >&2
   exit 1
 }
 
