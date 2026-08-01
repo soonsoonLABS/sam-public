@@ -1,159 +1,165 @@
-# 3. Claude Code와 SAM-Claude 설정
+# SAM-Claude 빠른 시작
 
-**언어:** 한국어 | [English](README.en.md)
+공식 Anthropic `claude`는 그대로 두고, SAM 전용 `sam-claude`를 추가합니다.
 
-공식 `claude`와 SAM 전용 `sam-claude`를 동시에 유지하는 구성입니다.
-`sam-claude`는 별도 `CLAUDE_CONFIG_DIR`과 실행 프로세스 전용 gateway
-환경변수를 사용하므로 기존 Anthropic 로그인, 설정, 세션을 바꾸지 않습니다.
+**언어:** 한국어 | [English](./README.en.md)
 
-## 두 사용 방식
+| 실행 명령 | 연결 | 설정·세션 |
+| --- | --- | --- |
+| `claude` | Anthropic 직접 연결 | `~/.claude` |
+| `sam-claude` | SAM `/v2/claude` + SAM MCP | `~/.claude-sam` |
 
-| 구분 | 명령 | 설정 홈 | API·비용 |
-| --- | --- | --- | --- |
-| 공식 Claude Code | `claude` | `~/.claude` | Anthropic 직접 사용, SAM 외부 |
-| SAM-Claude | `sam-claude` | `~/.claude-sam` | SAM V2 Anthropic, SAM 사용량·비용 적용 |
+> 처음 설치한다면 아래 **1~3단계만** 진행하세요.
 
-두 명령을 같은 프로젝트 폴더에서 번갈아 실행할 수 있습니다.
+## 준비
 
-## A. 공식 Claude Code만 사용
+- SAM의 **Agent > Claude Code** 사용 권한과 SAM API Key
+- 공식 Claude Code `2.1.129` 이상
+- macOS: `curl`과 Python 3 또는 Node.js
+- Windows: PowerShell
 
-[Anthropic 공식 설치 안내](https://code.claude.com/docs/en/setup)를 따라 설치한
-뒤 실행합니다.
+Claude Code가 없다면
+[Anthropic 공식 설치 안내](https://code.claude.com/docs/en/setup)를 먼저
+따르세요. 설치 후 버전을 확인합니다.
 
 ```bash
 claude --version
-claude
 ```
 
-공식 Anthropic 인증을 해제하려는 경우에만 공식 Claude Code 세션에서
-`/logout`을 실행합니다. SAM-Claude를 제거하기 위해 공식 로그아웃을 할
-필요는 없습니다.
+## 1. 한 줄 설치
 
-## B. 공식 Claude Code를 유지하면서 `sam-claude` 추가
+어느 폴더에서 실행해도 됩니다.
 
-먼저 [`../00-sam-setup/`](../00-sam-setup/)에서 같은 `SAM_API_KEY`로
-`/v2/anthropic/v1/models`가 HTTP `200`인지 확인합니다.
-
-SAM-Claude는 Claude Code의 네 가지 선택 역할을 SAM 역할 alias에
-연결합니다.
-
-| Claude Code 선택 | SAM에 보내는 역할 alias | stable discovery backing ID |
-| --- | --- | --- |
-| Haiku | `claude-haiku` | `anthropic.claude-haiku-4-5` |
-| Sonnet | `claude-sonnet-5` | `anthropic.claude-sonnet-5` |
-| Sonnet 1M | `claude-sonnet-5` + `[1m]` 선택 | 위 Sonnet 중 1M 자격 후보 |
-| Opus | `claude-opus-5` | `anthropic.claude-opus-5` |
-
-설치 프로그램은 이 stable backing ID 세 개가 현재 인증된 discovery에 모두
-있는지 확인합니다. 클라이언트는 역할 alias를 보내고 SAM은 계정에 저장된
-역할별 후보로 연결합니다. backing ID가 없다면 낮은 버전으로 임의 변경하지
-않고 설치를 중단하므로 SAM 웹의 Claude Code 역할 매핑을 먼저 확인하세요.
-
-### macOS / Linux
+### macOS
 
 ```bash
-chmod +x install-macos.sh uninstall-macos.sh
-./install-macos.sh
+bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/install-macos.sh) && source "$HOME/.zshrc"
 ```
 
 ### Windows PowerShell
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
+& ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/install-windows.ps1')))
 ```
 
-이미 `~/.sam/env` 또는 `%USERPROFILE%\.sam\env.ps1`에 공용 키가
-있으면 `sam-codex`와 같은 키를 그대로 재사용합니다.
+`SAM API key:`가 나오면 키를 붙여 넣고 Enter를 누릅니다. 입력한 문자는
+화면에 표시되지 않습니다. 이미 공용 키 파일이 있으면 기존 키를 그대로
+재사용하며 다시 묻지 않습니다.
 
-## 설치 결과와 인증 경계
+- macOS: `~/.sam/env`
+- Windows: `%USERPROFILE%\.sam\env.ps1`
 
-```text
-~/.sam/env                    # macOS/Linux 공용 SAM 키
-~/.claude-sam/                # SAM 전용 Claude 설정·세션 홈
-~/.local/bin/sam-claude       # SAM 전용 명령
-```
+설치 프로그램은 모델 생성 없이 인증된 discovery와 역할 매핑을 검증합니다.
+둘이 일치하지 않으면 설치를 중단하고 기존 공식 Claude 환경은 변경하지 않습니다.
 
-Windows에서는 각각 `%USERPROFILE%\.sam\env.ps1`,
-`%USERPROFILE%\.claude-sam`, `%USERPROFILE%\bin\sam-claude.*`를 사용합니다.
-
-wrapper가 `sam-claude` 프로세스에만 다음 값을 넣습니다.
-
-```text
-ANTHROPIC_BASE_URL=https://sam.soonsoon.ai/v2/anthropic
-ANTHROPIC_AUTH_TOKEN=<공용 SAM_API_KEY를 런타임에 전달>
-ANTHROPIC_MODEL=claude-sonnet-5
-ANTHROPIC_DEFAULT_HAIKU_MODEL=claude-haiku
-ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-5
-ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-5
-ANTHROPIC_SMALL_FAST_MODEL=claude-haiku
-```
-
-키 값은 `settings.json`에 쓰지 않습니다. `ANTHROPIC_API_KEY`와
-`CLAUDE_CODE_OAUTH_TOKEN`은 SAM 프로세스에서 제거해 공식 Anthropic 인증이
-섞이지 않게 합니다.
-
-## 사용과 모델 선택
-
-```text
-claude        # 공식 Anthropic 환경
-sam-claude    # SAM 환경, 기본 Sonnet
-```
-
-SAM-Claude 안에서 `/model`을 열거나 실행할 때 모델을 지정합니다.
+## 2. 실행
 
 ```bash
-sam-claude --model haiku
-sam-claude --model sonnet
-sam-claude --model 'sonnet[1m]'
-sam-claude --model opus
+sam-claude
 ```
 
-`sonnet[1m]`은 SAM의 Sonnet 1M 역할에 연결된 후보가 실제로 1M context
-자격을 가진 경우에만 성공합니다.
+화면은 공식 Claude Code와 같습니다. `sam-claude`도 공식 Claude Code를
+사용하되 설정 홈, 인증, 연결 주소만 SAM 전용으로 격리하기 때문입니다.
 
-설치는 discovery만 호출하므로 모델 사용량이 없습니다. 실제 호출을
-확인하려면 아래 최소 테스트를 한 번 실행합니다. 이 호출부터 SAM 사용량이
-기록될 수 있습니다.
+## 3. 정상 연결 확인
+
+Claude Code 안에서 `/model`을 실행합니다.
+
+```text
+/model
+```
+
+다음 항목을 확인하세요.
+
+- SAM 웹에서 선택한 **Haiku / Sonnet / Opus** 모델이 표시됨
+- 선택한 Sonnet의 context가 1,000,000 이상일 때만 `sonnet[1m]` 사용 가능
+- 별도로 선택한 인증 호환 모델이 있다면 discovery가 반환한
+  `claude-sam-*` ID로 표시됨
+
+호환 모델 ID는 직접 만들거나 추측하지 마세요. `/model`에 실제로 반환된 ID만
+사용합니다.
+
+SAM MCP 확인:
+
+```bash
+sam-claude mcp list
+```
+
+`sam-tools`와 `https://sam.soonsoon.ai/mcp`가 표시되면 SAM 검색·페이지 읽기
+도구가 연결된 것입니다.
+
+실제 모델 호출 확인:
 
 ```bash
 sam-claude -p --model sonnet "Reply with exactly: SAM-CLAUDE-OK"
 ```
 
-## `sam-claude`만 해제
+설치와 discovery는 생성 호출이 아닙니다. 위 테스트와 실제 대화부터 SAM
+사용량과 비용이 기록될 수 있습니다.
 
-### macOS / Linux
+## 평소 사용
 
 ```bash
-./uninstall-macos.sh
+claude       # 기존 Anthropic 환경
+sam-claude   # SAM 환경
+```
+
+두 명령의 로그인, 설정, 세션은 서로 분리됩니다. 설치 프로그램은 공식
+`~/.claude`, 공식 로그인, 프로젝트 설정을 수정하지 않습니다.
+
+`sam-claude`는 시작할 때마다 다음 두 정보를 다시 확인합니다.
+
+1. 통합 SAM-Claude 모델 목록: `/v2/claude/v1/models`
+2. 계정에 저장된 Claude 역할 매핑: Haiku / Sonnet / Opus
+
+두 결과가 정확히 일치해야 Claude Code를 실행합니다. 네트워크나 검증이
+실패하면 이전 cache는 보존하지만 오래된 모델로 실행하지는 않습니다.
+
+## 삭제
+
+기본 삭제는 `sam-claude` 명령과 관리된 셸 설정만 제거합니다. 공식
+`claude`, 공용 SAM 키, `sam-codex`, 기존 `~/.claude-sam` 세션과 MCP 설정은
+보존합니다.
+
+### macOS
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/uninstall-macos.sh) && source "$HOME/.zshrc"
+```
+
+SAM-Claude 세션과 격리 설정도 휴지통으로 옮기려면:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/uninstall-macos.sh) --purge-data && source "$HOME/.zshrc"
 ```
 
 ### Windows PowerShell
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\uninstall-windows.ps1
+& ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/uninstall-windows.ps1')))
 ```
 
-해제 프로그램은 `sam-claude` wrapper만 제거합니다. 공식 `claude`,
-`~/.claude`, 공용 SAM 키, `sam-codex`는 건드리지 않습니다. 기존 SAM-Claude
-세션은 `~/.claude-sam`에 보존합니다.
+Windows 격리 데이터도 백업 폴더로 옮기려면:
 
-두 SAM wrapper를 모두 해제한 뒤 공용 키까지 삭제하려면
-[`../00-sam-setup/`](../00-sam-setup/)의 공용 키 삭제 단계를 실행합니다.
+```powershell
+& ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/uninstall-windows.ps1'))) -PurgeData
+```
 
-## 문제 진단 순서
+공용 SAM 키는 SAM-Codex도 사용할 수 있으므로 이 삭제 과정에서는 제거하지
+않습니다.
 
-1. `claude --version`: 공식 CLI 설치 여부
-2. `/readyz`: 네트워크·SAM readiness
-3. `/v2/anthropic/v1/models`: 키·권한·세 stable backing ID
-4. `sam-claude --model sonnet`: 격리 실행과 모델 선택
-5. 최소 print 호출: provider-native Messages와 사용량
+## 다른 설치 방법
 
-`401 AUTH_INVALID`이면 키 문제입니다. discovery가 `200`이지만 역할 model이
-없으면 키 초기화로 단정하지 말고 SAM 역할 매핑과 catalog admission을
-확인하세요.
+- 설치 파일을 먼저 확인하려면
+  [install-macos.sh](./install-macos.sh) 또는
+  [install-windows.ps1](./install-windows.ps1)을 내려받아 실행하세요.
+- 설치 프로그램 없이 직접 구성하려면
+  [완전 수동 설정](./MANUAL_SETUP.md)을 따라 하세요.
 
-## 공식 근거
+## 문제가 생겼다면
 
-- [Claude Code environment variables](https://code.claude.com/docs/en/env-vars)
-- [Claude Code model configuration](https://code.claude.com/docs/en/model-config)
-- [Claude Code gateway configuration](https://code.claude.com/docs/en/llm-gateway)
+`command not found`, 버전, 키, 모델 매핑, `sonnet[1m]`, MCP 문제는
+[문제 해결](./TROUBLESHOOTING.md)에서 증상별로 확인하세요.
+
+격리, discovery, 역할 매핑, cache 보안 원리는
+[동작 방식](./HOW_IT_WORKS.md)에 정리되어 있습니다.

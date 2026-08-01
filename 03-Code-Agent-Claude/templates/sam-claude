@@ -1,0 +1,356 @@
+#!/usr/bin/env bash
+# SAM_CLAUDE_INSTALLER_MANAGED=1
+set +x
+set -euo pipefail
+
+SAM_HOME="$HOME/.sam"
+CLAUDE_SAM_HOME="$HOME/.claude-sam"
+ENV_FILE="$SAM_HOME/env"
+STATE_PATH="$CLAUDE_SAM_HOME/runtime-state.json"
+if [ "${SAM_CLAUDE_PREFLIGHT_ONLY:-0}" = "1" ] &&
+  [ -n "${SAM_CLAUDE_STATE_PATH:-}" ]; then
+  STATE_PATH="$SAM_CLAUDE_STATE_PATH"
+fi
+DISCOVERY_URL="https://sam.soonsoon.ai/v2/claude/v1/models"
+PROFILES_URL="https://sam.soonsoon.ai/v1/models/code-agent-profiles?agent=claude_code&protocol_surface=anthropic_messages"
+
+fail() {
+  printf 'SAM-Claude start failed: %s\n' "$1" >&2
+  exit 1
+}
+
+claude_client_version() {
+  local output major minor patch
+  output="$(claude --version 2>/dev/null)" || return 1
+  [[ "$output" != *$'\n'* ]] || return 1
+  if [[ "$output" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)\ \(Claude\ Code\)$ ]]; then
+    major="${BASH_REMATCH[1]}"
+    minor="${BASH_REMATCH[2]}"
+    patch="${BASH_REMATCH[3]}"
+    if [ "$major" -gt 2 ] ||
+      { [ "$major" -eq 2 ] && [ "$minor" -gt 1 ]; } ||
+      { [ "$major" -eq 2 ] && [ "$minor" -eq 1 ] && [ "$patch" -ge 129 ]; }; then
+      printf '%s.%s.%s\n' "$major" "$minor" "$patch"
+    fi
+  fi
+}
+
+fetch_authenticated_json() {
+  local url output_path token
+  url="$1"
+  output_path="$2"
+  token="$3"
+  curl --fail --silent --show-error --max-time 20 \
+    --config - "$url" >"$output_path" <<EOF
+header = "Authorization: Bearer $token"
+EOF
+}
+
+build_verified_state_python() {
+  python3 - "$1" "$2" "$3" <<'PY'
+import datetime
+import json
+import re
+import sys
+
+catalog_path, profiles_path, state_path = sys.argv[1:]
+safe_id = re.compile(r"^(?:claude|anthropic)[A-Za-z0-9._-]*$")
+
+with open(catalog_path, encoding="utf-8") as handle:
+    catalog = json.load(handle)
+with open(profiles_path, encoding="utf-8") as handle:
+    profiles_payload = json.load(handle)
+
+if not isinstance(catalog, dict) or catalog.get("has_more") is not False:
+    raise SystemExit("invalid catalog envelope")
+items = catalog.get("data")
+if not isinstance(items, list) or not items:
+    raise SystemExit("empty catalog")
+
+catalog_ids = []
+for item in items:
+    if not isinstance(item, dict):
+        raise SystemExit("invalid catalog item")
+    model_id = item.get("id")
+    if (
+        not isinstance(model_id, str)
+        or not safe_id.fullmatch(model_id)
+        or item.get("type") != "model"
+        or not isinstance(item.get("display_name"), str)
+        or not isinstance(item.get("created_at"), str)
+    ):
+        raise SystemExit("invalid catalog model")
+    catalog_ids.append(model_id)
+if len(catalog_ids) != len(set(catalog_ids)):
+    raise SystemExit("duplicate catalog model")
+if catalog.get("first_id") != catalog_ids[0] or catalog.get("last_id") != catalog_ids[-1]:
+    raise SystemExit("catalog bounds mismatch")
+
+if not isinstance(profiles_payload, dict) or profiles_payload.get("ok") is not True:
+    raise SystemExit("invalid profiles envelope")
+profiles = profiles_payload.get("profiles")
+if not isinstance(profiles, list):
+    raise SystemExit("invalid profiles")
+
+required_roles = {"haiku", "sonnet", "opus"}
+role_models = {}
+for profile in profiles:
+    if not isinstance(profile, dict):
+        raise SystemExit("invalid profile item")
+    if (
+        profile.get("agent") != "claude_code"
+        or profile.get("protocol_surface") != "anthropic_messages"
+    ):
+        raise SystemExit("unexpected profile surface")
+    role = profile.get("claude_role")
+    if role == "sonnet_1m":
+        continue
+    if role not in required_roles or role in role_models:
+        raise SystemExit("unexpected or duplicate Claude role")
+    selected = profile.get("selected_backing_model")
+    if not isinstance(selected, dict):
+        raise SystemExit("missing selected backing model")
+    alias = selected.get("alias")
+    context = selected.get("max_context_tokens")
+    if (
+        not isinstance(alias, str)
+        or not safe_id.fullmatch(alias)
+        or isinstance(context, bool)
+        or not isinstance(context, int)
+        or context <= 0
+        or alias not in catalog_ids
+    ):
+        raise SystemExit("invalid selected backing model")
+    role_models[role] = {"alias": alias, "max_context_tokens": context}
+
+if set(role_models) != required_roles:
+    raise SystemExit("missing Claude role")
+aliases = [role_models[role]["alias"] for role in ("haiku", "sonnet", "opus")]
+if len(aliases) != len(set(aliases)):
+    raise SystemExit("duplicate Claude role mapping")
+if any(
+    model_id not in aliases and not model_id.startswith("claude-sam-")
+    for model_id in catalog_ids
+):
+    raise SystemExit("uncertified compatibility model ID")
+
+state = {
+    "schema_version": 1,
+    "verified_at": datetime.datetime.now(
+        datetime.timezone.utc
+    ).isoformat(timespec="seconds").replace("+00:00", "Z"),
+    "catalog": items,
+    "roles": role_models,
+    "sonnet_1m": role_models["sonnet"]["max_context_tokens"] >= 1_000_000,
+}
+with open(state_path, "w", encoding="utf-8", newline="\n") as handle:
+    json.dump(state, handle, ensure_ascii=True, indent=2, sort_keys=True)
+    handle.write("\n")
+
+print(
+    "\t".join(
+        [
+            role_models["haiku"]["alias"],
+            role_models["sonnet"]["alias"],
+            role_models["opus"]["alias"],
+            "yes" if state["sonnet_1m"] else "no",
+        ]
+    )
+)
+PY
+}
+
+build_verified_state_node() {
+  node - "$1" "$2" "$3" <<'JS'
+const fs = require("fs");
+const [catalogPath, profilesPath, statePath] = process.argv.slice(2);
+const safeId = /^(?:claude|anthropic)[A-Za-z0-9._-]*$/;
+const fail = message => { throw new Error(message); };
+
+const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
+const profilesPayload = JSON.parse(fs.readFileSync(profilesPath, "utf8"));
+if (!catalog || typeof catalog !== "object" || catalog.has_more !== false) {
+  fail("invalid catalog envelope");
+}
+const items = catalog.data;
+if (!Array.isArray(items) || items.length === 0) fail("empty catalog");
+const catalogIds = [];
+for (const item of items) {
+  if (
+    !item || typeof item !== "object" ||
+    typeof item.id !== "string" || !safeId.test(item.id) ||
+    item.type !== "model" ||
+    typeof item.display_name !== "string" ||
+    typeof item.created_at !== "string"
+  ) fail("invalid catalog model");
+  catalogIds.push(item.id);
+}
+if (new Set(catalogIds).size !== catalogIds.length) fail("duplicate catalog model");
+if (catalog.first_id !== catalogIds[0] ||
+    catalog.last_id !== catalogIds[catalogIds.length - 1]) {
+  fail("catalog bounds mismatch");
+}
+
+if (!profilesPayload || typeof profilesPayload !== "object" ||
+    profilesPayload.ok !== true || !Array.isArray(profilesPayload.profiles)) {
+  fail("invalid profiles envelope");
+}
+const requiredRoles = new Set(["haiku", "sonnet", "opus"]);
+const roleModels = {};
+for (const profile of profilesPayload.profiles) {
+  if (!profile || typeof profile !== "object" ||
+      profile.agent !== "claude_code" ||
+      profile.protocol_surface !== "anthropic_messages") {
+    fail("unexpected profile surface");
+  }
+  const role = profile.claude_role;
+  if (role === "sonnet_1m") continue;
+  if (!requiredRoles.has(role) ||
+      Object.prototype.hasOwnProperty.call(roleModels, role)) {
+    fail("unexpected or duplicate Claude role");
+  }
+  const selected = profile.selected_backing_model;
+  if (!selected || typeof selected !== "object" ||
+      typeof selected.alias !== "string" || !safeId.test(selected.alias) ||
+      !Number.isInteger(selected.max_context_tokens) ||
+      selected.max_context_tokens <= 0 ||
+      !catalogIds.includes(selected.alias)) {
+    fail("invalid selected backing model");
+  }
+  roleModels[role] = {
+    alias: selected.alias,
+    max_context_tokens: selected.max_context_tokens,
+  };
+}
+if (Object.keys(roleModels).length !== 3 ||
+    [...requiredRoles].some(
+      role => !Object.prototype.hasOwnProperty.call(roleModels, role)
+    )) {
+  fail("missing Claude role");
+}
+const aliases = ["haiku", "sonnet", "opus"].map(role => roleModels[role].alias);
+if (new Set(aliases).size !== aliases.length) fail("duplicate Claude role mapping");
+if (catalogIds.some(
+  modelId => !aliases.includes(modelId) && !modelId.startsWith("claude-sam-")
+)) {
+  fail("uncertified compatibility model ID");
+}
+const sonnet1m = roleModels.sonnet.max_context_tokens >= 1000000;
+const state = {
+  schema_version: 1,
+  verified_at: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
+  catalog: items,
+  roles: roleModels,
+  sonnet_1m: sonnet1m,
+};
+fs.writeFileSync(statePath, JSON.stringify(state, null, 2) + "\n", {
+  encoding: "utf8",
+  mode: 0o600,
+});
+process.stdout.write([
+  roleModels.haiku.alias,
+  roleModels.sonnet.alias,
+  roleModels.opus.alias,
+  sonnet1m ? "yes" : "no",
+].join("\t") + "\n");
+JS
+}
+
+build_verified_state() {
+  if command -v python3 >/dev/null 2>&1; then
+    build_verified_state_python "$@"
+  elif command -v node >/dev/null 2>&1; then
+    build_verified_state_node "$@"
+  else
+    return 1
+  fi
+}
+
+refresh_runtime_state() {
+  local token state_dir catalog_tmp profiles_tmp state_tmp mapping
+  token="$1"
+  state_dir="$(dirname "$STATE_PATH")"
+  [ ! -L "$CLAUDE_SAM_HOME" ] || return 1
+  [ ! -L "$state_dir" ] || return 1
+  [ ! -L "$STATE_PATH" ] || return 1
+  [ ! -e "$state_dir" ] || [ -d "$state_dir" ] || return 1
+  [ ! -e "$STATE_PATH" ] || [ -f "$STATE_PATH" ] || return 1
+  mkdir -p "$state_dir"
+  catalog_tmp="$(mktemp "$state_dir/.catalog.XXXXXX")"
+  profiles_tmp="$(mktemp "$state_dir/.profiles.XXXXXX")"
+  state_tmp="$(mktemp "$state_dir/.state.XXXXXX")"
+
+  if fetch_authenticated_json "$DISCOVERY_URL" "$catalog_tmp" "$token" &&
+    fetch_authenticated_json "$PROFILES_URL" "$profiles_tmp" "$token" &&
+    mapping="$(build_verified_state "$catalog_tmp" "$profiles_tmp" "$state_tmp")" &&
+    [ -n "$mapping" ]; then
+    :
+  else
+    rm -f "$catalog_tmp" "$profiles_tmp" "$state_tmp"
+    return 1
+  fi
+
+  chmod 600 "$state_tmp"
+  mv "$state_tmp" "$STATE_PATH"
+  state_tmp=""
+  rm -f "$catalog_tmp" "$profiles_tmp"
+  printf '%s\n' "$mapping"
+}
+
+command -v claude >/dev/null 2>&1 ||
+  fail "Official Claude Code is not on PATH."
+command -v curl >/dev/null 2>&1 || fail "curl is required."
+if ! command -v python3 >/dev/null 2>&1 &&
+  ! command -v node >/dev/null 2>&1; then
+  fail "Python 3 or Node.js is required to validate SAM discovery."
+fi
+
+client_version="$(claude_client_version)" || client_version=""
+[ -n "$client_version" ] ||
+  fail "Claude Code 2.1.129 or newer is required."
+
+if [ -r "$ENV_FILE" ]; then
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +x
+fi
+[ -n "${SAM_API_KEY:-}" ] || fail "SAM_API_KEY is missing from $ENV_FILE."
+export SAM_API_KEY
+
+umask 077
+mapping="$(
+  refresh_runtime_state "$SAM_API_KEY"
+)" || {
+  if [ -s "$STATE_PATH" ]; then
+    fail "Runtime discovery failed. The previous verified cache was preserved, but Claude was not started."
+  fi
+  fail "Runtime discovery failed and no verified cache exists."
+}
+
+IFS=$'\t' read -r haiku_model sonnet_model opus_model sonnet_1m <<EOF
+$mapping
+EOF
+[ -n "$haiku_model" ] && [ -n "$sonnet_model" ] && [ -n "$opus_model" ] ||
+  fail "Verified role mapping is incomplete."
+
+if [ "${SAM_CLAUDE_PREFLIGHT_ONLY:-0}" = "1" ]; then
+  printf 'SAM-Claude preflight OK: Claude Code %s, Sonnet 1M %s\n' \
+    "$client_version" "$sonnet_1m"
+  exit 0
+fi
+
+unset ANTHROPIC_API_KEY CLAUDE_CODE_OAUTH_TOKEN
+unset CLAUDE_CODE_USE_BEDROCK CLAUDE_CODE_USE_VERTEX CLAUDE_CODE_USE_FOUNDRY
+
+export CLAUDE_CONFIG_DIR="$CLAUDE_SAM_HOME"
+export ANTHROPIC_BASE_URL="https://sam.soonsoon.ai/v2/claude"
+export ANTHROPIC_AUTH_TOKEN="$SAM_API_KEY"
+export ANTHROPIC_MODEL="$sonnet_model"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$haiku_model"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$sonnet_model"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$opus_model"
+export ANTHROPIC_SMALL_FAST_MODEL="$haiku_model"
+export CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1
+
+mkdir -p "$CLAUDE_CONFIG_DIR"
+exec claude "$@"

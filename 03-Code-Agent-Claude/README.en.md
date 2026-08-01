@@ -1,160 +1,167 @@
-# 3. Configure Claude Code and SAM-Claude
+# SAM-Claude Quick Start
 
-**Language:** [한국어](README.md) | English
+Keep the official Anthropic `claude` command and add an isolated
+`sam-claude` command.
 
-This setup keeps the official `claude` command and adds an isolated
-`sam-claude` command. `sam-claude` uses a separate `CLAUDE_CONFIG_DIR` and
-process-only gateway variables, so it does not change the existing Anthropic
-login, configuration, or sessions.
+**Language:** [한국어](./README.md) | English
 
-## Two modes
+| Command | Connection | Configuration and sessions |
+| --- | --- | --- |
+| `claude` | Direct Anthropic | `~/.claude` |
+| `sam-claude` | SAM `/v2/claude` + SAM MCP | `~/.claude-sam` |
 
-| Mode | Command | Configuration home | API and billing |
-| --- | --- | --- | --- |
-| Official Claude Code | `claude` | `~/.claude` | Direct Anthropic; outside SAM |
-| SAM-Claude | `sam-claude` | `~/.claude-sam` | SAM V2 Anthropic; SAM usage and cost |
+> For a first installation, complete only **steps 1–3** below.
 
-You can run either command from the same project directory.
+## Requirements
 
-## A. Use only official Claude Code
+- SAM **Agent > Claude Code** access and a SAM API Key
+- Official Claude Code `2.1.129` or newer
+- macOS: `curl` and either Python 3 or Node.js
+- Windows: PowerShell
 
-Follow the [official Anthropic setup guide](https://code.claude.com/docs/en/setup),
-then run:
+If Claude Code is not installed, follow the
+[official Anthropic setup guide](https://code.claude.com/docs/en/setup) first.
+Then check the version:
 
 ```bash
 claude --version
-claude
 ```
 
-Use `/logout` inside an official Claude Code session only when you intend to
-remove the official Anthropic authentication. It is not required when removing
-SAM-Claude.
+## 1. One-line installation
 
-## B. Add `sam-claude` without changing official Claude Code
+You can run the command from any directory.
 
-First use [`../00-sam-setup/`](../00-sam-setup/README.en.md) to confirm that the same
-`SAM_API_KEY` receives HTTP `200` from `/v2/anthropic/v1/models`.
-
-SAM-Claude maps the four Claude Code choices to SAM role aliases:
-
-| Claude Code choice | SAM role alias | Stable discovery backing ID |
-| --- | --- | --- |
-| Haiku | `claude-haiku` | `anthropic.claude-haiku-4-5` |
-| Sonnet | `claude-sonnet-5` | `anthropic.claude-sonnet-5` |
-| Sonnet 1M | `claude-sonnet-5` with `[1m]` selection | The eligible 1M Sonnet candidate |
-| Opus | `claude-opus-5` | `anthropic.claude-opus-5` |
-
-The installer requires all three stable backing IDs to appear in current
-authenticated discovery. The client sends the role alias and SAM resolves it
-to the account's saved candidate. The installer stops instead of silently
-downgrading versions. Check the Claude Code role mappings in SAM when a backing
-ID is missing.
-
-### macOS / Linux
+### macOS
 
 ```bash
-chmod +x install-macos.sh uninstall-macos.sh
-./install-macos.sh
+bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/install-macos.sh) && source "$HOME/.zshrc"
 ```
 
 ### Windows PowerShell
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
+& ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/install-windows.ps1')))
 ```
 
-An existing key in `~/.sam/env` or
-`%USERPROFILE%\.sam\env.ps1` is reused, so both wrappers use the same
-SAM key.
+When prompted for `SAM API key:`, paste the key and press Enter. The input is
+not displayed. An existing shared key file is reused without another prompt:
 
-## Installed files and authentication boundary
+- macOS: `~/.sam/env`
+- Windows: `%USERPROFILE%\.sam\env.ps1`
 
-```text
-~/.sam/env                    # shared SAM key on macOS/Linux
-~/.claude-sam/                # isolated SAM Claude configuration and sessions
-~/.local/bin/sam-claude       # SAM-only command
-```
+The installer verifies authenticated discovery and the saved role mappings
+without generating model output. If they do not match, installation stops and
+the official Claude environment remains unchanged.
 
-Windows uses `%USERPROFILE%\.sam\env.ps1`,
-`%USERPROFILE%\.claude-sam`, and `%USERPROFILE%\bin\sam-claude.*`.
-
-The wrapper sets these values only in the `sam-claude` process:
-
-```text
-ANTHROPIC_BASE_URL=https://sam.soonsoon.ai/v2/anthropic
-ANTHROPIC_AUTH_TOKEN=<shared SAM_API_KEY passed at runtime>
-ANTHROPIC_MODEL=claude-sonnet-5
-ANTHROPIC_DEFAULT_HAIKU_MODEL=claude-haiku
-ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-5
-ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-5
-ANTHROPIC_SMALL_FAST_MODEL=claude-haiku
-```
-
-The key is never written to `settings.json`. The wrapper removes
-`ANTHROPIC_API_KEY` and `CLAUDE_CODE_OAUTH_TOKEN` from the SAM process so
-official Anthropic authentication cannot override the SAM token.
-
-## Use and select a model
-
-```text
-claude        # official Anthropic environment
-sam-claude    # SAM environment, Sonnet by default
-```
-
-Open `/model` in SAM-Claude or choose at launch:
+## 2. Start
 
 ```bash
-sam-claude --model haiku
-sam-claude --model sonnet
-sam-claude --model 'sonnet[1m]'
-sam-claude --model opus
+sam-claude
 ```
 
-`sonnet[1m]` succeeds only when the candidate mapped to the SAM Sonnet 1M role
-is actually eligible for a 1M context window.
+The interface is the normal Claude Code interface. `sam-claude` uses the
+official Claude Code client with an isolated configuration home,
+authentication, and SAM gateway.
 
-Installation uses discovery only and creates no model usage. Run one minimal
-generation only when you intend to create SAM usage:
+## 3. Verify the connection
+
+Run `/model` inside Claude Code:
+
+```text
+/model
+```
+
+Confirm the following:
+
+- The **Haiku / Sonnet / Opus** models selected in SAM Web are shown.
+- `sonnet[1m]` is available only when the selected Sonnet has a context window
+  of at least 1,000,000 tokens.
+- Any separately selected certified compatibility model is shown only by the
+  exact `claude-sam-*` ID returned by discovery.
+
+Never construct or guess a compatibility model ID. Use only an ID displayed by
+`/model`.
+
+Check SAM MCP:
+
+```bash
+sam-claude mcp list
+```
+
+If `sam-tools` and `https://sam.soonsoon.ai/mcp` appear, SAM search and page
+reading tools are connected.
+
+Run one real model request only when intended:
 
 ```bash
 sam-claude -p --model sonnet "Reply with exactly: SAM-CLAUDE-OK"
 ```
 
-## Remove only `sam-claude`
+Installation and discovery are not generation calls. The command above and
+normal conversations can create SAM usage and cost.
 
-### macOS / Linux
+## Everyday use
 
 ```bash
-./uninstall-macos.sh
+claude       # existing Anthropic environment
+sam-claude   # SAM environment
+```
+
+Their logins, settings, and sessions are isolated. The installer does not
+modify official `~/.claude`, the official login, or project settings.
+
+At every start, `sam-claude` checks both:
+
+1. Unified SAM-Claude inventory: `/v2/claude/v1/models`
+2. The account's saved Claude role mappings: Haiku / Sonnet / Opus
+
+Claude Code starts only when the results match exactly. A network or validation
+failure preserves the previous cache but never launches with stale models.
+
+## Remove
+
+The default removal deletes the managed `sam-claude` command and shell setup.
+It preserves official `claude`, the shared SAM key, `sam-codex`, and existing
+sessions and MCP settings in `~/.claude-sam`.
+
+### macOS
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/uninstall-macos.sh) && source "$HOME/.zshrc"
+```
+
+To also move isolated SAM-Claude sessions and settings to Trash:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/uninstall-macos.sh) --purge-data && source "$HOME/.zshrc"
 ```
 
 ### Windows PowerShell
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\uninstall-windows.ps1
+& ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/uninstall-windows.ps1')))
 ```
 
-The uninstaller removes only the wrapper. It leaves official `claude`,
-`~/.claude`, the shared SAM key, `sam-codex`, and existing SAM-Claude sessions
-unchanged.
+To also move isolated data to a backup directory:
 
-After removing both SAM wrappers, use the shared-key removal step in
-[`../00-sam-setup/`](../00-sam-setup/README.en.md) if the key is no longer needed.
+```powershell
+& ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/uninstall-windows.ps1'))) -PurgeData
+```
 
-## Diagnostic order
+The shared SAM key is preserved because SAM-Codex can use the same key.
 
-1. `claude --version`: official CLI installation
-2. `/readyz`: network and SAM readiness
-3. `/v2/anthropic/v1/models`: key, grant, and the three stable backing IDs
-4. `sam-claude --model sonnet`: isolated launch and model selection
-5. Minimal print call: provider-native Messages and usage
+## Other installation paths
 
-`401 AUTH_INVALID` is a key failure. If discovery returns `200` but a role model
-is absent, do not assume key reset; inspect the SAM role mapping and catalog
-admission.
+- To inspect the files first, download
+  [install-macos.sh](./install-macos.sh) or
+  [install-windows.ps1](./install-windows.ps1).
+- To configure every component yourself, follow
+  [Manual setup](./MANUAL_SETUP.md).
 
-## Official references
+## If something fails
 
-- [Claude Code environment variables](https://code.claude.com/docs/en/env-vars)
-- [Claude Code model configuration](https://code.claude.com/docs/en/model-config)
-- [Claude Code gateway configuration](https://code.claude.com/docs/en/llm-gateway)
+See [Troubleshooting](./TROUBLESHOOTING.md) for command, version, key, role
+mapping, `sonnet[1m]`, and MCP errors.
+
+See [How it works](./HOW_IT_WORKS.md) for isolation, discovery, role mapping,
+cache, and security boundaries.
