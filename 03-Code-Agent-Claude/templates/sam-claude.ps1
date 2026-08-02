@@ -16,6 +16,9 @@ else {
 }
 $DiscoveryUrl = "https://sam.soonsoon.ai/v2/claude/v1/models"
 $ProfilesUrl = "https://sam.soonsoon.ai/v1/models/code-agent-profiles?agent=claude_code&protocol_surface=anthropic_messages"
+$GatewayBaseUrl = "https://sam.soonsoon.ai/v2/claude"
+$GatewayCache = Join-Path $ClaudeSamHome "cache/gateway-models.json"
+$GatewayCacheBackupDirectory = Join-Path $ClaudeSamHome "cache-backups"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
 function Get-ClaudeClientVersion {
@@ -172,6 +175,74 @@ function Get-VerifiedRuntimeState {
     }
 }
 
+function Move-StaleGatewayModelCache {
+    $cacheDirectory = Split-Path -Parent $GatewayCache
+    foreach ($path in @(
+        $ClaudeSamHome,
+        $cacheDirectory,
+        $GatewayCache,
+        $GatewayCacheBackupDirectory
+    )) {
+        if (Test-Path -LiteralPath $path) {
+            $item = Get-Item -Force -LiteralPath $path
+            if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+                throw "The isolated gateway model cache path is a link or reparse point."
+            }
+        }
+    }
+    if (
+        (Test-Path -LiteralPath $cacheDirectory) -and
+        -not (Get-Item -Force -LiteralPath $cacheDirectory).PSIsContainer
+    ) {
+        throw "The isolated gateway model cache parent is not a directory."
+    }
+    if (-not (Test-Path -LiteralPath $GatewayCache)) {
+        return
+    }
+    if ((Get-Item -Force -LiteralPath $GatewayCache).PSIsContainer) {
+        throw "The isolated gateway model cache is not a regular file."
+    }
+    if (
+        (Test-Path -LiteralPath $GatewayCacheBackupDirectory) -and
+        -not (Get-Item -Force -LiteralPath $GatewayCacheBackupDirectory).PSIsContainer
+    ) {
+        throw "The isolated gateway model cache backup path is not a directory."
+    }
+
+    try {
+        $payload = Get-Content -Raw -LiteralPath $GatewayCache |
+            ConvertFrom-Json -ErrorAction Stop
+    }
+    catch {
+        throw "The isolated gateway model cache is malformed. It was not changed."
+    }
+    $baseUrlProperty = $payload.PSObject.Properties["baseUrl"]
+    if (
+        $null -eq $baseUrlProperty -or
+        [string]::IsNullOrWhiteSpace([string]$baseUrlProperty.Value)
+    ) {
+        throw "The isolated gateway model cache is malformed. It was not changed."
+    }
+    if ([string]$baseUrlProperty.Value -ceq $GatewayBaseUrl) {
+        return
+    }
+
+    New-Item -ItemType Directory -Force -Path $GatewayCacheBackupDirectory |
+        Out-Null
+    $backupName = "gateway-models.{0}.{1}.json" -f `
+        [DateTimeOffset]::UtcNow.ToString("yyyyMMddTHHmmssZ"),
+        [guid]::NewGuid().ToString("N")
+    $backupPath = Join-Path $GatewayCacheBackupDirectory $backupName
+    if (Test-Path -LiteralPath $backupPath) {
+        throw "The isolated gateway model cache backup target already exists."
+    }
+    Move-Item -LiteralPath $GatewayCache -Destination $backupPath
+    Write-Warning (
+        "SAM-Claude moved an outdated isolated model cache to {0}" -f
+        $backupPath
+    )
+}
+
 if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
     throw "Official Claude Code is not on PATH."
 }
@@ -242,6 +313,8 @@ if ($env:SAM_CLAUDE_PREFLIGHT_ONLY -eq "1") {
     )
     exit 0
 }
+
+Move-StaleGatewayModelCache
 
 Remove-Item Env:ANTHROPIC_API_KEY -ErrorAction SilentlyContinue
 Remove-Item Env:CLAUDE_CODE_OAUTH_TOKEN -ErrorAction SilentlyContinue

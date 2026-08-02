@@ -13,6 +13,9 @@ if [ "${SAM_CLAUDE_PREFLIGHT_ONLY:-0}" = "1" ] &&
 fi
 DISCOVERY_URL="https://sam.soonsoon.ai/v2/claude/v1/models"
 PROFILES_URL="https://sam.soonsoon.ai/v1/models/code-agent-profiles?agent=claude_code&protocol_surface=anthropic_messages"
+GATEWAY_BASE_URL="https://sam.soonsoon.ai/v2/claude"
+GATEWAY_CACHE="$CLAUDE_SAM_HOME/cache/gateway-models.json"
+GATEWAY_CACHE_BACKUP_DIR="$CLAUDE_SAM_HOME/cache-backups"
 
 fail() {
   printf 'SAM-Claude start failed: %s\n' "$1" >&2
@@ -266,6 +269,97 @@ build_verified_state() {
   fi
 }
 
+gateway_cache_status_python() {
+  python3 - "$GATEWAY_CACHE" "$GATEWAY_BASE_URL" <<'PY'
+import json
+import os
+import sys
+
+path, expected_base_url = sys.argv[1:]
+if not os.path.exists(path):
+    print("absent")
+    raise SystemExit
+try:
+    with open(path, encoding="utf-8") as handle:
+        payload = json.load(handle)
+except Exception as exc:
+    raise SystemExit("invalid gateway cache JSON") from exc
+if not isinstance(payload, dict):
+    raise SystemExit("invalid gateway cache envelope")
+base_url = payload.get("baseUrl")
+if not isinstance(base_url, str) or not base_url:
+    raise SystemExit("missing gateway cache baseUrl")
+print("current" if base_url == expected_base_url else "stale")
+PY
+}
+
+gateway_cache_status_node() {
+  node - "$GATEWAY_CACHE" "$GATEWAY_BASE_URL" <<'JS'
+const fs = require("fs");
+const [path, expectedBaseUrl] = process.argv.slice(2);
+if (!fs.existsSync(path)) {
+  process.stdout.write("absent\n");
+  process.exit(0);
+}
+const payload = JSON.parse(fs.readFileSync(path, "utf8"));
+if (!payload || typeof payload !== "object" || Array.isArray(payload) ||
+    typeof payload.baseUrl !== "string" || payload.baseUrl.length === 0) {
+  throw new Error("invalid gateway cache envelope");
+}
+process.stdout.write(payload.baseUrl === expectedBaseUrl ? "current\n" : "stale\n");
+JS
+}
+
+gateway_cache_status() {
+  if command -v python3 >/dev/null 2>&1; then
+    gateway_cache_status_python
+  elif command -v node >/dev/null 2>&1; then
+    gateway_cache_status_node
+  else
+    return 1
+  fi
+}
+
+migrate_stale_gateway_cache() {
+  local cache_dir status backup_path timestamp
+  cache_dir="$(dirname "$GATEWAY_CACHE")"
+  for path in \
+    "$CLAUDE_SAM_HOME" \
+    "$cache_dir" \
+    "$GATEWAY_CACHE" \
+    "$GATEWAY_CACHE_BACKUP_DIR"
+  do
+    [ ! -L "$path" ] ||
+      fail "The isolated gateway model cache path is a link. It was not changed."
+  done
+  [ ! -e "$cache_dir" ] || [ -d "$cache_dir" ] ||
+    fail "The isolated gateway model cache parent is not a directory."
+  [ ! -e "$GATEWAY_CACHE" ] || [ -f "$GATEWAY_CACHE" ] ||
+    fail "The isolated gateway model cache is not a regular file."
+  [ ! -e "$GATEWAY_CACHE_BACKUP_DIR" ] ||
+    [ -d "$GATEWAY_CACHE_BACKUP_DIR" ] ||
+    fail "The isolated gateway model cache backup path is not a directory."
+
+  status="$(gateway_cache_status)" ||
+    fail "The isolated gateway model cache is malformed. It was not changed."
+  case "$status" in
+    absent | current) return 0 ;;
+    stale) ;;
+    *) fail "The isolated gateway model cache could not be classified." ;;
+  esac
+
+  mkdir -p "$GATEWAY_CACHE_BACKUP_DIR"
+  chmod 700 "$GATEWAY_CACHE_BACKUP_DIR"
+  timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
+  backup_path="$GATEWAY_CACHE_BACKUP_DIR/gateway-models.$timestamp.$$.json"
+  [ ! -e "$backup_path" ] && [ ! -L "$backup_path" ] ||
+    fail "The isolated gateway model cache backup target already exists."
+  mv "$GATEWAY_CACHE" "$backup_path"
+  chmod 600 "$backup_path"
+  printf 'SAM-Claude moved an outdated isolated model cache to %s\n' \
+    "$backup_path" >&2
+}
+
 refresh_runtime_state() {
   local token state_dir catalog_tmp profiles_tmp state_tmp mapping
   token="$1"
@@ -338,6 +432,8 @@ if [ "${SAM_CLAUDE_PREFLIGHT_ONLY:-0}" = "1" ]; then
     "$client_version" "$sonnet_1m"
   exit 0
 fi
+
+migrate_stale_gateway_cache
 
 unset ANTHROPIC_API_KEY CLAUDE_CODE_OAUTH_TOKEN
 unset CLAUDE_CODE_USE_BEDROCK CLAUDE_CODE_USE_VERTEX CLAUDE_CODE_USE_FOUNDRY

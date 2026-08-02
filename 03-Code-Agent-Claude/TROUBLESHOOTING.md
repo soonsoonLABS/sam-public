@@ -104,6 +104,11 @@ wrapper는 실행할 때마다 `/v2/claude/v1/models`와 저장된 profile을 �
 대조합니다. 문서에 있던 과거 모델 ID를 설정 파일에 직접 적거나 낮은 버전으로
 임의 대체하지 마세요.
 
+이전 SAM Anthropic gateway 연결에서 만들어진 격리 모델 cache가 남아 있으면
+최신 wrapper는 첫 실행 때 그 파일만 `~/.claude-sam/cache-backups/`로 옮깁니다.
+현재 `/v2/claude` cache, 세션, MCP, 공식 `~/.claude`는 변경하지 않습니다.
+cache가 손상됐거나 링크라면 임의 삭제하지 않고 실행을 중단합니다.
+
 ## `sonnet[1m]`을 사용할 수 없습니다
 
 정상일 수 있습니다. `sonnet[1m]`은 별도 모델 매핑이 아니라 현재 선택된

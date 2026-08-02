@@ -33,6 +33,11 @@ for required in (
     "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY",
     'ANTHROPIC_BASE_URL = "https://sam.soonsoon.ai/v2/claude"',
     "Runtime discovery failed. The previous verified cache was preserved",
+    "Move-StaleGatewayModelCache",
+    'Join-Path $ClaudeSamHome "cache/gateway-models.json"',
+    '"https://sam.soonsoon.ai/v2/claude"',
+    "cache-backups",
+    "The isolated gateway model cache is malformed. It was not changed.",
     "SAM_CLAUDE_PREFLIGHT_ONLY",
     '$env:SAM_CLAUDE_PREFLIGHT_ONLY -eq "1" -and',
 ):

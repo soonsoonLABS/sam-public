@@ -11,7 +11,7 @@ $Runner = Join-Path $BinDir "sam-claude.ps1"
 $CmdRunner = Join-Path $BinDir "sam-claude.cmd"
 $StateFile = Join-Path $ClaudeSamHome "runtime-state.json"
 $WrapperUrl = "https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/templates/sam-claude.ps1"
-$WrapperSha256 = "a122ce9fe501313e9421d21ad20464c0a637f8f4bb3e15b59643855bc8e3cb2f"
+$WrapperSha256 = "7f0e36f875d459f8728055938291fcc8fd134897d87538d87dddd644bfe8abbd"
 $McpUrl = "https://sam.soonsoon.ai/mcp"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 

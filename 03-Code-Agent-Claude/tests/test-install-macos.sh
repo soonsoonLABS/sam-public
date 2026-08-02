@@ -171,6 +171,17 @@ printf 'official-settings\n' >"$HOME/.claude/official.txt"
 printf '{"official":true}\n' >"$HOME/.claude.json"
 printf 'official-sam-codex\n' >"$HOME/.local/bin/sam-codex"
 printf '{"userSetting":"preserve"}\n' >"$HOME/.claude-sam/settings.json"
+mkdir -p "$HOME/.claude-sam/cache"
+cat >"$HOME/.claude-sam/cache/gateway-models.json" <<'EOF'
+{
+  "baseUrl": "https://sam.soonsoon.ai/v2/anthropic",
+  "models": ["anthropic.claude-opus-4-8"],
+  "testMarker": "preserve-stale-backup"
+}
+EOF
+stale_gateway_cache_before="$(
+  shasum "$HOME/.claude-sam/cache/gateway-models.json" | awk '{print $1}'
+)"
 cat >"$HOME/.claude-sam/.claude.json" <<'EOF'
 {
   "mcpServers": {
@@ -207,6 +218,8 @@ fi
 test -x "$HOME/.local/bin/sam-claude"
 cmp -s "$WRAPPER_SOURCE" "$HOME/.local/bin/sam-claude"
 test -s "$HOME/.claude-sam/runtime-state.json"
+test -s "$HOME/.claude-sam/cache/gateway-models.json"
+test ! -e "$HOME/.claude-sam/cache-backups"
 grep -Fq '"claude-sam-fw-kimi-k3"' \
   "$HOME/.claude-sam/runtime-state.json"
 grep -Fq '"sonnet_1m": true' "$HOME/.claude-sam/runtime-state.json"
@@ -266,6 +279,75 @@ done
 if printf '%s' "$run_output" | grep -Fq 'legacy-function'; then
   exit 1
 fi
+test ! -e "$HOME/.claude-sam/cache/gateway-models.json"
+test -d "$HOME/.claude-sam/cache-backups"
+test "$(
+  find "$HOME/.claude-sam/cache-backups" -maxdepth 1 -type f \
+    -name 'gateway-models.*.json' | wc -l | tr -d ' '
+)" -eq 1
+stale_gateway_backup="$(
+  find "$HOME/.claude-sam/cache-backups" -maxdepth 1 -type f \
+    -name 'gateway-models.*.json'
+)"
+test "$(shasum "$stale_gateway_backup" | awk '{print $1}')" = \
+  "$stale_gateway_cache_before"
+
+cat >"$HOME/.claude-sam/cache/gateway-models.json" <<'EOF'
+{
+  "baseUrl": "https://sam.soonsoon.ai/v2/claude",
+  "models": ["claude-sonnet-5"],
+  "testMarker": "preserve-current-cache"
+}
+EOF
+current_gateway_cache_before="$(
+  shasum "$HOME/.claude-sam/cache/gateway-models.json"
+)"
+"$HOME/.local/bin/sam-claude" --model sonnet >/dev/null
+test "$(shasum "$HOME/.claude-sam/cache/gateway-models.json")" = \
+  "$current_gateway_cache_before"
+test "$(
+  find "$HOME/.claude-sam/cache-backups" -maxdepth 1 -type f \
+    -name 'gateway-models.*.json' | wc -l | tr -d ' '
+)" -eq 1
+
+printf '{malformed\n' >"$HOME/.claude-sam/cache/gateway-models.json"
+malformed_cache_before="$(
+  shasum "$HOME/.claude-sam/cache/gateway-models.json"
+)"
+claude_runs_before_malformed="$(grep -Fc RUN "$CLAUDE_LOG")"
+if "$HOME/.local/bin/sam-claude" --model sonnet \
+  >"$TEST_ROOT/cache-malformed.stdout" \
+  2>"$TEST_ROOT/cache-malformed.stderr"; then
+  printf 'Expected malformed gateway cache to fail closed.\n' >&2
+  exit 1
+fi
+grep -Fq 'gateway model cache is malformed' \
+  "$TEST_ROOT/cache-malformed.stderr"
+test "$(shasum "$HOME/.claude-sam/cache/gateway-models.json")" = \
+  "$malformed_cache_before"
+test "$(grep -Fc RUN "$CLAUDE_LOG")" = "$claude_runs_before_malformed"
+
+cat >"$HOME/.claude-sam/cache/gateway-models.json" <<'EOF'
+{"baseUrl":"https://sam.soonsoon.ai/v2/claude","testMarker":"restore"}
+EOF
+mv "$HOME/.claude-sam/cache/gateway-models.json" \
+  "$HOME/.claude-sam/cache/gateway-models.current.json"
+ln -s "$HOME/.claude/official.txt" \
+  "$HOME/.claude-sam/cache/gateway-models.json"
+claude_runs_before_symlink="$(grep -Fc RUN "$CLAUDE_LOG")"
+if "$HOME/.local/bin/sam-claude" --model sonnet \
+  >"$TEST_ROOT/cache-symlink.stdout" \
+  2>"$TEST_ROOT/cache-symlink.stderr"; then
+  printf 'Expected linked gateway cache to fail closed.\n' >&2
+  exit 1
+fi
+grep -Fq 'gateway model cache path is a link' \
+  "$TEST_ROOT/cache-symlink.stderr"
+test "$(shasum "$HOME/.claude/official.txt")" = "$official_claude_before"
+test "$(grep -Fc RUN "$CLAUDE_LOG")" = "$claude_runs_before_symlink"
+unlink "$HOME/.claude-sam/cache/gateway-models.json"
+mv "$HOME/.claude-sam/cache/gateway-models.current.json" \
+  "$HOME/.claude-sam/cache/gateway-models.json"
 
 ignored_state="$TEST_ROOT/normal-run-state-override-must-be-ignored.json"
 SAM_CLAUDE_STATE_PATH="$ignored_state" \
