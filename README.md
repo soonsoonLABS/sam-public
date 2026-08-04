@@ -14,7 +14,9 @@ SAM(SoonSoon AI Management)을 로컬 CLI에서 안전하게 사용하는 공개
    분리된 `sam-codex`를 설치합니다.
 3. [`03-Code-Agent-Claude/`](03-Code-Agent-Claude/)에서 기존 `claude`와
    분리된 `sam-claude`를 설치합니다.
-4. 필요 없어진 전용 명령을 개별 해제하고, 마지막에만 공용 키 파일을
+4. 필요하면 [`04-AionUI-Add-on/`](04-AionUI-Add-on/)에서 두 wrapper를 AionUI
+   앱의 코딩 에이전트로 등록합니다.
+5. 필요 없어진 전용 명령을 개별 해제하고, 마지막에만 공용 키 파일을
    삭제합니다.
 
 ## 명령과 설정의 분리
@@ -38,6 +40,8 @@ SAM 키의 표준 로컬 위치는 `~/.sam/`입니다. `sam-codex`와 `sam-claud
   `sam-codex` 설치·검증·해제
 - [`03-Code-Agent-Claude/`](03-Code-Agent-Claude/): 공식 Claude Code와
   `sam-claude` 설치·검증·해제
+- [`04-AionUI-Add-on/`](04-AionUI-Add-on/): 설치한 두 wrapper를 AionUI 앱의
+  코딩 에이전트로 등록 (선택)
 
 ## 보안과 비용
 
