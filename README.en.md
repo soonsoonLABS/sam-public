@@ -14,7 +14,9 @@ and add separate SAM-only commands**.
    `sam-codex` alongside the existing `codex` command.
 3. Use [`03-Code-Agent-Claude/`](03-Code-Agent-Claude/README.en.md) to add
    `sam-claude` alongside the existing `claude` command.
-4. Remove either wrapper independently. Delete the shared key file only after
+4. Optionally use [`04-AionUI-Add-on/`](04-AionUI-Add-on/README.en.md) to
+   register both wrappers as coding agents in the AionUI app.
+5. Remove either wrapper independently. Delete the shared key file only after
    both wrappers are no longer needed.
 
 ## Command and configuration isolation
@@ -40,6 +42,8 @@ wrapper keeps working.
   versus `sam-codex`, including installation, verification, and removal
 - [`03-Code-Agent-Claude/`](03-Code-Agent-Claude/README.en.md): official Claude
   Code versus `sam-claude`, including installation, verification, and removal
+- [`04-AionUI-Add-on/`](04-AionUI-Add-on/README.en.md): register both installed
+  wrappers as coding agents in the AionUI desktop app (optional)
 
 ## Security and cost
 
