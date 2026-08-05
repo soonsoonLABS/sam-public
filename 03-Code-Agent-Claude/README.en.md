@@ -43,6 +43,9 @@ bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main
 & ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/install-windows.ps1')))
 ```
 
+For the complete Windows installation, manual setup, and verification sequence,
+see [Windows setup](./WINDOWS_SETUP.en.md).
+
 When prompted for `SAM API key:`, paste the key and press Enter. The input is
 not displayed. An existing shared key file is reused without another prompt:
 
@@ -94,6 +97,12 @@ reading tools are connected.
 Run one real model request only when intended:
 
 ```bash
+sam-claude -p --model sonnet "Reply with exactly: SAM-CLAUDE-OK"
+```
+
+Windows PowerShell:
+
+```powershell
 sam-claude -p --model sonnet "Reply with exactly: SAM-CLAUDE-OK"
 ```
 
@@ -157,6 +166,8 @@ The shared SAM key is preserved because SAM-Codex can use the same key.
   [install-windows.ps1](./install-windows.ps1).
 - To configure every component yourself, follow
   [Manual setup](./MANUAL_SETUP.md).
+- For Windows installation, manual setup, and verification, follow
+  [Windows setup](./WINDOWS_SETUP.en.md).
 
 ## If something fails
 

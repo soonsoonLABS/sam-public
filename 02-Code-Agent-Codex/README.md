@@ -1,4 +1,4 @@
-# SAM-Codex 빠른 시작 — macOS
+# SAM-Codex 빠른 시작 — macOS / Windows
 
 공식 OpenAI `codex`는 그대로 두고, SAM 전용 `sam-codex`를 추가합니다.
 
@@ -11,13 +11,21 @@
 
 ## 준비
 
-- macOS 기본 터미널 또는 iTerm
+- macOS 기본 터미널/iTerm 또는 Windows PowerShell
 - [SAM API Keys](https://sam.soonsoon.ai/api-keys)에서 발급한 Code Agent 권한 키
 - 공식 Codex CLI
 
 Codex가 없다면:
 
 ```bash
+npm install -g @openai/codex@0.146.0
+codex --version
+```
+
+Windows PowerShell에서는 먼저 실행 정책을 설정하고 같은 명령을 실행합니다.
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 npm install -g @openai/codex@0.146.0
 codex --version
 ```
@@ -31,6 +39,15 @@ codex --version
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/02-Code-Agent-Codex/install-macos.sh) && source "$HOME/.zshrc"
+```
+
+### Windows PowerShell
+
+Windows 설치·수동 설정·검증은 [Windows 설치 가이드](./WINDOWS_SETUP.md)를
+따르세요. 설치 파일이 있는 폴더에서 다음을 실행합니다.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install-windows.ps1
 ```
 
 `SAM API key:`가 나오면 발급받은 키를 붙여 넣고 Enter를 누릅니다. 입력한
@@ -48,6 +65,8 @@ SAM Codex: sam-codex
 ```bash
 sam-codex
 ```
+
+Windows PowerShell에서는 새 창을 연 뒤 같은 `sam-codex` 명령을 실행합니다.
 
 Git 프로젝트가 아닌 곳에서 실행하면 안전한 `~/SAM-Codex` 작업 폴더로
 자동 이동합니다.
@@ -84,6 +103,13 @@ sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral \
   "Reply with exactly: SAM-CODEX-OK"
 ```
 
+Windows PowerShell:
+
+```powershell
+sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral `
+  "Reply with exactly: SAM-CODEX-OK"
+```
+
 이 호출부터 SAM 사용량이 기록될 수 있습니다.
 
 ## 평소 사용
@@ -101,6 +127,12 @@ sam-codex   # SAM 환경
 bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/02-Code-Agent-Codex/uninstall-macos.sh) && source "$HOME/.zshrc"
 ```
 
+Windows PowerShell:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall-windows.ps1
+```
+
 SAM-Codex 파일은 휴지통으로 이동합니다. 공식 `codex`, `~/.codex`, 공용
 `~/.sam/env` 키는 보존합니다.
 
@@ -110,6 +142,8 @@ SAM-Codex 파일은 휴지통으로 이동합니다. 공식 `codex`, `~/.codex`,
   [install-macos.sh](./install-macos.sh)를 내려받아 실행하세요.
 - 설치 프로그램 없이 직접 구성하려면
   [완전 수동 설정](./MANUAL_SETUP.md)을 따라 하세요.
+- Windows에서 설치 파일 없이 구성하려면
+  [Windows 설치 가이드](./WINDOWS_SETUP.md)의 수동 설정 절을 따르세요.
 
 ## 문제가 생겼다면
 

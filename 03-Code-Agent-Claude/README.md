@@ -42,6 +42,9 @@ bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main
 & ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/soonsoonLABS/sam-public/main/03-Code-Agent-Claude/install-windows.ps1')))
 ```
 
+설치 파일을 쓰지 않는 수동 설정과 Windows 전용 검증 순서는
+[Windows 설치 가이드](./WINDOWS_SETUP.md)를 따르세요.
+
 `SAM API key:`가 나오면 키를 붙여 넣고 Enter를 누릅니다. 입력한 문자는
 화면에 표시되지 않습니다. 이미 공용 키 파일이 있으면 기존 키를 그대로
 재사용하며 다시 묻지 않습니다.
@@ -57,6 +60,8 @@ bash <(curl -fsSL https://raw.githubusercontent.com/soonsoonLABS/sam-public/main
 ```bash
 sam-claude
 ```
+
+Windows PowerShell에서도 새 창을 연 뒤 `sam-claude`를 실행합니다.
 
 화면은 공식 Claude Code와 같습니다. `sam-claude`도 공식 Claude Code를
 사용하되 설정 홈, 인증, 연결 주소만 SAM 전용으로 격리하기 때문입니다.
@@ -91,6 +96,12 @@ sam-claude mcp list
 실제 모델 호출 확인:
 
 ```bash
+sam-claude -p --model sonnet "Reply with exactly: SAM-CLAUDE-OK"
+```
+
+Windows PowerShell:
+
+```powershell
 sam-claude -p --model sonnet "Reply with exactly: SAM-CLAUDE-OK"
 ```
 
@@ -155,6 +166,8 @@ Windows 격리 데이터도 백업 폴더로 옮기려면:
   [install-windows.ps1](./install-windows.ps1)을 내려받아 실행하세요.
 - 설치 프로그램 없이 직접 구성하려면
   [완전 수동 설정](./MANUAL_SETUP.md)을 따라 하세요.
+- Windows에서 설치·수동 설정·검증을 한 번에 보려면
+  [Windows 설치 가이드](./WINDOWS_SETUP.md)를 따라 하세요.
 
 ## 문제가 생겼다면
 
