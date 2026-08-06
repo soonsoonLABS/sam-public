@@ -128,12 +128,38 @@ the CLI or run a paid generation test until authenticated discovery succeeds.
 `Hello SAM` calls a real model and may record a small amount of SAM usage. Run
 it only after no-generation discovery succeeds.
 
+### macOS / Linux
+
 ```bash
 curl -sS -X POST https://sam.soonsoon.ai/v1/hello \
   -H "Authorization: Bearer $SAM_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"greeting":"Hello SAM"}'
 ```
+
+### Windows PowerShell
+
+PowerShell may map `curl` to `Invoke-WebRequest`, and the Unix `\` line
+continuation does not work. Use the PowerShell form instead.
+
+```powershell
+. "$HOME\.sam\env.ps1"
+
+$headers = @{
+  Authorization = "Bearer $env:SAM_API_KEY"
+  "Content-Type" = "application/json"
+}
+$body = @{ greeting = "Hello SAM" } | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "https://sam.soonsoon.ai/v1/hello" `
+  -Headers $headers `
+  -Body $body
+```
+
+To use native curl, call `curl.exe` explicitly and reference the PowerShell
+environment variable as `$env:SAM_API_KEY`.
 
 ## Delete the shared key
 

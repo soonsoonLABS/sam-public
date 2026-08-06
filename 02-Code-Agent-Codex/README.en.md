@@ -34,6 +34,9 @@ is not required when removing SAM-Codex.
 First use [`../00-sam-setup/`](../00-sam-setup/README.en.md) to confirm that the
 shared `SAM_API_KEY` receives HTTP `200` from `/v2/codex/models`.
 
+For a complete Windows installation, manual setup, and test sequence, see
+[Windows setup](./WINDOWS_SETUP.en.md).
+
 ### macOS
 
 ```bash
@@ -122,6 +125,13 @@ SAM usage:
 
 ```bash
 sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral \
+  "Reply with exactly: SAM-CODEX-OK"
+```
+
+Windows PowerShell uses the PowerShell continuation character:
+
+```powershell
+sam-codex exec --sandbox read-only --skip-git-repo-check --ephemeral `
   "Reply with exactly: SAM-CODEX-OK"
 ```
 

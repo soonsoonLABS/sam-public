@@ -9,6 +9,8 @@ for document in \
   README.md \
   README.en.md \
   MANUAL_SETUP.md \
+  WINDOWS_SETUP.md \
+  WINDOWS_SETUP.en.md \
   HOW_IT_WORKS.md \
   TROUBLESHOOTING.md
 do
@@ -27,6 +29,8 @@ documents = [
     root / "README.md",
     root / "README.en.md",
     root / "MANUAL_SETUP.md",
+    root / "WINDOWS_SETUP.md",
+    root / "WINDOWS_SETUP.en.md",
     root / "HOW_IT_WORKS.md",
     root / "TROUBLESHOOTING.md",
 ]
@@ -49,6 +53,10 @@ required = (
     "SAM_CLAUDE_INSTALLER_MANAGED=1",
     "uninstall-macos.sh",
     "uninstall-windows.ps1",
+    "WINDOWS_SETUP.md",
+    "WINDOWS_SETUP.en.md",
+    "Invoke-RestMethod",
+    "$env:SAM_API_KEY",
 )
 for item in required:
     assert item in combined, f"missing public contract: {item}"

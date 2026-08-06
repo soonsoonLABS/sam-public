@@ -131,12 +131,38 @@ $headers = @{ Authorization = "Bearer $env:SAM_API_KEY" }
 `Hello SAM`은 실제 모델을 호출하므로 소량의 SAM 사용량이 기록될 수
 있습니다. 비용 없는 discovery가 성공한 뒤에만 실행합니다.
 
+### macOS / Linux
+
 ```bash
 curl -sS -X POST https://sam.soonsoon.ai/v1/hello \
   -H "Authorization: Bearer $SAM_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"greeting":"안녕 SAM"}'
 ```
+
+### Windows PowerShell
+
+PowerShell의 `curl`은 `Invoke-WebRequest` 별칭일 수 있고, Unix용 `\` 줄
+연결도 동작하지 않습니다. PowerShell 명령을 그대로 사용하세요.
+
+```powershell
+. "$HOME\.sam\env.ps1"
+
+$headers = @{
+  Authorization = "Bearer $env:SAM_API_KEY"
+  "Content-Type" = "application/json"
+}
+$body = @{ greeting = "안녕 SAM" } | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "https://sam.soonsoon.ai/v1/hello" `
+  -Headers $headers `
+  -Body $body
+```
+
+실제 curl을 사용하려면 `curl` 대신 `curl.exe`를 쓰고 PowerShell 환경변수는
+`$env:SAM_API_KEY`로 참조합니다.
 
 ## 공용 키 최종 삭제
 
