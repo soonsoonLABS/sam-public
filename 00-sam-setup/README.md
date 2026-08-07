@@ -20,20 +20,23 @@ Agent 권한을 분리해 확인합니다.
 
 ## 1. SAM 사용 환경 테스트
 
-키 없이 서비스 연결과 readiness만 확인합니다. 이 호출은 모델을 생성하지
-않습니다.
+키 없이 서비스 연결과 API health만 확인합니다. 이 호출은 모델을 생성하지
+않습니다. 공개 도메인의 `/readyz`는 현재 Web 응답으로 라우팅될 수 있으므로
+초기 연결 확인에는 API health 경로인 `/health`를 사용합니다.
 
 ```bash
-curl -fsS --max-time 10 https://sam.soonsoon.ai/readyz
+curl -fsS --max-time 10 https://sam.soonsoon.ai/health
 ```
 
 ```powershell
-(Invoke-WebRequest -TimeoutSec 10 -Uri "https://sam.soonsoon.ai/readyz").StatusCode
+(Invoke-WebRequest -TimeoutSec 10 -Uri "https://sam.soonsoon.ai/health").StatusCode
 ```
 
-JSON readiness 응답 또는 HTTP `200`이면 네트워크·DNS·TLS·SAM 진입점이
-정상입니다. 이 결과만으로 API 키나 모델 provider까지 정상이라고 판단하면
-안 됩니다.
+JSON health 응답 또는 HTTP `200`이면 네트워크·DNS·TLS·SAM API 진입점이
+응답한 것입니다. 이 결과만으로 API 키나 모델 provider까지 정상이라고
+판단하면 안 됩니다. `/readyz`에서 SAM 웹 페이지 HTML이 나오면 로컬 설정
+문제가 아니라 운영 라우팅 상태이므로, 아래 인증 discovery를 별도로
+확인하세요.
 
 ## 2. 공용 SAM API 키 저장
 
@@ -122,7 +125,7 @@ $headers = @{ Authorization = "Bearer $env:SAM_API_KEY" }
 | `404` | 오래된 URL 또는 잘못된 base URL | 반드시 이 문서의 V2 URL 사용 |
 | timeout / HTTP `000` | 네트워크 또는 SAM runtime 문제 | readiness와 discovery 결과를 분리해 보고 |
 
-`/readyz`의 `200`은 인프라 readiness만 뜻합니다. 인증된 discovery의 `200`이
+`/health`의 `200`은 API health만 뜻합니다. 인증된 discovery의 `200`이
 나오기 전에는 CLI 설정 문제로 단정하거나 유료 생성 테스트를 실행하지
 마세요.
 

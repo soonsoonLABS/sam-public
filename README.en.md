@@ -49,7 +49,7 @@ wrapper keeps working.
 
 - Never paste key values into Git-tracked files, documentation, issues, URLs,
   screenshots, or command history.
-- `/readyz` and model discovery do not generate model output and do not create
+- `/health` and model discovery do not generate model output and do not create
   model usage.
 - Real generation tests such as `sam-codex exec ...` and `sam-claude -p ...`
   may create SAM usage and cost.

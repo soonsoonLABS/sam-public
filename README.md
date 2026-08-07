@@ -47,7 +47,7 @@ SAM 키의 표준 로컬 위치는 `~/.sam/`입니다. `sam-codex`와 `sam-claud
 
 - 키 값을 Git 추적 파일, 문서, 이슈, URL, 스크린샷 또는 명령 기록에 직접
   넣지 마세요.
-- `/readyz`와 모델 discovery는 모델을 생성하지 않으므로 모델 사용량이
+- `/health`와 모델 discovery는 모델을 생성하지 않으므로 모델 사용량이
   발생하지 않습니다.
 - `sam-codex exec ...`와 `sam-claude -p ...` 같은 실제 생성 테스트부터
   SAM 사용량과 비용이 기록될 수 있습니다.

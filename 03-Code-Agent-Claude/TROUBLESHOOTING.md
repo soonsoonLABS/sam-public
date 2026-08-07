@@ -88,7 +88,7 @@ wrapper는 이전 cache가 있어도 Claude Code를 시작하지 않습니다. �
 확인하고, SAM 웹 **Agent > Claude Code**에서 Haiku / Sonnet / Opus에 각각
 모델이 선택됐는지 확인한 뒤 다시 실행하세요.
 
-`/readyz` 성공은 서버 인프라 준비 상태만 뜻하며, 현재 키의 모델 discovery
+`/health` 성공은 API health만 뜻하며, 현재 키의 모델 discovery
 성공을 대신하지 않습니다.
 
 ## `/model`에 역할 모델이 없거나 예상과 다릅니다
