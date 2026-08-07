@@ -30,9 +30,6 @@ function Get-CodexClientVersion {
         throw "Could not parse the codex-cli version line."
     }
     $clientVersion = $versionMatch.Groups[1].Value
-    if ($clientVersion -cnotmatch '^(?:0\.145\.[0-9]+|0\.146\.0)$') {
-        throw "SAM-Codex currently supports Codex 0.145.x and 0.146.0."
-    }
     return $clientVersion
 }
 
@@ -66,7 +63,8 @@ function Get-VerifiedSamCatalogModel {
         -not ($catalog.PSObject.Properties.Name -contains "models")) {
         return $null
     }
-    if ([string]$catalog.client_version -cne $ExpectedClientVersion) {
+    if ([string]$catalog.client_version -cnotmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$' -or
+        [string]$catalog.client_version -cne $ExpectedClientVersion) {
         return $null
     }
 

@@ -31,14 +31,11 @@ case "$*" in
   *) exit 22 ;;
 esac
 case "$*" in
-  *"--data-urlencode client_version=0.145.0"*"https://sam.soonsoon.ai/v2/codex/models"*)
-    requested_version="0.145.0"
-    ;;
-  *"--data-urlencode client_version=0.146.0"*"https://sam.soonsoon.ai/v2/codex/models"*)
-    requested_version="0.146.0"
-    ;;
+  *"--data-urlencode client_version="*"https://sam.soonsoon.ai/v2/codex/models"*) ;;
   *) exit 22 ;;
 esac
+requested_version="$(printf '%s\n' "$*" | sed -n 's/.*--data-urlencode client_version=\([^ ]*\).*/\1/p')"
+[ -n "$requested_version" ] || exit 22
 printf '%s\n' "$*" >>"$CURL_LOG"
 case "$(cat "$CURL_MODE_FILE")" in
   fail) exit 22 ;;
@@ -157,11 +154,7 @@ grep -Fq \
   '"slug":"gpt-5.6-sol","visibility":"hide","supported_in_api":false' \
   "$HOME/.codex-sam/models.json"
 test "$(grep -Fc -- '-H x-sam-codex-cache: 1' "$CURL_LOG")" -ge 2
-test "$(
-  grep -Fc -- \
-    '--data-urlencode client_version=0.146.0' \
-    "$CURL_LOG"
-)" -ge 2
+test "$(grep -Fc -- '--data-urlencode client_version=0.146.0' "$CURL_LOG")" -ge 2
 test "$(grep -Fc '# >>> SAM-Codex managed >>>' "$HOME/.zshrc")" -eq 1
 # shellcheck disable=SC2016
 test "$(grep -Fc 'command "$HOME/.local/bin/sam-codex" "$@"' "$HOME/.zshrc")" -eq 1
@@ -316,26 +309,19 @@ if (
   printf 'Expected strict Codex version parsing to reject extra output.\n' >&2
   exit 1
 fi
-grep -Fq 'requires one exact Codex 0.145.x or 0.146.0 version line' \
+grep -Fq 'requires one exact semantic Codex CLI version line' \
   "$TEST_ROOT/version.stderr"
 test "$(wc -l <"$CURL_LOG" | tr -d ' ')" = \
   "$curl_count_before_bad_version"
 test "$(shasum "$HOME/.codex-sam/models.json")" = "$catalog_before_failure"
 printf 'strict\n' >"$CODEX_VERSION_MODE_FILE"
 
-curl_count_before_future_version="$(wc -l <"$CURL_LOG" | tr -d ' ')"
 printf 'future\n' >"$CODEX_VERSION_MODE_FILE"
-if (
+future_version_output="$(
   cd "$HOME" && "$HOME/.local/bin/sam-codex" --version
-) >"$TEST_ROOT/future-version.stdout" 2>"$TEST_ROOT/future-version.stderr"; then
-  printf 'Expected future Codex minor version to fail closed.\n' >&2
-  exit 1
-fi
-grep -Fq 'requires one exact Codex 0.145.x or 0.146.0 version line' \
-  "$TEST_ROOT/future-version.stderr"
-test "$(wc -l <"$CURL_LOG" | tr -d ' ')" = \
-  "$curl_count_before_future_version"
-test "$(shasum "$HOME/.codex-sam/models.json")" = "$catalog_before_failure"
+)"
+printf '%s' "$future_version_output" | grep -Fq 'model="azure.gpt-5.6-terra"'
+grep -Fq -- '--data-urlencode client_version=0.147.0' "$CURL_LOG"
 printf 'strict\n' >"$CODEX_VERSION_MODE_FILE"
 
 printf 'success\n' >"$CURL_MODE_FILE"

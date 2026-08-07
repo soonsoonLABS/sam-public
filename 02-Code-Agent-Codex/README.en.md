@@ -16,15 +16,16 @@ does not change the existing OpenAI login, configuration, or sessions.
 ## A. Use only official Codex
 
 ```bash
-npm install -g @openai/codex@0.146.0
+npm install -g @openai/codex
 codex --version
 codex login
 codex
 ```
 
-The current SAM model-catalog contract supports Codex `0.145.x` and `0.146.0`.
-Later unverified versions are rejected until their bundled-model hide contract
-is verified.
+`sam-codex` reads the installed Codex semantic version at launch and sends it to
+SAM discovery as metadata. Model selection comes from the authenticated SAM
+catalog rather than a pinned client-version list. Malformed catalogs or a
+client-version mismatch still fail closed.
 
 Run `codex logout` only when you intend to remove official authentication. It
 is not required when removing SAM-Codex.

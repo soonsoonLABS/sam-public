@@ -25,12 +25,13 @@ The shared key is kept only in `%USERPROFILE%\.sam\env.ps1`.
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-npm install -g @openai/codex@0.146.0
+npm install -g @openai/codex
 codex --version
 ```
 
-SAM-Codex currently verifies Codex `0.145.x` and `0.146.0`. Do not bypass the
-version gate with an unverified client.
+Use the latest official Codex CLI. `sam-codex` reads its semantic version and
+sends it to SAM discovery as metadata, then uses only the authenticated SAM
+catalog. A malformed catalog or client-version mismatch still fails closed.
 
 ## 2. Recommended: run the Windows installer
 
