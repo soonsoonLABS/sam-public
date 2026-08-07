@@ -73,11 +73,13 @@ sam-tools  https://sam.soonsoon.ai/mcp  ...  enabled
 선택했다는 뜻입니다.
 `/model`에서 현재 표시되는 native 또는 인증된 호환 모델을 선택하세요.
 
-## `requires one exact Codex 0.145.x or 0.146.0 version line`
+## `requires one exact semantic Codex CLI version line`
 
-현재 공개 설정은 Codex `0.145.x`와 `0.146.0`의 내장 모델 목록을 검증했습니다.
-임의로 검사를 우회하지 말고, 빠른 시작의 지원 버전을 설치하거나 SAM 문서가 새
-버전을 지원할 때까지 기다리세요.
+`codex --version`이 한 줄의 semantic version을 반환하지 않을 때 발생합니다.
+공식 최신 Codex CLI를 다시 설치하고 `codex --version` 결과가 한 줄인지
+확인하세요. 정상적인 새 버전은 고정된 버전 목록 때문에 거부되지 않지만,
+catalog 형식 불일치·client version mismatch·인증 discovery 실패는 계속
+fail-closed됩니다.
 
 ## OpenAI 페이지 읽기가 실패합니다
 

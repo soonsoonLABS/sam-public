@@ -61,7 +61,7 @@ case "$arguments" in
   *) exit 22 ;;
 esac
 case "$arguments" in
-  *"--data-urlencode client_version=0.146.0"*"https://sam.soonsoon.ai/v2/codex/models"*) ;;
+  *"--data-urlencode client_version="*"https://sam.soonsoon.ai/v2/codex/models"*) ;;
   *) exit 22 ;;
 esac
 printf '%s\n' "$arguments" >>"$CURL_LOG"
@@ -164,7 +164,8 @@ if printf '%s' "$official_output" | grep -Fq '.codex-sam'; then
   exit 1
 fi
 
-grep -Fq '@openai/codex@0.146.0' "$README"
+grep -Fq 'npm install -g @openai/codex' "$README"
+grep -Fq '버전은 고정하지 않습니다' "$QUICKSTART"
 grep -Fq 'Agent 페이지에서' "$README"
 grep -Fq '선택한 V2-native 모델과 인증된' "$README"
 grep -Fq 'templates/sam-codex' "$README"

@@ -26,9 +26,7 @@ codex_client_version() {
   version_output="$(codex --version 2>/dev/null)" || return 1
   [[ "$version_output" != *$'\n'* ]] || return 1
   if [[ "$version_output" =~ ^codex-cli\ ([0-9]+\.[0-9]+\.[0-9]+([.+-][0-9A-Za-z.-]+)?)$ ]]; then
-    case "${BASH_REMATCH[1]}" in
-      0.145.* | 0.146.0) printf '%s\n' "${BASH_REMATCH[1]}" ;;
-    esac
+    printf '%s\n' "${BASH_REMATCH[1]}"
   fi
 }
 
@@ -60,7 +58,7 @@ catalog_is_verified() {
   [[ "$fetched_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z$ ]] ||
     return 1
   [ "$etag" = "sam-v2-unified-codex-catalog" ] || return 1
-  [ -n "$actual_version" ] || return 1
+  [[ "$actual_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.+-][0-9A-Za-z.-]+)?$ ]] || return 1
   if [ -n "$expected_version" ]; then
     [ "$actual_version" = "$expected_version" ] || return 1
   fi
@@ -217,7 +215,7 @@ command -v curl >/dev/null 2>&1 || fail "curl is required."
 [ -x /usr/bin/plutil ] || fail "/usr/bin/plutil is required on macOS."
 client_version="$(codex_client_version)" || client_version=""
 [ -n "$client_version" ] ||
-  fail "SAM-Codex currently requires one exact Codex 0.145.x or 0.146.0 version line."
+  fail "SAM-Codex requires one exact semantic Codex CLI version line."
 
 umask 077
 mkdir -p "$SAM_HOME" "$CODEX_SAM_HOME" "$BIN_DIR"
@@ -341,9 +339,7 @@ codex_client_version() {
   version_output="$(codex --version 2>/dev/null)" || return 1
   [[ "$version_output" != *$'\n'* ]] || return 1
   if [[ "$version_output" =~ ^codex-cli\ ([0-9]+\.[0-9]+\.[0-9]+([.+-][0-9A-Za-z.-]+)?)$ ]]; then
-    case "${BASH_REMATCH[1]}" in
-      0.145.* | 0.146.0) printf '%s\n' "${BASH_REMATCH[1]}" ;;
-    esac
+    printf '%s\n' "${BASH_REMATCH[1]}"
   fi
 }
 
@@ -376,7 +372,7 @@ catalog_is_verified() {
   [[ "$fetched_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z$ ]] ||
     return 1
   [[ "$etag" == "sam-v2-unified-codex-catalog" ]] || return 1
-  [[ -n "$actual_version" ]] || return 1
+  [[ "$actual_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.+-][0-9A-Za-z.-]+)?$ ]] || return 1
   if [[ -n "$expected_version" ]]; then
     [[ "$actual_version" == "$expected_version" ]] || return 1
   fi
@@ -511,7 +507,7 @@ set +x
 
 client_version="$(codex_client_version)" || client_version=""
 [[ -n "$client_version" ]] || {
-  echo "SAM-Codex currently requires one exact Codex 0.145.x or 0.146.0 version line." >&2
+  echo "SAM-Codex requires one exact semantic Codex CLI version line." >&2
   exit 1
 }
 

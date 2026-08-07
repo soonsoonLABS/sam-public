@@ -15,10 +15,12 @@
 - [SAM API Keys](https://sam.soonsoon.ai/api-keys)에서 발급한 Code Agent 권한 키
 - 공식 Codex CLI
 
-Codex가 없다면:
+Codex가 없다면 최신 공식 CLI를 설치합니다. 버전은 고정하지 않습니다.
+[OpenAI Codex 공식 저장소](https://github.com/openai/codex)의 설치 방식과
+동일한 npm 패키지를 사용합니다.
 
 ```bash
-npm install -g @openai/codex@0.146.0
+npm install -g @openai/codex
 codex --version
 ```
 
@@ -26,12 +28,13 @@ Windows PowerShell에서는 먼저 실행 정책을 설정하고 같은 명령�
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-npm install -g @openai/codex@0.146.0
+npm install -g @openai/codex
 codex --version
 ```
 
-현재 SAM 전용 모델 카탈로그는 Codex `0.145.x`와 `0.146.0`을 허용합니다.
-검증되지 않은 이후 버전은 내장 모델이 다시 노출되지 않도록 실행을 중단합니다.
+`sam-codex`는 설치된 Codex의 semantic version을 실행 때 읽어 SAM discovery에
+전달합니다. 모델 선택은 버전 목록이 아니라 인증된 SAM catalog가 정하며,
+catalog 형식이 맞지 않거나 버전이 응답과 다르면 안전하게 중단합니다.
 
 ## 1. 한 줄 설치
 

@@ -28,12 +28,13 @@
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-npm install -g @openai/codex@0.146.0
+npm install -g @openai/codex
 codex --version
 ```
 
-SAM-Codex가 현재 검증하는 버전은 `0.145.x`와 `0.146.0`입니다. 다른 버전은
-검증 전까지 사용하지 마세요.
+최신 공식 Codex CLI를 사용해도 됩니다. `sam-codex`는 실행된 CLI의 semantic
+version을 SAM discovery에 전달하고, 인증된 catalog만 사용합니다. catalog가
+손상되거나 응답의 client version이 다르면 실행을 중단합니다.
 
 ## 2. 권장: 설치 파일로 설치
 
