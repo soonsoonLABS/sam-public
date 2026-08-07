@@ -164,7 +164,7 @@ needed.
 ## Diagnostic order
 
 1. `codex --version`: official CLI installation
-2. `/readyz`: network and SAM readiness
+2. `/health`: network and SAM API health
 3. `/v2/codex/models`: key, grant, and admitted native/compatibility model
 4. `sam-codex --version` in a Git project: isolated wrapper
 5. Minimal generation: V2 Responses and usage

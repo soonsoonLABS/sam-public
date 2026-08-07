@@ -20,19 +20,23 @@ CLIs and agents after replacing the key.
 
 ## 1. Test the SAM environment
 
-Check connectivity and readiness without a key. This does not generate model
-output.
+Check API connectivity and health without a key. This does not generate model
+output. The public `/readyz` path can currently be routed to the Web app, so
+use the API health path, `/health`, for the initial connectivity check.
 
 ```bash
-curl -fsS --max-time 10 https://sam.soonsoon.ai/readyz
+curl -fsS --max-time 10 https://sam.soonsoon.ai/health
 ```
 
 ```powershell
-(Invoke-WebRequest -TimeoutSec 10 -Uri "https://sam.soonsoon.ai/readyz").StatusCode
+(Invoke-WebRequest -TimeoutSec 10 -Uri "https://sam.soonsoon.ai/health").StatusCode
 ```
 
-A readiness JSON response or HTTP `200` confirms the network, DNS, TLS, and SAM
-entrypoint. It does not validate your key or a model provider.
+A JSON health response or HTTP `200` confirms that the network, DNS, TLS, and
+SAM API entrypoint responded. It does not validate your key or a model
+provider. If `/readyz` returns the SAM Web HTML page, that is an operational
+routing condition, not a local setup failure; continue with authenticated
+discovery below.
 
 ## 2. Save the shared SAM API key
 
@@ -120,7 +124,7 @@ $headers = @{ Authorization = "Bearer $env:SAM_API_KEY" }
 | `404` | Old or incorrect base URL | Use the V2 URLs in this guide |
 | timeout / HTTP `000` | Network or SAM runtime problem | Report readiness and discovery separately |
 
-HTTP `200` from `/readyz` proves only infrastructure readiness. Do not diagnose
+HTTP `200` from `/health` proves only API health. Do not diagnose
 the CLI or run a paid generation test until authenticated discovery succeeds.
 
 ## Optional: test a real generation
